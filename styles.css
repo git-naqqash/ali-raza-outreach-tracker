@@ -648,6 +648,11 @@ table.leads-table tr:hover {
   background-color: rgba(239, 68, 68, 0.06);
 }
 
+.action-btn.delete-btn:hover {
+  color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.06);
+}
+
 /* Mobile Cards View */
 .mobile-cards-grid {
   display: none; /* Desktop default */

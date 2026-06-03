@@ -379,6 +379,9 @@ function renderLeads() {
           <button class="action-btn archive-btn" onclick="archiveLead(${lead.originalIndex})" title="Archive Lead">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
           </button>
+          <button class="action-btn delete-btn" onclick="deleteLead(${lead.originalIndex})" title="Delete Lead">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+          </button>
         </div>
       </td>
     `;
@@ -431,11 +434,14 @@ function renderLeads() {
 
       <div class="lead-card-actions">
         ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
-        <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})">
+        <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
-        <button class="btn btn-secondary btn-icon-only" onclick="archiveLead(${lead.originalIndex})">
+        <button class="btn btn-secondary btn-icon-only" onclick="archiveLead(${lead.originalIndex})" title="Archive Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+        </button>
+        <button class="btn btn-secondary btn-icon-only btn-danger-outline" onclick="deleteLead(${lead.originalIndex})" title="Delete Lead">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         </button>
       </div>
     `;
@@ -513,6 +519,9 @@ function renderTodayActions() {
           <button class="action-btn archive-btn" onclick="archiveLead(${lead.originalIndex})" title="Archive Lead">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
           </button>
+          <button class="action-btn delete-btn" onclick="deleteLead(${lead.originalIndex})" title="Delete Lead">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+          </button>
         </div>
       </td>
     `;
@@ -555,11 +564,14 @@ function renderTodayActions() {
 
       <div class="lead-card-actions">
         ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
-        <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})">
+        <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
-        <button class="btn btn-secondary btn-icon-only" onclick="archiveLead(${lead.originalIndex})">
+        <button class="btn btn-secondary btn-icon-only" onclick="archiveLead(${lead.originalIndex})" title="Archive Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+        </button>
+        <button class="btn btn-secondary btn-icon-only btn-danger-outline" onclick="deleteLead(${lead.originalIndex})" title="Delete Lead">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         </button>
       </div>
     `;
@@ -634,6 +646,20 @@ function archiveLead(index) {
   renderLeads();
   renderTodayActions();
   showToast(`Archived lead "${leadName}"`, "success");
+}
+
+// Delete Lead (permanently)
+function deleteLead(index) {
+  const leadName = leads[index].name;
+  const confirmed = confirm("Are you sure you want to permanently delete this lead? This action cannot be undone.");
+  if (confirmed) {
+    leads.splice(index, 1);
+    saveData();
+    updateDashboard();
+    renderLeads();
+    renderTodayActions();
+    showToast(`Permanently deleted lead "${leadName}"`, "success");
+  }
 }
 
 // Toast System
@@ -944,3 +970,4 @@ function exportToCSV() {
 // Global functions accessible from HTML (inline onclick)
 window.openEditModal = openEditModal;
 window.archiveLead = archiveLead;
+window.deleteLead = deleteLead;
