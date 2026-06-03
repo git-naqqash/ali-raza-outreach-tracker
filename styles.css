@@ -1290,3 +1290,105 @@ table.leads-table tr:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* Utility Class for Hidden state */
+.hidden {
+  display: none !important;
+}
+
+/* Premium Login Page Design */
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background-color: var(--color-off-white);
+  background-image: radial-gradient(circle at 10% 20%, rgba(30, 91, 255, 0.03) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(15, 174, 150, 0.03) 0%, transparent 40%);
+}
+
+.login-card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  border: var(--border-light);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 440px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(11, 31, 58, 0.08);
+}
+
+.login-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-logo {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, var(--color-royal-blue), #0d4eff);
+  color: var(--color-white);
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-glow-blue);
+  margin-bottom: 4px;
+}
+
+.login-header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-deep-navy);
+  margin: 0;
+}
+
+.login-header p {
+  font-size: 14px;
+  color: var(--color-priority-c);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-error-container {
+  background-color: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  display: none; /* hidden by default */
+}
+
+.login-error-container.active {
+  display: block;
+}
+
+/* Adjustments for responsive design */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 24px 20px;
+  }
+}

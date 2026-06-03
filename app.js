@@ -1,5 +1,9 @@
 /* D:\Lead Tracker\app.js */
 
+// Authentication Credentials
+const LOGIN_USER = "contact.naqqash@gmail.com";
+const LOGIN_PASS = "@@@03314200250";
+
 // Helper to format dates relative to today
 function getOffsetDateString(daysOffset) {
   const d = new Date();
@@ -371,7 +375,23 @@ document.addEventListener("DOMContentLoaded", () => {
   renderLeads();
   renderTodayActions();
   renderScripts();
+  checkAuth();
 });
+
+// Authentication Status Toggle
+function checkAuth() {
+  const isLoggedIn = localStorage.getItem("ali_raza_logged_in") === "true";
+  const loginContainer = document.getElementById("loginContainer");
+  const appContainer = document.querySelector(".app-container");
+  
+  if (isLoggedIn) {
+    if (loginContainer) loginContainer.classList.add("hidden");
+    if (appContainer) appContainer.classList.remove("hidden");
+  } else {
+    if (loginContainer) loginContainer.classList.remove("hidden");
+    if (appContainer) appContainer.classList.add("hidden");
+  }
+}
 
 // Load Leads from LocalStorage or Seed Defaults
 function loadData() {
@@ -1003,6 +1023,44 @@ function setupEventListeners() {
   const searchInput = document.getElementById("searchInput");
   const exportBtn = document.getElementById("exportCsvBtn");
   
+  // Login form submission
+  const loginForm = document.getElementById("loginForm");
+  const loginError = document.getElementById("loginError");
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const usernameInput = document.getElementById("loginUsername").value.trim();
+      const passwordInput = document.getElementById("loginPassword").value;
+      
+      if (usernameInput === LOGIN_USER && passwordInput === LOGIN_PASS) {
+        localStorage.setItem("ali_raza_logged_in", "true");
+        if (loginError) loginError.classList.remove("active");
+        checkAuth();
+        showToast("Welcome back, Ali Raza!", "success");
+      } else {
+        if (loginError) {
+          loginError.textContent = "Invalid username or password.";
+          loginError.classList.add("active");
+        }
+      }
+    });
+  }
+
+  // Logout button click
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      const confirmed = confirm("Are you sure you want to log out?");
+      if (confirmed) {
+        localStorage.removeItem("ali_raza_logged_in");
+        if (loginForm) loginForm.reset();
+        if (loginError) loginError.classList.remove("active");
+        checkAuth();
+        showToast("Logged out successfully.", "info");
+      }
+    });
+  }
+
   // Modal toggles
   addBtn.addEventListener("click", openAddModal);
   closeBtn.addEventListener("click", closeModal);

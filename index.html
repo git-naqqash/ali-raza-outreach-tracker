@@ -8,7 +8,38 @@
 </head>
 <body>
   
-  <div class="app-container">
+  <!-- Login Section -->
+  <div id="loginContainer" class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">AR</div>
+        <h1>Ali Raza Outreach Tracker</h1>
+        <p>Private outreach CRM for lead tracking and follow-ups.</p>
+      </div>
+
+      <div id="loginError" class="login-error-container">
+        Invalid username or password.
+      </div>
+
+      <form id="loginForm" class="login-form">
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="loginUsername" style="font-size: 13px; font-weight: 600; color: var(--color-deep-navy);">Username / Email</label>
+          <input type="email" id="loginUsername" placeholder="e.g. contact.naqqash@gmail.com" required style="padding: 10px 12px; font-size: 14px; border-radius: var(--radius-md); border: var(--border-light); outline: none;">
+        </div>
+
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="loginPassword" style="font-size: 13px; font-weight: 600; color: var(--color-deep-navy);">Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter password" required style="padding: 10px 12px; font-size: 14px; border-radius: var(--radius-md); border: var(--border-light); outline: none;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+          Log In
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-container hidden">
     
     <!-- Top Header -->
     <header class="app-header">
@@ -23,6 +54,10 @@
         <button id="exportCsvBtn" class="btn btn-secondary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Export CSV
+        </button>
+        <button id="logoutBtn" class="btn btn-secondary" style="border-color: rgba(239, 68, 68, 0.2); color: #ef4444;" title="Log out from Outreach Tracker">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Logout
         </button>
         <button id="addLeadBtn" class="btn btn-primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
