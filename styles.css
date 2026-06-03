@@ -218,6 +218,12 @@ button {
   border-radius: var(--radius-md);
 }
 
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+}
+
 /* Dashboard Metrics */
 .dashboard-grid {
   display: grid;
@@ -806,6 +812,74 @@ table.leads-table tr:hover {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Script Badges */
+.script-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+}
+.script-badge.channel {
+  background: rgba(30, 91, 255, 0.08);
+  color: var(--color-royal-blue);
+  border-color: rgba(30, 91, 255, 0.12);
+}
+.script-badge.type {
+  background: rgba(11, 31, 58, 0.05);
+  color: var(--color-deep-navy);
+  border-color: rgba(11, 31, 58, 0.08);
+}
+
+/* Scripts Toolbar */
+.scripts-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  background-color: var(--color-off-white);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: var(--border-light);
+  margin-bottom: 4px;
+}
+.scripts-toolbar .search-wrapper {
+  flex: 1;
+  min-width: 180px;
+}
+.scripts-toolbar .search-wrapper input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  border: var(--border-light);
+  background-color: var(--color-white);
+  outline: none;
+  font-family: var(--font-body);
+  transition: var(--transition-fast);
+}
+.scripts-toolbar .search-wrapper input:focus {
+  border-color: var(--color-royal-blue);
+  box-shadow: 0 0 0 3px rgba(30, 91, 255, 0.1);
+}
+.scripts-toolbar select {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  border: var(--border-light);
+  background-color: var(--color-white);
+  outline: none;
+  font-family: var(--font-body);
+  transition: var(--transition-fast);
+  min-width: 120px;
+}
+.scripts-toolbar select:focus {
+  border-color: var(--color-royal-blue);
+  box-shadow: 0 0 0 3px rgba(30, 91, 255, 0.1);
 }
 
 .scripts-accordion {

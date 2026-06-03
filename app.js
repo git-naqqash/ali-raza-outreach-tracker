@@ -110,6 +110,118 @@ function getWhatsAppLink(number) {
   return `https://wa.me/${cleaned}`;
 }
 
+// Default seed data for Message Scripts
+const DEFAULT_SCRIPTS = [
+  {
+    id: "default-ig-dm",
+    title: "Instagram DM (Found Pitch)",
+    channel: "Instagram",
+    type: "First Message",
+    body: "Ciao [Name]! Love your content on [Topic], especially your post about [Reference]. I help Italian coaches package their expertise into professional PDF workbooks and lead magnets to scale their client acquisition. Just wanted to see if you have any books/lead magnets planned for this quarter?",
+    isDefault: true
+  },
+  {
+    id: "default-li-conn",
+    title: "LinkedIn Connection Request",
+    channel: "LinkedIn",
+    type: "Connection Request",
+    body: "Hi [Name], came across your profile and noticed your focus on [Niche]. I write white-label ebooks and interactive workbooks for business agencies and publishing teams in the [Market] region. Would love to connect and keep in touch!",
+    isDefault: true
+  },
+  {
+    id: "default-li-after",
+    title: "LinkedIn Message (After Accepting)",
+    channel: "LinkedIn",
+    type: "After Accepting",
+    body: "Thanks for connecting, [Name]! Many agencies and course creators struggle to write high-quality books/lead magnets that engage readers and drive backend sales. I outline, structure, and write white-label books so you can publish faster under your name. Have you ever considered launching an ebook or Canva workbook for your audience?",
+    isDefault: true
+  },
+  {
+    id: "default-email-en",
+    title: "English First Email (Agencies/Coaches)",
+    channel: "Email",
+    type: "First Message",
+    body: "Subject: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI came across [Company] and love the work you are doing for clients in [Niche]. \n\nI work as a freelance white-label book writer. I help publishing teams, content agencies, and coaches design and draft high-conversion ebooks, workbook PDFs, and lead magnets. This lets you offer publishing services to your clients or grow your own backend program without doing any writing yourself.\n\nI’d love to send over a brief PDF sample workbook that shows my writing style and Canva layouts. \n\nWould it be okay to share the link with you?\n\nBest regards,\nAli Raza\nEbook & Lead Magnet Writer\nhttps://alirazawriter.com (Placeholder link)",
+    isDefault: true
+  },
+  {
+    id: "default-email-it",
+    title: "Italian First Email (Primo Contatto)",
+    channel: "Email",
+    type: "First Message",
+    body: "Oggetto: Supporto stesura Ebook e Workbook Canva per [Company]\n\nGentile [Name],\n\nHo visto il vostro lavoro su [Company] e ho pensato di scrivervi.\n\nLavoro come scrittore freelance white-label, specializzato nella creazione di ebook, workbook interattivi Canva e lead magnet per coach, agenzie e case editrici. Scrivo i testi in inglese o italiano e realizzo il layout grafico, consentendovi di pubblicare a vostro nome o offrire questo servizio ai clienti senza occuparvene internamente.\n\nPosso inviarvi una breve anteprima dei miei lavori e dei workbook Canva realizzati per altri progetti simili?\n\nUn cordiale saluto,\nAli Raza\nScrittore di Ebook & Lead Magnet\nhttps://alirazawriter.com",
+    isDefault: true
+  },
+  {
+    id: "default-email-follow",
+    title: "Email Follow-up (Polite Nudge)",
+    channel: "Email",
+    type: "Follow-up",
+    body: "Subject: Re: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI wanted to quickly bump this in case it got buried in your inbox. I know you're busy growing [Company].\n\nJust to recap: I write and design high-quality white-label ebooks and workbooks so you can deliver premium publishing content to your clients or scale your backend funnel.\n\nIf you have 2 minutes, I'd love to drop a quick link to a sample workbook. Would it be worth checking out?\n\nBest,\nAli Raza",
+    isDefault: true
+  },
+  {
+    id: "default-wa-first",
+    title: "WhatsApp First Message (Public Contacts Only)",
+    channel: "WhatsApp",
+    type: "First Message",
+    body: "Hi [Name]! Ali Raza here. Found your business number on your page. I specialize in writing white-label ebooks and interactive workbooks for coaches & course creators. I noticed you publish digital content and wanted to ask if you currently need support outsourcing workbook copywriting or Canva formatting? Appreciate your time!",
+    isDefault: true
+  },
+  {
+    id: "default-wa-follow",
+    title: "WhatsApp Follow-up",
+    channel: "WhatsApp",
+    type: "Follow-up",
+    body: "Hi [Name], just checking if you had a moment to see my previous message about ebook/workbook support? No pressure at all—happy to share a quick PDF sample if you ever want to expand your digital offerings. Have a great day!",
+    isDefault: true
+  },
+  {
+    id: "default-italian-sample-reply",
+    title: "Italian Sample Reply",
+    channel: "Email",
+    type: "Sample Reply",
+    body: "Buongiorno [Nome],\n\ncerto, posso inviarvi 2 sample per valutare struttura, stile e qualità del lavoro.\n\nPer comodità, qui trova anche il mio portfolio:\nlinktr.ee/aliraza.ebooks\n\nResto disponibile se desiderate un esempio più vicino al vostro tipo di progetto.\n\nCordiali saluti,\nAli Raza",
+    isDefault: true
+  },
+  {
+    id: "default-english-sample-reply",
+    title: "English Sample Reply",
+    channel: "Email",
+    type: "Sample Reply",
+    body: "Hi [Name],\n\nSure, I can send 2 relevant samples so you can review the structure, writing style, and quality.\n\nYou can also view my portfolio here:\nlinktr.ee/aliraza.ebooks\n\nIf needed, I can share a sample closer to your type of project.\n\nBest regards,\nAli Raza",
+    isDefault: true
+  },
+  {
+    id: "default-italian-cv-reply",
+    title: "Italian CV Sent Reply",
+    channel: "Email",
+    type: "CV Reply",
+    body: "Buongiorno [Nome],\n\ngrazie mille per la risposta.\n\nLe invio il mio CV e i dettagli della mia attività.\n\nLavoro come supporto white-label per contenuti in inglese: ebook, workbook, Canva book e lead magnet per team editoriali, self-publishing, coach, agenzie e content business.\n\nPer comodità, qui trova anche il mio portfolio:\nlinktr.ee/aliraza.ebooks\n\nResto disponibile anche per una piccola prova gratuita, così potete valutare qualità, struttura e tempi di consegna.\n\nCordiali saluti,\nAli Raza",
+    isDefault: true
+  },
+  {
+    id: "default-price-reply",
+    title: "Price Reply",
+    channel: "General",
+    type: "Price Reply",
+    body: "Hi [Name],\n\nThe price depends on length, structure, niche, deadline, and whether formatting or Canva layout is included.\n\nIf you send me the topic, word count or page count, outline, and deadline, I can give you a clear quote.\n\nBest regards,\nAli Raza",
+    isDefault: true
+  },
+  {
+    id: "default-not-now-reply",
+    title: "Not Now Reply",
+    channel: "General",
+    type: "Not Now Reply",
+    body: "No problem at all, thank you for letting me know.\n\nI’ll stay available if you ever need extra white-label support for ebook, workbook, Canva book, or lead magnet projects in the future.\n\nBest regards,\nAli Raza",
+    isDefault: true
+  }
+];
+
+// Scripts State variables
+let scripts = [];
+let editingScriptId = null;
+
 // Default Seed Data for the Outreach CRM
 const DEFAULT_LEADS = [
   {
@@ -258,20 +370,43 @@ document.addEventListener("DOMContentLoaded", () => {
   updateDashboard();
   renderLeads();
   renderTodayActions();
+  renderScripts();
 });
 
 // Load Leads from LocalStorage or Seed Defaults
 function loadData() {
-  const stored = localStorage.getItem("ali_raza_leads");
-  if (stored) {
-    leads = JSON.parse(stored);
-    // Ensure backwards compatibility for Source
-    leads.forEach(lead => {
-      if (!lead.source) lead.source = "Other";
-    });
-  } else {
+  // Load Leads
+  try {
+    const stored = localStorage.getItem("ali_raza_leads");
+    if (stored) {
+      leads = JSON.parse(stored);
+      // Ensure backwards compatibility for Source
+      leads.forEach(lead => {
+        if (!lead.source) lead.source = "Other";
+      });
+    } else {
+      leads = [...DEFAULT_LEADS];
+      saveData();
+    }
+  } catch (err) {
+    console.error("Error parsing leads from localStorage, resetting to defaults", err);
     leads = [...DEFAULT_LEADS];
     saveData();
+  }
+
+  // Load Scripts
+  try {
+    const storedScripts = localStorage.getItem("ali_raza_scripts");
+    if (storedScripts) {
+      scripts = JSON.parse(storedScripts);
+    } else {
+      scripts = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
+      saveScripts();
+    }
+  } catch (err) {
+    console.error("Error parsing scripts from localStorage, resetting to defaults", err);
+    scripts = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
+    saveScripts();
   }
 }
 
@@ -1013,56 +1148,249 @@ function setupEventListeners() {
     });
   });
 
-  // Script copying action buttons
-  const copyBtns = document.querySelectorAll(".copy-script-btn");
-  copyBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const targetId = btn.getAttribute("data-target");
-      const tooltipId = btn.getAttribute("data-tooltip");
-      
-      const scriptText = document.getElementById(targetId).textContent;
-      
-      navigator.clipboard.writeText(scriptText).then(() => {
-        // Show tooltip
-        const tooltip = document.getElementById(tooltipId);
-        tooltip.classList.add("active");
-        
-        btn.textContent = "Copied!";
-        btn.classList.add("btn-success");
-        
-        setTimeout(() => {
-          tooltip.classList.remove("active");
-          btn.textContent = "Copy Script";
-          btn.classList.remove("btn-success");
-        }, 2000);
-        
-        showToast("Script copied to clipboard!", "success");
-      }).catch(err => {
-        showToast("Failed to copy script.", "error");
-      });
-    });
-  });
+  // --- Scripts Section Toolbar & Accordion Event Delegation ---
 
-  // Script Accordion toggle
-  const accordionTriggers = document.querySelectorAll(".accordion-trigger");
-  accordionTriggers.forEach(trigger => {
-    trigger.addEventListener("click", () => {
-      const parent = trigger.parentElement;
-      const isActive = parent.classList.contains("active");
-      
-      // Close all
-      document.querySelectorAll(".accordion-item").forEach(item => {
-        item.classList.remove("active");
-        item.querySelector(".accordion-content").style.maxHeight = null;
-      });
+  // Search & Filter listeners
+  const scriptSearchInput = document.getElementById("scriptSearchInput");
+  const filterScriptChannel = document.getElementById("filterScriptChannel");
+  const filterScriptType = document.getElementById("filterScriptType");
 
-      if (!isActive) {
+  if (scriptSearchInput) {
+    scriptSearchInput.addEventListener("input", renderScripts);
+  }
+  if (filterScriptChannel) {
+    filterScriptChannel.addEventListener("change", renderScripts);
+  }
+  if (filterScriptType) {
+    filterScriptType.addEventListener("change", renderScripts);
+  }
+
+  // Delegated Accordion Events (Toggle, Copy, Edit, Cancel, Save, Delete)
+  const scriptsAccordion = document.getElementById("scriptsAccordion");
+  if (scriptsAccordion) {
+    scriptsAccordion.addEventListener("click", (e) => {
+      // 1. Accordion Trigger (Toggle Open/Close)
+      const trigger = e.target.closest(".accordion-trigger");
+      if (trigger) {
+        const parent = trigger.closest(".accordion-item");
+        const scriptId = parent.dataset.id;
+        
+        // If this item is being edited, prevent toggle collapse
+        if (editingScriptId === scriptId) return;
+        
+        const isActive = parent.classList.contains("active");
+        
+        // Close all other accordion items
+        document.querySelectorAll("#scriptsAccordion .accordion-item").forEach(item => {
+          if (item !== parent) {
+            item.classList.remove("active");
+            const content = item.querySelector(".accordion-content");
+            if (content) content.style.maxHeight = null;
+          }
+        });
+        
+        parent.classList.toggle("active");
+        const content = parent.querySelector(".accordion-content");
+        if (parent.classList.contains("active")) {
+          content.style.maxHeight = content.scrollHeight + "px";
+        } else {
+          content.style.maxHeight = null;
+        }
+        return;
+      }
+      
+      // 2. Copy Button
+      const copyBtn = e.target.closest(".copy-btn");
+      if (copyBtn) {
+        const scriptId = copyBtn.dataset.id;
+        const script = scripts.find(s => s.id === scriptId);
+        if (script) {
+          navigator.clipboard.writeText(script.body).then(() => {
+            copyBtn.textContent = "Copied!";
+            copyBtn.classList.add("btn-success");
+            copyBtn.classList.remove("btn-secondary");
+            
+            setTimeout(() => {
+              copyBtn.textContent = "Copy Script";
+              copyBtn.classList.remove("btn-success");
+              copyBtn.classList.add("btn-secondary");
+            }, 2000);
+            
+            showToast("Script body copied!", "success");
+          }).catch(() => {
+            showToast("Failed to copy script.", "error");
+          });
+        }
+        return;
+      }
+      
+      // 3. Edit Button
+      const editBtn = e.target.closest(".edit-btn");
+      if (editBtn) {
+        const scriptId = editBtn.dataset.id;
+        editingScriptId = scriptId;
+        renderScripts();
+        
+        // Ensure the accordion item is active and has full height visible
+        const parent = editBtn.closest(".accordion-item");
         parent.classList.add("active");
         const content = parent.querySelector(".accordion-content");
-        content.style.maxHeight = content.scrollHeight + "px";
+        if (content) content.style.maxHeight = "none";
+        return;
+      }
+      
+      // 4. Cancel Edit Button
+      const cancelEditBtn = e.target.closest(".cancel-edit-btn");
+      if (cancelEditBtn) {
+        editingScriptId = null;
+        renderScripts();
+        return;
+      }
+      
+      // 5. Save Edit Button
+      const saveEditBtn = e.target.closest(".save-edit-btn");
+      if (saveEditBtn) {
+        const scriptId = saveEditBtn.dataset.id;
+        const parent = saveEditBtn.closest(".accordion-item");
+        
+        const titleInput = parent.querySelector(".edit-script-title");
+        const channelSelect = parent.querySelector(".edit-script-channel");
+        const typeSelect = parent.querySelector(".edit-script-type");
+        const bodyTextarea = parent.querySelector(".edit-script-body");
+        
+        const updatedTitle = titleInput.value.trim();
+        const updatedChannel = channelSelect.value;
+        const updatedType = typeSelect.value;
+        const updatedBody = bodyTextarea.value;
+        
+        if (!updatedTitle || !updatedBody) {
+          showToast("Title and Body are required.", "error");
+          return;
+        }
+        
+        const scriptIndex = scripts.findIndex(s => s.id === scriptId);
+        if (scriptIndex !== -1) {
+          scripts[scriptIndex].title = updatedTitle;
+          scripts[scriptIndex].channel = updatedChannel;
+          scripts[scriptIndex].type = updatedType;
+          scripts[scriptIndex].body = updatedBody;
+          
+          saveScripts();
+          editingScriptId = null;
+          renderScripts();
+          showToast("Script updated successfully!", "success");
+        }
+        return;
+      }
+      
+      // 6. Delete Button
+      const deleteBtn = e.target.closest(".delete-btn");
+      if (deleteBtn) {
+        const scriptId = deleteBtn.dataset.id;
+        const script = scripts.find(s => s.id === scriptId);
+        if (script) {
+          const confirmed = confirm("Are you sure you want to delete this script?");
+          if (confirmed) {
+            scripts = scripts.filter(s => s.id !== scriptId);
+            saveScripts();
+            if (editingScriptId === scriptId) {
+              editingScriptId = null;
+            }
+            renderScripts();
+            showToast(`Deleted script "${script.title}"`, "success");
+          }
+        }
+        return;
       }
     });
-  });
+  }
+
+  // "+ Add New Script" Modal Controls
+  const addNewScriptBtn = document.getElementById("addNewScriptBtn");
+  const scriptModal = document.getElementById("scriptModal");
+  const closeScriptModalBtn = document.getElementById("closeScriptModalBtn");
+  const cancelScriptModalBtn = document.getElementById("cancelScriptModalBtn");
+  const scriptForm = document.getElementById("scriptForm");
+
+  if (addNewScriptBtn && scriptModal) {
+    addNewScriptBtn.addEventListener("click", () => {
+      if (scriptForm) scriptForm.reset();
+      scriptModal.classList.add("active");
+    });
+  }
+  
+  const closeScriptModal = () => {
+    if (scriptModal) scriptModal.classList.remove("active");
+  };
+
+  if (closeScriptModalBtn) {
+    closeScriptModalBtn.addEventListener("click", closeScriptModal);
+  }
+  if (cancelScriptModalBtn) {
+    cancelScriptModalBtn.addEventListener("click", closeScriptModal);
+  }
+  
+  // Close script modal on overlay click
+  if (scriptModal) {
+    scriptModal.addEventListener("click", (e) => {
+      if (e.target.id === "scriptModal") closeScriptModal();
+    });
+  }
+
+  // Script Modal Form Submission
+  if (scriptForm) {
+    scriptForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const newTitle = document.getElementById("newScriptTitle").value.trim();
+      const newChannel = document.getElementById("newScriptChannel").value;
+      const newType = document.getElementById("newScriptType").value;
+      const newBody = document.getElementById("newScriptBody").value;
+      
+      if (!newTitle || !newBody) {
+        showToast("Title and Body are required.", "error");
+        return;
+      }
+      
+      const newScript = {
+        id: "custom-" + Date.now(),
+        title: newTitle,
+        channel: newChannel,
+        type: newType,
+        body: newBody,
+        isDefault: false
+      };
+      
+      scripts.unshift(newScript); // Add custom to beginning
+      saveScripts();
+      closeScriptModal();
+      renderScripts();
+      showToast(`Added script "${newTitle}"`, "success");
+    });
+  }
+
+  // "Reset Default Scripts" Action
+  const resetScriptsBtn = document.getElementById("resetScriptsBtn");
+  if (resetScriptsBtn) {
+    resetScriptsBtn.addEventListener("click", () => {
+      const confirmed = confirm("This will restore the original default scripts. Your custom scripts may be kept separately.");
+      if (confirmed) {
+        // Keep custom scripts
+        const customScripts = scripts.filter(s => !s.isDefault);
+        
+        // Pristine default copy
+        const pristineDefaults = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
+        
+        // defaults first, then custom ones
+        scripts = [...pristineDefaults, ...customScripts];
+        
+        saveScripts();
+        editingScriptId = null;
+        renderScripts();
+        showToast("Default scripts restored!", "success");
+      }
+    });
+  }
 
   // CSV Export trigger
   exportBtn.addEventListener("click", exportToCSV);
@@ -1625,3 +1953,178 @@ function closeImportPreview() {
 window.openEditModal = openEditModal;
 window.archiveLead = archiveLead;
 window.deleteLead = deleteLead;
+
+// Save Scripts to LocalStorage
+function saveScripts() {
+  localStorage.setItem("ali_raza_scripts", JSON.stringify(scripts));
+}
+
+// Render outreach message scripts dynamically
+function renderScripts() {
+  const container = document.getElementById("scriptsAccordion");
+  if (!container) return;
+
+  const searchQuery = document.getElementById("scriptSearchInput")?.value.toLowerCase().trim() || "";
+  const channelFilter = document.getElementById("filterScriptChannel")?.value || "All";
+  const typeFilter = document.getElementById("filterScriptType")?.value || "All";
+
+  // Filter scripts
+  const filtered = scripts.filter(script => {
+    // Search matching title or body
+    const matchesSearch = !searchQuery || 
+      script.title.toLowerCase().includes(searchQuery) || 
+      script.body.toLowerCase().includes(searchQuery);
+    
+    // Channel filter
+    const matchesChannel = channelFilter === "All" || script.channel === channelFilter;
+    
+    // Type filter
+    const matchesType = typeFilter === "All" || script.type === typeFilter;
+
+    return matchesSearch && matchesChannel && matchesType;
+  });
+
+  // Clear container
+  container.innerHTML = "";
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 24px; color: var(--color-priority-c); font-size: 14px; background-color: var(--color-off-white); border-radius: var(--radius-md); border: var(--border-light);">
+        No outreach scripts found matching your filters.
+      </div>
+    `;
+    return;
+  }
+
+  // Render each script
+  filtered.forEach(script => {
+    const isEditing = editingScriptId === script.id;
+    
+    const accordionItem = document.createElement("div");
+    accordionItem.className = `accordion-item${isEditing ? " active" : ""}`;
+    accordionItem.dataset.id = script.id;
+
+    // Header Trigger
+    const triggerBtn = document.createElement("button");
+    triggerBtn.className = "accordion-trigger";
+    triggerBtn.style.display = "flex";
+    triggerBtn.style.alignItems = "center";
+    triggerBtn.style.justifyContent = "space-between";
+    triggerBtn.style.width = "100%";
+    triggerBtn.style.gap = "8px";
+    
+    if (isEditing) {
+      triggerBtn.style.cursor = "default";
+    }
+
+    triggerBtn.innerHTML = `
+      <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; pointer-events: none;">
+        <span class="script-title-display" style="font-weight: 600;">${escapeHtml(script.title)}</span>
+        <span class="script-badge channel">${escapeHtml(script.channel)}</span>
+        <span class="script-badge type">${escapeHtml(script.type)}</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; flex-shrink: 0; pointer-events: none;"><polyline points="6 9 12 15 18 9"/></svg>
+    `;
+
+    const contentDiv = document.createElement("div");
+    contentDiv.className = "accordion-content";
+    if (isEditing) {
+      contentDiv.style.maxHeight = "none";
+    }
+
+    if (isEditing) {
+      // Edit form layout
+      contentDiv.innerHTML = `
+        <div class="script-body editing-form" style="display: flex; flex-direction: column; gap: 12px; padding: 16px 18px;">
+          <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block;">Script Title</label>
+            <input type="text" class="edit-script-title" value="${escapeHtml(script.title)}" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none;">
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block;">Channel</label>
+              <select class="edit-script-channel" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); background-color: var(--color-white); outline: none;">
+                <option value="Instagram" ${script.channel === 'Instagram' ? 'selected' : ''}>Instagram</option>
+                <option value="LinkedIn" ${script.channel === 'LinkedIn' ? 'selected' : ''}>LinkedIn</option>
+                <option value="Email" ${script.channel === 'Email' ? 'selected' : ''}>Email</option>
+                <option value="WhatsApp" ${script.channel === 'WhatsApp' ? 'selected' : ''}>WhatsApp</option>
+                <option value="General" ${script.channel === 'General' ? 'selected' : ''}>General</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block;">Script Type</label>
+              <select class="edit-script-type" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); background-color: var(--color-white); outline: none;">
+                <option value="First Message" ${script.type === 'First Message' ? 'selected' : ''}>First Message</option>
+                <option value="Follow-up" ${script.type === 'Follow-up' ? 'selected' : ''}>Follow-up</option>
+                <option value="Connection Request" ${script.type === 'Connection Request' ? 'selected' : ''}>Connection Request</option>
+                <option value="After Accepting" ${script.type === 'After Accepting' ? 'selected' : ''}>After Accepting</option>
+                <option value="Sample Reply" ${script.type === 'Sample Reply' ? 'selected' : ''}>Sample Reply</option>
+                <option value="CV Reply" ${script.type === 'CV Reply' ? 'selected' : ''}>CV Reply</option>
+                <option value="Price Reply" ${script.type === 'Price Reply' ? 'selected' : ''}>Price Reply</option>
+                <option value="Not Now Reply" ${script.type === 'Not Now Reply' ? 'selected' : ''}>Not Now Reply</option>
+                <option value="Custom" ${script.type === 'Custom' ? 'selected' : ''}>Custom</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block;">Message Body</label>
+            <textarea class="edit-script-body" rows="6" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); font-family: var(--font-body); line-height: 1.5; resize: vertical; min-height: 100px; outline: none;">${escapeHtml(script.body)}</textarea>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm cancel-edit-btn" data-id="${script.id}">
+              Cancel
+            </button>
+            <button class="btn btn-primary btn-sm save-edit-btn" data-id="${script.id}">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      `;
+    } else {
+      // Read mode layout
+      contentDiv.innerHTML = `
+        <div class="script-body">
+          <div class="script-text-container" style="position: relative;">
+            <pre style="font-family: var(--font-body); white-space: pre-wrap; word-break: break-word; line-height: 1.6; margin: 0;">${escapeHtml(script.body)}</pre>
+          </div>
+          <div class="script-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <span style="font-size: 11px; color: var(--color-priority-c); font-weight: 600;">
+                ${script.isDefault ? "Default Script" : "Custom Script"}
+              </span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm copy-btn" data-id="${script.id}">
+                Copy Script
+              </button>
+              <button class="btn btn-secondary btn-sm edit-btn" data-id="${script.id}">
+                Edit
+              </button>
+              <button class="btn btn-danger-outline btn-sm delete-btn" data-id="${script.id}">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    accordionItem.appendChild(triggerBtn);
+    accordionItem.appendChild(contentDiv);
+    container.appendChild(accordionItem);
+  });
+}
+
+// Simple HTML escaper helper to prevent XSS
+function escapeHtml(text) {
+  if (typeof text !== 'string') return text;
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
