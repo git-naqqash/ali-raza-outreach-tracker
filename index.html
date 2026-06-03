@@ -851,20 +851,40 @@ Ali Raza</pre>
             <td style="padding: 10px 0; text-align: right; font-weight: 700; color: var(--color-royal-blue);" id="prevValidLeads">0</td>
           </tr>
           <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
-            <td style="padding: 10px 0; font-weight: 600; color: var(--color-soft-gold);">Missing Link/Contact:</td>
-            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: var(--color-soft-gold);" id="prevMissingInfo">0</td>
+            <td style="padding: 10px 0; font-weight: 600; color: var(--color-priority-c);">Duplicates Found:</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: var(--color-priority-c);" id="prevDuplicatesFound">0</td>
           </tr>
           <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
             <td style="padding: 10px 0; font-weight: 600; color: #ef4444;">Duplicates Skipped:</td>
-            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: #ef4444;" id="prevDuplicates">0</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: #ef4444;" id="prevDuplicatesSkipped">0</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+            <td style="padding: 10px 0; font-weight: 600; color: var(--color-teal-green);">Duplicates to Import:</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: var(--color-teal-green);" id="prevDuplicatesToImport">0</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+            <td style="padding: 10px 0; font-weight: 600; color: var(--color-soft-gold);">Missing Link/Contact:</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: var(--color-soft-gold);" id="prevMissingInfo">0</td>
           </tr>
           <tr style="border-bottom: 2px solid var(--color-deep-navy);">
             <td style="padding: 12px 0; font-weight: 800; font-size: 15px; color: var(--color-teal-green);">Final Import Count:</td>
             <td style="padding: 12px 0; text-align: right; font-weight: 800; font-size: 15px; color: var(--color-teal-green);" id="prevFinalCount">0</td>
           </tr>
         </table>
-        <p style="font-size: 12px; color: var(--color-priority-c); line-height: 1.4;">
-          Leads are skipped if their email already exists (or their company name matches, for rows without email). No existing data will be deleted.
+        
+        <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid rgba(11, 31, 58, 0.05); padding-top: 15px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--color-deep-navy); cursor: pointer;">
+            <input type="checkbox" id="chkImportDupAnyway">
+            Import duplicate leads anyway
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--color-deep-navy); cursor: pointer;">
+            <input type="checkbox" id="chkUpdateExistingDup">
+            Update existing duplicates instead of creating new records
+          </label>
+        </div>
+        
+        <p style="font-size: 12px; color: var(--color-priority-c); line-height: 1.4; margin-top: 15px;">
+          Duplicates match existing records by email, WhatsApp, main link, or name (if other details are missing).
         </p>
       </div>
       <div class="modal-footer">

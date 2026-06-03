@@ -1055,6 +1055,16 @@ function setupEventListeners() {
       if (e.target.id === "importPreviewModal") closeImportPreview();
     });
   }
+
+  // Checkbox listeners in import preview modal
+  const chkImportDupAnyway = document.getElementById("chkImportDupAnyway");
+  if (chkImportDupAnyway) {
+    chkImportDupAnyway.addEventListener("change", updateImportPreviewCounts);
+  }
+  const chkUpdateExistingDup = document.getElementById("chkUpdateExistingDup");
+  if (chkUpdateExistingDup) {
+    chkUpdateExistingDup.addEventListener("change", updateImportPreviewCounts);
+  }
 }
 
 // Escaping values for CSV
@@ -1155,7 +1165,8 @@ const SYNONYMS = {
   messageSent: ["message sent", "personalized first message", "first message", "dm", "email message", "whatsapp message"]
 };
 
-let pendingImportLeads = [];
+let pendingValidLeads = [];
+let pendingDuplicateLeads = [];
 
 function mapHeaders(headers) {
   const mapping = {};
@@ -1196,11 +1207,10 @@ function processImportData(arrayBuffer, filename) {
     const colMapping = mapHeaders(headers);
     
     let totalRows = 0;
-    let duplicatesCount = 0;
     let missingInfoCount = 0;
-    let validLeadsCount = 0;
     
-    const tempImportedLeads = [];
+    const validLeads = [];
+    const duplicateLeads = []; // Array of { lead, matchedIndex }
     
     rows.forEach((row, rowIdx) => {
       // Skip completely empty rows
@@ -1242,33 +1252,6 @@ function processImportData(arrayBuffer, filename) {
       const isMissingInfo = !rowMainLink || !rowName;
       if (isMissingInfo) {
         missingInfoCount++;
-      }
-      
-      // Duplicate checks
-      const emailLower = rowEmail ? String(rowEmail).trim().toLowerCase() : "";
-      const phoneLower = rowWhatsapp ? String(rowWhatsapp).trim().toLowerCase() : "";
-      const linkLower = rowMainLink ? String(rowMainLink).trim().toLowerCase() : "";
-      const nameLower = rowName ? String(rowName).trim().toLowerCase() : "";
-      
-      let isDuplicate = false;
-      const existsInCRM = (field, val) => leads.some(l => l[field] && String(l[field]).trim().toLowerCase() === val) ||
-                                          tempImportedLeads.some(l => l[field] && String(l[field]).trim().toLowerCase() === val);
-      
-      if (emailLower && existsInCRM("email", emailLower)) {
-        isDuplicate = true;
-      } else if (phoneLower && existsInCRM("whatsappNumber", phoneLower)) {
-        isDuplicate = true;
-      } else if (linkLower && existsInCRM("mainLink", linkLower)) {
-        isDuplicate = true;
-      } else if (!emailLower && !phoneLower && !linkLower) {
-        if (nameLower && existsInCRM("name", nameLower)) {
-          isDuplicate = true;
-        }
-      }
-      
-      if (isDuplicate) {
-        duplicatesCount++;
-        return;
       }
       
       // Parse dates from file
@@ -1370,11 +1353,75 @@ function processImportData(arrayBuffer, filename) {
         lead.nextAction = "Send connection request";
       }
       
-      validLeadsCount++;
-      tempImportedLeads.push(lead);
+      // Duplicate checks
+      const emailLower = rowEmail ? String(rowEmail).trim().toLowerCase() : "";
+      const phoneLower = rowWhatsapp ? String(rowWhatsapp).trim().toLowerCase() : "";
+      const linkLower = rowMainLink ? String(rowMainLink).trim().toLowerCase() : "";
+      const nameLower = rowName ? String(rowName).trim().toLowerCase() : "";
+      
+      let matchedIndex = -1;
+      
+      // Search in existing leads
+      for (let i = 0; i < leads.length; i++) {
+        const l = leads[i];
+        const dbEmail = l.email ? String(l.email).trim().toLowerCase() : "";
+        const dbPhone = l.whatsappNumber ? String(l.whatsappNumber).trim().toLowerCase() : "";
+        const dbLink = l.mainLink ? String(l.mainLink).trim().toLowerCase() : "";
+        const dbName = l.name ? String(l.name).trim().toLowerCase() : "";
+        
+        if (emailLower && dbEmail === emailLower) {
+          matchedIndex = i;
+          break;
+        } else if (phoneLower && dbPhone === phoneLower) {
+          matchedIndex = i;
+          break;
+        } else if (linkLower && dbLink === linkLower) {
+          matchedIndex = i;
+          break;
+        } else if (!emailLower && !phoneLower && !linkLower) {
+          if (nameLower && dbName === nameLower) {
+            matchedIndex = i;
+            break;
+          }
+        }
+      }
+      
+      // Search in already accumulated valid leads from this file
+      let isDupInSession = false;
+      if (matchedIndex === -1) {
+        for (let i = 0; i < validLeads.length; i++) {
+          const l = validLeads[i];
+          const sessEmail = l.email ? String(l.email).trim().toLowerCase() : "";
+          const sessPhone = l.whatsappNumber ? String(l.whatsappNumber).trim().toLowerCase() : "";
+          const sessLink = l.mainLink ? String(l.mainLink).trim().toLowerCase() : "";
+          const sessName = l.name ? String(l.name).trim().toLowerCase() : "";
+          
+          if (emailLower && sessEmail === emailLower) {
+            isDupInSession = true;
+            break;
+          } else if (phoneLower && sessPhone === phoneLower) {
+            isDupInSession = true;
+            break;
+          } else if (linkLower && sessLink === linkLower) {
+            isDupInSession = true;
+            break;
+          } else if (!emailLower && !phoneLower && !linkLower) {
+            if (nameLower && sessName === nameLower) {
+              isDupInSession = true;
+              break;
+            }
+          }
+        }
+      }
+      
+      if (matchedIndex !== -1 || isDupInSession) {
+        duplicateLeads.push({ lead, matchedIndex });
+      } else {
+        validLeads.push(lead);
+      }
     });
     
-    showImportPreview(totalRows, validLeadsCount, duplicatesCount, missingInfoCount, tempImportedLeads);
+    showImportPreview(totalRows, validLeads, duplicateLeads, missingInfoCount);
     
   } catch (err) {
     console.error("Error parsing spreadsheet file:", err);
@@ -1382,30 +1429,124 @@ function processImportData(arrayBuffer, filename) {
   }
 }
 
-function showImportPreview(totalRows, valid, duplicates, missingInfo, leadsToImport) {
-  pendingImportLeads = leadsToImport;
+function showImportPreview(totalRows, validLeads, duplicateLeads, missingInfo) {
+  pendingValidLeads = validLeads;
+  pendingDuplicateLeads = duplicateLeads;
   
   document.getElementById("prevTotalRows").textContent = totalRows;
-  document.getElementById("prevValidLeads").textContent = valid;
-  document.getElementById("prevDuplicates").textContent = duplicates;
+  document.getElementById("prevValidLeads").textContent = validLeads.length;
+  document.getElementById("prevDuplicatesFound").textContent = duplicateLeads.length;
   document.getElementById("prevMissingInfo").textContent = missingInfo;
-  document.getElementById("prevFinalCount").textContent = leadsToImport.length;
+  
+  // Reset checkboxes to default unchecked
+  document.getElementById("chkImportDupAnyway").checked = false;
+  document.getElementById("chkUpdateExistingDup").checked = false;
+  
+  // Calculate and update counts based on defaults
+  updateImportPreviewCounts();
   
   const modal = document.getElementById("importPreviewModal");
   if (modal) modal.classList.add("active");
 }
 
+function updateImportPreviewCounts() {
+  const importDupAnyway = document.getElementById("chkImportDupAnyway").checked;
+  const updateExistingDup = document.getElementById("chkUpdateExistingDup").checked;
+  
+  const totalDup = pendingDuplicateLeads.length;
+  
+  let dupSkipped = 0;
+  let dupToImport = 0;
+  let finalImportCount = pendingValidLeads.length;
+  
+  if (updateExistingDup) {
+    // prioritize "Update existing duplicates", do not create duplicate records
+    dupSkipped = 0;
+    dupToImport = 0;
+  } else if (importDupAnyway) {
+    dupSkipped = 0;
+    dupToImport = totalDup;
+    finalImportCount = pendingValidLeads.length + totalDup;
+  } else {
+    dupSkipped = totalDup;
+    dupToImport = 0;
+  }
+  
+  document.getElementById("prevDuplicatesSkipped").textContent = dupSkipped;
+  document.getElementById("prevDuplicatesToImport").textContent = dupToImport;
+  document.getElementById("prevFinalCount").textContent = finalImportCount;
+}
+
 function confirmImport() {
-  if (pendingImportLeads.length > 0) {
-    leads.push(...pendingImportLeads);
+  const importDupAnyway = document.getElementById("chkImportDupAnyway").checked;
+  const updateExistingDup = document.getElementById("chkUpdateExistingDup").checked;
+  
+  const leadsToPush = [...pendingValidLeads];
+  let updateCount = 0;
+  
+  if (updateExistingDup) {
+    // Update existing duplicates in place
+    pendingDuplicateLeads.forEach(dupItem => {
+      const idx = dupItem.matchedIndex;
+      if (idx !== -1 && idx < leads.length) {
+        const existing = leads[idx];
+        const imported = dupItem.lead;
+        
+        // Update fields of the existing lead with the imported row's values
+        if (imported.name) existing.name = imported.name;
+        if (imported.market) existing.market = imported.market;
+        if (imported.mainLink) existing.mainLink = imported.mainLink;
+        if (imported.niche) existing.niche = imported.niche;
+        if (imported.source) existing.source = imported.source;
+        if (imported.priority) existing.priority = imported.priority;
+        if (imported.stage) existing.stage = imported.stage;
+        if (imported.lastActionDate) existing.lastActionDate = imported.lastActionDate;
+        if (imported.nextAction) existing.nextAction = imported.nextAction;
+        if (imported.nextActionDate) existing.nextActionDate = imported.nextActionDate;
+        if (imported.replyStatus) existing.replyStatus = imported.replyStatus;
+        if (imported.contactPerson) existing.contactPerson = imported.contactPerson;
+        if (imported.email) existing.email = imported.email;
+        if (imported.whatsappNumber) existing.whatsappNumber = imported.whatsappNumber;
+        if (imported.messageSent) existing.messageSent = imported.messageSent;
+        
+        // Append notes: preserve existing, append imported notes
+        const importedNotes = imported.notes ? String(imported.notes).trim() : "";
+        if (importedNotes) {
+          existing.notes = (existing.notes ? existing.notes + "\n" : "") + "Updated from import: " + importedNotes;
+        }
+        
+        updateCount++;
+      } else {
+        // duplicate in file session itself but doesn't exist in DB -> import as new
+        leadsToPush.push(dupItem.lead);
+      }
+    });
+  } else if (importDupAnyway) {
+    // Import duplicates as separate records
+    pendingDuplicateLeads.forEach(dupItem => {
+      const dupLead = { ...dupItem.lead };
+      // Add note
+      dupLead.notes = (dupLead.notes ? dupLead.notes + "\n" : "") + "Imported as duplicate by user choice.";
+      leadsToPush.push(dupLead);
+    });
+  }
+  
+  if (leadsToPush.length > 0 || updateCount > 0) {
+    if (leadsToPush.length > 0) {
+      leads.push(...leadsToPush);
+    }
     saveData();
     updateDashboard();
     renderLeads();
     renderTodayActions();
     
-    showToast(`Successfully imported ${pendingImportLeads.length} leads!`, "success");
+    let msg = `Successfully imported ${leadsToPush.length} new leads`;
+    if (updateCount > 0) {
+      msg += ` and updated ${updateCount} existing leads`;
+    }
+    showToast(msg + "!", "success");
   } else {
-    showToast("No new leads to import.", "info");
+    showToast("No leads imported or updated.", "info");
   }
   
   closeImportPreview();
@@ -1414,7 +1555,8 @@ function confirmImport() {
 function closeImportPreview() {
   const modal = document.getElementById("importPreviewModal");
   if (modal) modal.classList.remove("active");
-  pendingImportLeads = [];
+  pendingValidLeads = [];
+  pendingDuplicateLeads = [];
   const fileInput = document.getElementById("importFileInput");
   if (fileInput) fileInput.value = "";
 }
