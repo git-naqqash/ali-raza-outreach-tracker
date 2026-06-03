@@ -365,7 +365,7 @@ function renderLeads() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>
-        <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name}</div>
+        <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name || "Unnamed Lead / Company"}</div>
         ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
           Open Link ↗
         </a>` : ''}
@@ -405,8 +405,8 @@ function renderLeads() {
     card.innerHTML = `
       <div class="lead-card-header">
         <div class="lead-card-title">
-          <h3>${lead.name}</h3>
-          <span class="market-lbl">${lead.market} • ${lead.niche} • ${lead.source || "Other"}</span>
+          <h3>${lead.name || "Unnamed Lead / Company"}</h3>
+          <span class="market-lbl">${lead.market || "-"} • ${lead.niche || "-"} • ${lead.source || "Other"}</span>
         </div>
         <div class="lead-card-badges">
           ${getPriorityBadge(lead.priority)}
@@ -511,7 +511,7 @@ function renderTodayActions() {
     tr.style.backgroundColor = "rgba(214, 168, 79, 0.03)"; // slight gold highlight
     tr.innerHTML = `
       <td>
-        <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name}</div>
+        <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name || "Unnamed Lead / Company"}</div>
         ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
           Open Link ↗
         </a>` : ''}
@@ -552,8 +552,8 @@ function renderTodayActions() {
     card.innerHTML = `
       <div class="lead-card-header">
         <div class="lead-card-title">
-          <h3>${lead.name}</h3>
-          <span class="market-lbl">${lead.market} • ${lead.niche} • ${lead.source || "Other"}</span>
+          <h3>${lead.name || "Unnamed Lead / Company"}</h3>
+          <span class="market-lbl">${lead.market || "-"} • ${lead.niche || "-"} • ${lead.source || "Other"}</span>
         </div>
         <div class="lead-card-badges">
           ${getPriorityBadge(lead.priority)}
