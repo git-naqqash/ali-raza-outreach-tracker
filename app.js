@@ -409,10 +409,16 @@ function getReplyBadge(status) {
 
 // Render Leads Grid (Table and Mobile Cards)
 function renderLeads() {
-  // Toggle the email tab action button container
-  const emailActions = document.getElementById("emailTabActions");
-  if (emailActions) {
-    emailActions.style.display = activeTab === "Email" ? "block" : "none";
+  // Toggle the tab action button container and text dynamically
+  const tabActions = document.getElementById("tabActionsContainer");
+  const btnText = document.getElementById("importLeadsBtnText");
+  if (tabActions && btnText) {
+    if (activeTab === "All") {
+      tabActions.style.display = "none";
+    } else {
+      tabActions.style.display = "block";
+      btnText.textContent = `Import ${activeTab} Leads`;
+    }
   }
 
   const filtered = getFilteredLeads();
@@ -1001,10 +1007,13 @@ function setupEventListeners() {
   // CSV Export trigger
   exportBtn.addEventListener("click", exportToCSV);
 
-  // Import Email Leads Button
-  const importEmailBtn = document.getElementById("importEmailLeadsBtn");
-  if (importEmailBtn) {
-    importEmailBtn.addEventListener("click", tryFetchAndParse);
+  // Import Leads Button
+  const importLeadsBtn = document.getElementById("importLeadsBtn");
+  if (importLeadsBtn) {
+    importLeadsBtn.addEventListener("click", () => {
+      const fileInput = document.getElementById("importFileInput");
+      if (fileInput) fileInput.click();
+    });
   }
 
   // Import manual file change listener
@@ -1126,28 +1135,25 @@ function exportToCSV() {
   showToast("CSV Exported successfully!", "success");
 }
 
-// --- IMPORT ITALY COLD EMAIL LEADS IMPLEMENTATION ---
+// --- IMPORT LEADS IMPLEMENTATION ---
 
 const SYNONYMS = {
-  name: ["company", "lead", "business name", "name", "company name", "account"],
+  name: ["lead", "company", "company name", "business name", "name", "profile name", "account"],
+  mainLink: ["website", "link", "url", "main link", "profile url", "website/profile", "instagram link", "linkedin link"],
+  contactPerson: ["contact person", "name", "founder", "owner", "person name"],
   email: ["email", "email address", "contact email", "mail"],
-  mainLink: ["website", "link", "url", "main link", "profile", "web"],
+  whatsappNumber: ["whatsapp", "whatsapp number", "phone", "phone number", "mobile", "contact number"],
   market: ["market", "country", "location"],
-  niche: ["niche", "category", "industry", "type"],
+  niche: ["niche", "category", "industry", "lead type", "type"],
   source: ["source", "lead source"],
-  status: ["status", "reply status", "result"],
-  date: ["date", "sent date", "first message date", "first email date", "message sent date", "last action date", "1st"],
-  notes: ["notes", "remarks", "comments", "context"]
+  priority: ["priority"],
+  stage: ["stage", "status"],
+  nextAction: ["next action"],
+  nextActionDate: ["next action date", "follow-up date", "next follow-up date"],
+  replyStatus: ["reply status", "result"],
+  notes: ["notes", "remarks", "comments", "context"],
+  messageSent: ["message sent", "personalized first message", "first message", "dm", "email message", "whatsapp message"]
 };
-
-const REJECT_KEYWORDS = [
-  "rejected", "invalid", "bounced", "not interested", "bad fit", 
-  "wrong email", "no interest", "rejected lead"
-];
-
-const CV_KEYWORDS = [
-  "cv requested", "cv sent", "curriculum", "resume", "follow-up sent"
-];
 
 let pendingImportLeads = [];
 
@@ -1165,42 +1171,6 @@ function mapHeaders(headers) {
     }
   });
   return mapping;
-}
-
-async function tryFetchAndParse() {
-  const filenames = [
-    'italy_cold_email.xlsm',
-    'italy_cold_email.xlsx',
-    'italy_cold_email.xls',
-    'italy_cold_email.csv',
-    'italy_cold_email'
-  ];
-  
-  let fetchSucceeded = false;
-  showToast("Scanning project folder for leads file...", "info");
-  
-  for (const filename of filenames) {
-    try {
-      console.log(`Attempting to fetch local file: ${filename}`);
-      const response = await fetch(filename);
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        console.log(`Successfully fetched ${filename}, size: ${arrayBuffer.byteLength} bytes.`);
-        processImportData(arrayBuffer, filename);
-        fetchSucceeded = true;
-        break; // Success! Stop fetching
-      }
-    } catch (e) {
-      console.warn(`Failed to fetch ${filename}:`, e);
-    }
-  }
-  
-  if (!fetchSucceeded) {
-    console.log("Direct local fetch failed or blocked. Falling back to file picker.");
-    showToast("Direct import blocked or file not found. Please select the file manually.", "info");
-    const fileInput = document.getElementById("importFileInput");
-    if (fileInput) fileInput.click();
-  }
 }
 
 function processImportData(arrayBuffer, filename) {
@@ -1227,8 +1197,7 @@ function processImportData(arrayBuffer, filename) {
     
     let totalRows = 0;
     let duplicatesCount = 0;
-    let archivedRejectedCount = 0;
-    let missingEmailCount = 0;
+    let missingInfoCount = 0;
     let validLeadsCount = 0;
     
     const tempImportedLeads = [];
@@ -1249,36 +1218,52 @@ function processImportData(arrayBuffer, filename) {
       };
       
       const rowName = getVal("name");
-      const rowEmail = getVal("email");
       const rowMainLink = getVal("mainLink");
+      const rowContactPerson = getVal("contactPerson");
+      const rowEmail = getVal("email");
+      const rowWhatsapp = getVal("whatsappNumber");
       const rowMarket = getVal("market");
       const rowNiche = getVal("niche");
       const rowSource = getVal("source");
-      const rowStatus = getVal("status");
-      const rowDateVal = getVal("date");
+      const rowPriority = getVal("priority");
+      const rowStage = getVal("stage");
+      const rowNextAction = getVal("nextAction");
+      const rowNextActionDate = getVal("nextActionDate");
+      const rowReplyStatus = getVal("replyStatus");
       const rowNotes = getVal("notes");
+      const rowMessageSent = getVal("messageSent");
       
-      // If name and email are both empty, skip this row
-      if (!rowName && !rowEmail) {
+      // Skip row if it has absolutely no contact details
+      if (!rowName && !rowMainLink && !rowContactPerson && !rowEmail && !rowWhatsapp) {
         return;
       }
       
-      const isEmailMissing = !rowEmail || String(rowEmail).trim() === "";
-      if (isEmailMissing) {
-        missingEmailCount++;
+      // Check if main link or lead name is missing
+      const isMissingInfo = !rowMainLink || !rowName;
+      if (isMissingInfo) {
+        missingInfoCount++;
       }
       
-      // Duplicate check
+      // Duplicate checks
       const emailLower = rowEmail ? String(rowEmail).trim().toLowerCase() : "";
-      const nameTrimmed = rowName ? String(rowName).trim().toLowerCase() : "";
+      const phoneLower = rowWhatsapp ? String(rowWhatsapp).trim().toLowerCase() : "";
+      const linkLower = rowMainLink ? String(rowMainLink).trim().toLowerCase() : "";
+      const nameLower = rowName ? String(rowName).trim().toLowerCase() : "";
       
       let isDuplicate = false;
-      if (emailLower) {
-        isDuplicate = leads.some(l => l.email && l.email.toLowerCase().trim() === emailLower) ||
-                      tempImportedLeads.some(l => l.email && l.email.toLowerCase().trim() === emailLower);
-      } else if (nameTrimmed) {
-        isDuplicate = leads.some(l => l.name && l.name.toLowerCase().trim() === nameTrimmed) ||
-                      tempImportedLeads.some(l => l.name && l.name.toLowerCase().trim() === nameTrimmed);
+      const existsInCRM = (field, val) => leads.some(l => l[field] && String(l[field]).trim().toLowerCase() === val) ||
+                                          tempImportedLeads.some(l => l[field] && String(l[field]).trim().toLowerCase() === val);
+      
+      if (emailLower && existsInCRM("email", emailLower)) {
+        isDuplicate = true;
+      } else if (phoneLower && existsInCRM("whatsappNumber", phoneLower)) {
+        isDuplicate = true;
+      } else if (linkLower && existsInCRM("mainLink", linkLower)) {
+        isDuplicate = true;
+      } else if (!emailLower && !phoneLower && !linkLower) {
+        if (nameLower && existsInCRM("name", nameLower)) {
+          isDuplicate = true;
+        }
       }
       
       if (isDuplicate) {
@@ -1286,7 +1271,10 @@ function processImportData(arrayBuffer, filename) {
         return;
       }
       
-      // Check red row color (check styling of mapped columns)
+      // Parse dates from file
+      const parsedDate = parseExcelDate(rowNextActionDate);
+      
+      // Check red row color
       let isRedRow = false;
       const colIndices = Object.values(colMapping);
       for (const colIdx of colIndices) {
@@ -1300,38 +1288,28 @@ function processImportData(arrayBuffer, filename) {
         }
       }
       
-      const parsedDate = parseExcelDate(rowDateVal);
-      const finalDate = parsedDate || getOffsetDateString(0);
-      
-      let nextActionDateVal = "";
-      if (parsedDate) {
-        nextActionDateVal = addWorkingDays(parsedDate, 5);
-      } else {
-        nextActionDateVal = addWorkingDays(getOffsetDateString(0), 5);
-      }
-      
+      // Base lead mapping
       const lead = {
-        dateAdded: finalDate,
+        dateAdded: getOffsetDateString(0),
         name: rowName ? String(rowName).trim() : "Unnamed Lead / Company",
         market: rowMarket ? String(rowMarket).trim() : "Italy",
-        channel: "Email",
+        channel: activeTab, // Assigned to current tab
         mainLink: rowMainLink ? String(rowMainLink).trim() : "",
         niche: rowNiche ? String(rowNiche).trim() : "",
-        source: rowSource ? String(rowSource).trim() : "Google",
-        priority: "B",
-        stage: "First Message Sent",
-        lastActionDate: finalDate,
-        nextAction: "Send follow-up",
-        nextActionDate: nextActionDateVal,
-        replyStatus: "No reply",
+        source: rowSource ? String(rowSource).trim() : "Import",
+        priority: rowPriority ? String(rowPriority).trim() : "B",
+        stage: rowStage ? String(rowStage).trim() : "Found",
+        lastActionDate: getOffsetDateString(0),
+        nextAction: rowNextAction ? String(rowNextAction).trim() : "",
+        nextActionDate: parsedDate || "",
+        replyStatus: rowReplyStatus ? String(rowReplyStatus).trim() : "No reply",
         notes: rowNotes ? String(rowNotes).trim() : "",
-        contactPerson: "",
+        contactPerson: rowContactPerson ? String(rowContactPerson).trim() : "",
         email: rowEmail ? String(rowEmail).trim() : "",
-        whatsappNumber: "",
+        whatsappNumber: rowWhatsapp ? String(rowWhatsapp).trim() : "",
         extraLink: "",
-        messageSent: "",
-        followUpCount: 0,
-        firstMessageDate: finalDate
+        messageSent: rowMessageSent ? String(rowMessageSent).trim() : "",
+        followUpCount: 0
       };
       
       // Process unmapped columns into notes
@@ -1341,7 +1319,7 @@ function processImportData(arrayBuffer, filename) {
         if (!isMapped) {
           const val = row[idx];
           if (val !== undefined && val !== null && String(val).trim() !== "") {
-            const colLetter = String.fromCharCode(65 + idx); // convert 0 -> A, 1 -> B, etc.
+            const colLetter = String.fromCharCode(65 + idx);
             const headerName = header && String(header).trim() ? String(header).trim() : `Col ${colLetter}`;
             extraNotesList.push(`${headerName}: ${val}`);
           }
@@ -1352,37 +1330,51 @@ function processImportData(arrayBuffer, filename) {
         lead.notes = (lead.notes ? lead.notes + "\n" : "") + extraNotesList.join(" | ");
       }
       
-      // Keyword mapping
-      const combinedText = `${String(rowStatus || "").toLowerCase()} ${String(rowNotes || "").toLowerCase()} ${String(rowDateVal || "").toLowerCase()} ${extraNotesList.join(" ").toLowerCase()}`;
-      
-      let isRejected = false;
-      if (isRedRow) {
-        isRejected = true;
-      } else {
-        isRejected = REJECT_KEYWORDS.some(kw => combinedText.includes(kw));
-      }
-      
-      if (isRejected) {
-        lead.priority = "D";
-        lead.stage = "Archived";
-        lead.replyStatus = "Not interested";
-        lead.nextAction = "Archive";
-        lead.notes = (lead.notes ? lead.notes + "\n" : "") + "Rejected/invalid from imported Italy cold email file.";
-        archivedRejectedCount++;
-      } else {
-        const isCV = CV_KEYWORDS.some(kw => combinedText.includes(kw));
-        if (isCV) {
-          lead.stage = "Samples Sent";
-          lead.replyStatus = "No reply after CV";
-          lead.nextAction = "Wait";
+      // Channel-specific default overrides
+      if (lead.channel === "Email") {
+        const hasDate = (colMapping.date !== undefined && String(row[colMapping.date]).trim() !== "");
+        const hasMsg = (colMapping.messageSent !== undefined && String(row[colMapping.messageSent]).trim() !== "");
+        
+        if (hasDate || hasMsg) {
+          lead.stage = "First Message Sent";
+        } else {
+          lead.stage = rowStage ? String(rowStage).trim() : "Found";
         }
-        validLeadsCount++;
+        lead.replyStatus = "No reply";
+        lead.nextAction = "Send follow-up";
+        
+        // Date mapping logic
+        if (colMapping.date !== undefined && row[colMapping.date]) {
+          const emailDate = parseExcelDate(row[colMapping.date]);
+          if (emailDate) {
+            lead.lastActionDate = emailDate;
+            lead.dateAdded = emailDate;
+            lead.firstMessageDate = emailDate;
+            if (!lead.nextActionDate) {
+              lead.nextActionDate = addWorkingDays(emailDate, 5);
+            }
+          }
+        }
+      } else if (lead.channel === "WhatsApp") {
+        lead.stage = rowStage ? String(rowStage).trim() : "Ready to WhatsApp";
+        lead.replyStatus = "No reply";
+        lead.nextAction = "Send WhatsApp";
+        if (rowMessageSent) {
+          lead.messageSent = String(rowMessageSent).trim();
+        }
+      } else if (lead.channel === "Instagram") {
+        lead.stage = rowStage ? String(rowStage).trim() : "Found";
+        lead.nextAction = "Like/comment";
+      } else if (lead.channel === "LinkedIn") {
+        lead.stage = rowStage ? String(rowStage).trim() : "Found";
+        lead.nextAction = "Send connection request";
       }
       
+      validLeadsCount++;
       tempImportedLeads.push(lead);
     });
     
-    showImportPreview(totalRows, validLeadsCount, duplicatesCount, archivedRejectedCount, missingEmailCount, tempImportedLeads);
+    showImportPreview(totalRows, validLeadsCount, duplicatesCount, missingInfoCount, tempImportedLeads);
     
   } catch (err) {
     console.error("Error parsing spreadsheet file:", err);
@@ -1390,14 +1382,13 @@ function processImportData(arrayBuffer, filename) {
   }
 }
 
-function showImportPreview(totalRows, valid, duplicates, rejected, missingEmail, leadsToImport) {
+function showImportPreview(totalRows, valid, duplicates, missingInfo, leadsToImport) {
   pendingImportLeads = leadsToImport;
   
   document.getElementById("prevTotalRows").textContent = totalRows;
   document.getElementById("prevValidLeads").textContent = valid;
   document.getElementById("prevDuplicates").textContent = duplicates;
-  document.getElementById("prevRejectedLeads").textContent = rejected;
-  document.getElementById("prevMissingEmails").textContent = missingEmail;
+  document.getElementById("prevMissingInfo").textContent = missingInfo;
   document.getElementById("prevFinalCount").textContent = leadsToImport.length;
   
   const modal = document.getElementById("importPreviewModal");
