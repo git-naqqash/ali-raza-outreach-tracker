@@ -93,6 +93,23 @@ function checkRowRedStyle(cell) {
   return false;
 }
 
+// Normalize URL to prevent local relative path routing (Vercel 404s)
+function normalizeUrl(url) {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return "https://" + trimmed;
+}
+
+// Format WhatsApp click-to-chat URL
+function getWhatsAppLink(number) {
+  if (!number) return "";
+  const cleaned = number.replace(/[\s\+\(\)\-\[\]]/g, ""); // Keep only digits
+  return `https://wa.me/${cleaned}`;
+}
+
 // Default Seed Data for the Outreach CRM
 const DEFAULT_LEADS = [
   {
@@ -428,7 +445,27 @@ function renderLeads() {
 
   // Update headers / titles
   countBadge.textContent = `${filtered.length} leads`;
-  document.getElementById("activeTabTitle").textContent = activeTab === "All" ? "All Active Leads" : `${activeTab} Leads`;
+  document.getElementById("activeTabTitle").textContent = activeTab === "All" ? "Dashboard" : `${activeTab} Leads`;
+
+  // Toggle Today's Action Center section visibility (only on Dashboard tab)
+  const todaySection = document.querySelector(".today-actions-section");
+  if (todaySection) {
+    todaySection.style.display = activeTab === "All" ? "block" : "none";
+  }
+
+  // Update table header text dynamically
+  const contactHeader = document.getElementById("dynamicContactHeader");
+  if (contactHeader) {
+    if (activeTab === "Email") {
+      contactHeader.textContent = "Email Address";
+    } else if (activeTab === "WhatsApp") {
+      contactHeader.textContent = "WhatsApp Number";
+    } else if (activeTab === "Instagram" || activeTab === "LinkedIn") {
+      contactHeader.textContent = "Profile Link";
+    } else {
+      contactHeader.textContent = "Channel";
+    }
+  }
 
   tableBody.innerHTML = "";
   cardsContainer.innerHTML = "";
@@ -459,16 +496,39 @@ function renderLeads() {
 
   // Loop & Render
   filtered.forEach(lead => {
+    // Determine what to render in the second column based on activeTab
+    let contactCellHtml = "";
+    if (activeTab === "Email") {
+      const email = lead.email ? String(lead.email).trim() : "";
+      contactCellHtml = `<td>${email ? `<a href="mailto:${email}" style="font-weight: 600; color: var(--color-royal-blue);">${email}</a>` : '-'}</td>`;
+    } else if (activeTab === "WhatsApp") {
+      const phone = lead.whatsappNumber ? String(lead.whatsappNumber).trim() : "";
+      const waLink = getWhatsAppLink(phone);
+      contactCellHtml = `<td>
+        <div style="font-weight: 600;">${phone || "-"}</div>
+        ${phone ? `<a href="${waLink}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: var(--color-teal-green); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
+          Open WhatsApp ↗
+        </a>` : ''}
+      </td>`;
+    } else if (activeTab === "Instagram" || activeTab === "LinkedIn") {
+      const link = lead.mainLink ? String(lead.mainLink).trim() : "";
+      const normalized = normalizeUrl(link);
+      const displayText = link ? (link.length > 30 ? link.substring(0, 30) + "..." : link) : "";
+      contactCellHtml = `<td>${link ? `<a href="${normalized}" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: var(--color-royal-blue);">${displayText} ↗</a>` : '-'}</td>`;
+    } else {
+      contactCellHtml = `<td>${getChannelBadge(lead.channel)}</td>`;
+    }
+
     // 1. Table Row (Desktop)
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>
         <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name || "Unnamed Lead / Company"}</div>
-        ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
+        ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
           Open Link ↗
         </a>` : ''}
       </td>
-      <td>${getChannelBadge(lead.channel)}</td>
+      ${contactCellHtml}
       <td><strong>${lead.market}</strong></td>
       <td>${lead.niche}</td>
       <td><span style="font-size: 12.5px; font-weight: 600; color: var(--color-priority-c);">${lead.source || "Other"}</span></td>
@@ -545,7 +605,7 @@ function renderLeads() {
       </div>` : ''}
 
       <div class="lead-card-actions">
-        ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
+        ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
         <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
@@ -610,7 +670,7 @@ function renderTodayActions() {
     tr.innerHTML = `
       <td>
         <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name || "Unnamed Lead / Company"}</div>
-        ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
+        ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
           Open Link ↗
         </a>` : ''}
       </td>
@@ -679,7 +739,7 @@ function renderTodayActions() {
       </div>
 
       <div class="lead-card-actions">
-        ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
+        ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
         <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
@@ -1149,10 +1209,10 @@ function exportToCSV() {
 
 const SYNONYMS = {
   name: ["lead", "company", "company name", "business name", "name", "profile name", "account"],
-  mainLink: ["website", "link", "url", "main link", "profile url", "website/profile", "instagram link", "linkedin link"],
-  contactPerson: ["contact person", "name", "founder", "owner", "person name"],
-  email: ["email", "email address", "contact email", "mail"],
-  whatsappNumber: ["whatsapp", "whatsapp number", "phone", "phone number", "mobile", "contact number"],
+  mainLink: ["website", "link", "url", "main link", "profile", "profile link", "website/profile", "instagram", "linkedin", "instagram link", "linkedin link"],
+  contactPerson: ["contact person", "founder", "owner", "person name"],
+  email: ["email", "email address", "contact email", "mail", "e-mail"],
+  whatsappNumber: ["whatsapp", "whatsapp number", "phone", "phone number", "mobile", "contact number", "numero", "telefono"],
   market: ["market", "country", "location"],
   niche: ["niche", "category", "industry", "lead type", "type"],
   source: ["source", "lead source"],
