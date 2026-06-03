@@ -16,6 +16,7 @@ const DEFAULT_LEADS = [
     channel: "Instagram",
     mainLink: "https://instagram.com/robertocoach_scale",
     niche: "Business Coach",
+    source: "Instagram Search",
     priority: "A",
     stage: "Warm Lead",
     lastActionDate: getOffsetDateString(-1),
@@ -37,6 +38,7 @@ const DEFAULT_LEADS = [
     channel: "Email",
     mainLink: "https://kdp-publishing-partners-test.com",
     niche: "KDP Publisher",
+    source: "Google",
     priority: "B",
     stage: "Replied",
     lastActionDate: getOffsetDateString(-4),
@@ -58,6 +60,7 @@ const DEFAULT_LEADS = [
     channel: "LinkedIn",
     mainLink: "https://linkedin.com/in/andrea-gruber-mindset",
     niche: "Course Creator",
+    source: "LinkedIn Search",
     priority: "A",
     stage: "First Message Sent",
     lastActionDate: getOffsetDateString(-5),
@@ -79,6 +82,7 @@ const DEFAULT_LEADS = [
     channel: "Email",
     mainLink: "https://verlag-muenchen-test.de",
     niche: "Publishing Business",
+    source: "Google",
     priority: "B",
     stage: "Engaged",
     lastActionDate: getOffsetDateString(-3),
@@ -100,6 +104,7 @@ const DEFAULT_LEADS = [
     channel: "WhatsApp",
     mainLink: "https://peak-performance-agency.co.uk",
     niche: "Content Agency",
+    source: "Website",
     priority: "C",
     stage: "Not Now",
     lastActionDate: getOffsetDateString(-8),
@@ -121,6 +126,7 @@ const DEFAULT_LEADS = [
     channel: "LinkedIn",
     mainLink: "https://linkedin.com/company/bestsellerlabs",
     niche: "KDP Business",
+    source: "LinkedIn Search",
     priority: "D",
     stage: "Archived",
     lastActionDate: getOffsetDateString(-20),
@@ -156,6 +162,10 @@ function loadData() {
   const stored = localStorage.getItem("ali_raza_leads");
   if (stored) {
     leads = JSON.parse(stored);
+    // Ensure backwards compatibility for Source
+    leads.forEach(lead => {
+      if (!lead.source) lead.source = "Other";
+    });
   } else {
     leads = [...DEFAULT_LEADS];
     saveData();
@@ -211,6 +221,7 @@ function getFilteredLeads() {
   // Advanced filter values
   const filterChannel = document.getElementById("filterChannel").value;
   const filterMarket = document.getElementById("filterMarket").value;
+  const filterSource = document.getElementById("filterSource").value;
   const filterPriority = document.getElementById("filterPriority").value;
   const filterStage = document.getElementById("filterStage").value;
   const filterReply = document.getElementById("filterReply").value;
@@ -228,11 +239,12 @@ function getFilteredLeads() {
       const matchName = lead.name.toLowerCase().includes(searchQuery);
       const matchNiche = lead.niche.toLowerCase().includes(searchQuery);
       const matchNotes = lead.notes.toLowerCase().includes(searchQuery);
+      const matchSource = lead.source && lead.source.toLowerCase().includes(searchQuery);
       const matchPerson = lead.contactPerson && lead.contactPerson.toLowerCase().includes(searchQuery);
       const matchEmail = lead.email && lead.email.toLowerCase().includes(searchQuery);
       const matchPhone = lead.whatsappNumber && lead.whatsappNumber.toLowerCase().includes(searchQuery);
 
-      if (!matchName && !matchNiche && !matchNotes && !matchPerson && !matchEmail && !matchPhone) {
+      if (!matchName && !matchNiche && !matchNotes && !matchPerson && !matchEmail && !matchPhone && !matchSource) {
         return false;
       }
     }
@@ -257,6 +269,7 @@ function getFilteredLeads() {
     // 4. Advanced Filters (Dropdowns)
     if (filterChannel !== "All" && lead.channel !== filterChannel) return false;
     if (filterMarket !== "All" && lead.market !== filterMarket) return false;
+    if (filterSource !== "All" && lead.source !== filterSource) return false;
     if (filterPriority !== "All" && lead.priority !== filterPriority) return false;
     if (filterStage !== "All" && lead.stage !== filterStage) return false;
     if (filterReply !== "All" && lead.replyStatus !== filterReply) return false;
@@ -353,21 +366,20 @@ function renderLeads() {
     tr.innerHTML = `
       <td>
         <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name}</div>
-        <div style="font-size: 11px; color: var(--color-priority-c); font-weight: 500;">
-          Niche: ${lead.niche} | Added: ${lead.dateAdded}
-        </div>
         ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
           Open Link ↗
         </a>` : ''}
       </td>
       <td>${getChannelBadge(lead.channel)}</td>
       <td><strong>${lead.market}</strong></td>
+      <td>${lead.niche}</td>
+      <td><span style="font-size: 12.5px; font-weight: 600; color: var(--color-priority-c);">${lead.source || "Other"}</span></td>
       <td>${getPriorityBadge(lead.priority)}</td>
       <td>${getStageBadge(lead.stage)}</td>
       <td style="font-weight: 600;">${lead.nextAction}</td>
       <td style="white-space: nowrap;">
-        <span style="font-weight: 600; color: ${lead.nextActionDate <= getOffsetDateString(0) ? '#ef4444' : 'inherit'}">
-          ${lead.nextActionDate}
+        <span style="font-weight: 600; color: ${lead.nextActionDate && lead.nextActionDate <= getOffsetDateString(0) ? '#ef4444' : 'inherit'}">
+          ${lead.nextActionDate || '-'}
         </span>
       </td>
       <td>${getReplyBadge(lead.replyStatus)}</td>
@@ -394,7 +406,7 @@ function renderLeads() {
       <div class="lead-card-header">
         <div class="lead-card-title">
           <h3>${lead.name}</h3>
-          <span class="market-lbl">${lead.market} • ${lead.niche}</span>
+          <span class="market-lbl">${lead.market} • ${lead.niche} • ${lead.source || "Other"}</span>
         </div>
         <div class="lead-card-badges">
           ${getPriorityBadge(lead.priority)}
@@ -417,7 +429,7 @@ function renderLeads() {
         </div>
         <div class="lead-card-detail-item">
           <span class="lbl">Action Date</span>
-          <span class="val" style="font-weight: 700; color: ${lead.nextActionDate <= getOffsetDateString(0) ? '#ef4444' : 'inherit'}">${lead.nextActionDate}</span>
+          <span class="val" style="font-weight: 700; color: ${lead.nextActionDate && lead.nextActionDate <= getOffsetDateString(0) ? '#ef4444' : 'inherit'}">${lead.nextActionDate || '-'}</span>
         </div>
       </div>
 
@@ -425,11 +437,13 @@ function renderLeads() {
         <strong>Notes:</strong> ${lead.notes}
       </div>
 
-      ${lead.contactPerson || lead.email || lead.whatsappNumber ? `
+      ${lead.contactPerson || lead.email || lead.whatsappNumber || lead.dateAdded || lead.lastActionDate ? `
       <div class="lead-card-notes" style="font-size: 11px; background-color: var(--color-off-white); padding: 6px; border-radius: var(--radius-sm);">
         ${lead.contactPerson ? `<strong>Contact:</strong> ${lead.contactPerson}<br>` : ''}
         ${lead.email ? `<strong>Email:</strong> ${lead.email}<br>` : ''}
-        ${lead.whatsappNumber ? `<strong>WhatsApp:</strong> ${lead.whatsappNumber}` : ''}
+        ${lead.whatsappNumber ? `<strong>WhatsApp:</strong> ${lead.whatsappNumber}<br>` : ''}
+        ${lead.dateAdded ? `<strong>Added:</strong> ${lead.dateAdded} | ` : ''}
+        ${lead.lastActionDate ? `<strong>Last Action:</strong> ${lead.lastActionDate}` : ''}
       </div>` : ''}
 
       <div class="lead-card-actions">
@@ -498,16 +512,20 @@ function renderTodayActions() {
     tr.innerHTML = `
       <td>
         <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name}</div>
-        <div style="font-size: 11px; color: var(--color-priority-c);">Niche: ${lead.niche}</div>
+        ${lead.mainLink ? `<a href="${lead.mainLink}" target="_blank" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
+          Open Link ↗
+        </a>` : ''}
       </td>
       <td>${getChannelBadge(lead.channel)}</td>
       <td><strong>${lead.market}</strong></td>
+      <td>${lead.niche}</td>
+      <td><span style="font-size: 12.5px; font-weight: 600; color: var(--color-priority-c);">${lead.source || "Other"}</span></td>
       <td>${getPriorityBadge(lead.priority)}</td>
       <td>${getStageBadge(lead.stage)}</td>
       <td style="font-weight: 700; color: var(--color-royal-blue);">${lead.nextAction}</td>
       <td style="white-space: nowrap;">
         <span style="font-weight: 800; color: #ef4444;">
-          ${lead.nextActionDate} (Overdue/Due)
+          ${lead.nextActionDate || '-'} (Overdue/Due)
         </span>
       </td>
       <td>${getReplyBadge(lead.replyStatus)}</td>
@@ -535,7 +553,7 @@ function renderTodayActions() {
       <div class="lead-card-header">
         <div class="lead-card-title">
           <h3>${lead.name}</h3>
-          <span class="market-lbl">${lead.market} • ${lead.niche}</span>
+          <span class="market-lbl">${lead.market} • ${lead.niche} • ${lead.source || "Other"}</span>
         </div>
         <div class="lead-card-badges">
           ${getPriorityBadge(lead.priority)}
@@ -554,7 +572,7 @@ function renderTodayActions() {
         </div>
         <div class="lead-card-detail-item" style="grid-column: span 2;">
           <span class="lbl">Action Date</span>
-          <span class="val" style="font-weight: 800; color: #ef4444;">${lead.nextActionDate} (Due Now)</span>
+          <span class="val" style="font-weight: 800; color: #ef4444;">${lead.nextActionDate || '-'} (Due Now)</span>
         </div>
       </div>
 
@@ -587,6 +605,7 @@ function openAddModal() {
   const todayStr = new Date().toISOString().split('T')[0];
   document.getElementById("leadDateAdded").value = todayStr;
   document.getElementById("leadLastActionDate").value = todayStr;
+  document.getElementById("leadSource").value = "Google";
   document.getElementById("leadNextActionDate").value = getOffsetDateString(1); // Default to tomorrow
 
   document.getElementById("leadIndex").value = "";
@@ -605,6 +624,7 @@ function openEditModal(index) {
   document.getElementById("leadChannel").value = lead.channel || "Instagram";
   document.getElementById("leadMainLink").value = lead.mainLink || "";
   document.getElementById("leadNiche").value = lead.niche || "";
+  document.getElementById("leadSource").value = lead.source || "Other";
   document.getElementById("leadPriority").value = lead.priority || "A";
   document.getElementById("leadStage").value = lead.stage || "Found";
   document.getElementById("leadLastActionDate").value = lead.lastActionDate || "";
@@ -638,7 +658,6 @@ function closeModal() {
 function archiveLead(index) {
   const leadName = leads[index].name;
   leads[index].stage = "Archived";
-  leads[index].priority = "D";
   leads[index].nextAction = "Archive";
   
   saveData();
@@ -714,6 +733,7 @@ function setupEventListeners() {
       channel: document.getElementById("leadChannel").value,
       mainLink: document.getElementById("leadMainLink").value.trim(),
       niche: document.getElementById("leadNiche").value.trim(),
+      source: document.getElementById("leadSource").value,
       priority: document.getElementById("leadPriority").value,
       stage: document.getElementById("leadStage").value,
       lastActionDate: document.getElementById("leadLastActionDate").value,
@@ -789,7 +809,7 @@ function setupEventListeners() {
   });
 
   // Connect remaining advanced filter drop downs
-  ["filterMarket", "filterPriority", "filterStage", "filterReply", "filterActionDate"].forEach(id => {
+  ["filterMarket", "filterSource", "filterPriority", "filterStage", "filterReply", "filterActionDate"].forEach(id => {
     document.getElementById(id).addEventListener("change", () => {
       renderLeads();
     });
@@ -913,7 +933,7 @@ function exportToCSV() {
   // Header column titles
   const headers = [
     "Date Added", "Lead Name/Company", "Contact Person", "Market", 
-    "Channel", "Main Link", "Extra Link", "Niche", "Priority", 
+    "Channel", "Main Link", "Extra Link", "Niche", "Source", "Priority", 
     "Stage", "Last Action Date", "Next Action", "Next Action Date", 
     "Reply Status", "Email", "WhatsApp Number", "Follow-up Count", 
     "Exact Message Sent", "Notes"
@@ -932,6 +952,7 @@ function exportToCSV() {
       escapeCsvValue(lead.mainLink),
       escapeCsvValue(lead.extraLink),
       escapeCsvValue(lead.niche),
+      escapeCsvValue(lead.source || "Other"),
       escapeCsvValue(lead.priority),
       escapeCsvValue(lead.stage),
       escapeCsvValue(lead.lastActionDate),
