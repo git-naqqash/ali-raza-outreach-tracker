@@ -7,6 +7,92 @@ function getOffsetDateString(daysOffset) {
   return d.toISOString().split('T')[0];
 }
 
+// Parse dates from excel (handles serial number and text/strings)
+function parseExcelDate(val) {
+  if (val === undefined || val === null || val === "") return null;
+  
+  if (val instanceof Date) {
+    return val.toISOString().split('T')[0];
+  }
+  
+  if (typeof val === 'number' || (!isNaN(val) && !isNaN(parseFloat(val)))) {
+    const serial = parseFloat(val);
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;
+    const date_info = new Date(utc_value * 1000);
+    const localDate = new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
+    return localDate.toISOString().split('T')[0];
+  }
+
+  const str = String(val).trim();
+  if (!str) return null;
+
+  const parsedMs = Date.parse(str);
+  if (!isNaN(parsedMs)) {
+    return new Date(parsedMs).toISOString().split('T')[0];
+  }
+
+  // Handle formats like "25 may 2026" or "13-May-2026"
+  const wordMonthRegex = /^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/i;
+  const match = str.match(wordMonthRegex);
+  if (match) {
+    const day = parseInt(match[1]);
+    const monthStr = match[2].toLowerCase().substring(0, 3);
+    const year = parseInt(match[3]);
+    const months = {
+      jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11
+    };
+    if (months[monthStr] !== undefined) {
+      const d = new Date(year, months[monthStr], day);
+      if (!isNaN(d.getTime())) {
+        return d.toISOString().split('T')[0];
+      }
+    }
+  }
+
+  // Handle format with text like "5/13/2026, got replied..."
+  const dateRegex = /(\d{1,2})[\/\-]\d{1,2}[\/\-]\d{4}/;
+  const dateMatch = str.match(dateRegex);
+  if (dateMatch) {
+    const d = new Date(dateMatch[0]);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().split('T')[0];
+    }
+  }
+
+  return null;
+}
+
+// Add working days (Mon-Fri) to a date
+function addWorkingDays(startDateStr, days) {
+  let date = new Date(startDateStr);
+  if (isNaN(date.getTime())) {
+    date = new Date();
+  }
+  let added = 0;
+  while (added < days) {
+    date.setDate(date.getDate() + 1);
+    const day = date.getDay();
+    if (day !== 0 && day !== 6) { // Not Sunday (0) and not Saturday (6)
+      added++;
+    }
+  }
+  return date.toISOString().split('T')[0];
+}
+
+// Check if a SheetJS cell style is colored red (background or fill)
+function checkRowRedStyle(cell) {
+  if (!cell || !cell.s) return false;
+  const fill = cell.s.fill;
+  if (fill && fill.fgColor) {
+    const rgb = fill.fgColor.rgb;
+    if (rgb && (rgb.startsWith("FF") || rgb.startsWith("ff") || rgb.toLowerCase() === "red")) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Default Seed Data for the Outreach CRM
 const DEFAULT_LEADS = [
   {
@@ -323,6 +409,12 @@ function getReplyBadge(status) {
 
 // Render Leads Grid (Table and Mobile Cards)
 function renderLeads() {
+  // Toggle the email tab action button container
+  const emailActions = document.getElementById("emailTabActions");
+  if (emailActions) {
+    emailActions.style.display = activeTab === "Email" ? "block" : "none";
+  }
+
   const filtered = getFilteredLeads();
   const tableBody = document.getElementById("leadsTableBody");
   const cardsContainer = document.getElementById("leadsCardsContainer");
@@ -908,6 +1000,52 @@ function setupEventListeners() {
 
   // CSV Export trigger
   exportBtn.addEventListener("click", exportToCSV);
+
+  // Import Email Leads Button
+  const importEmailBtn = document.getElementById("importEmailLeadsBtn");
+  if (importEmailBtn) {
+    importEmailBtn.addEventListener("click", tryFetchAndParse);
+  }
+
+  // Import manual file change listener
+  const importFileInput = document.getElementById("importFileInput");
+  if (importFileInput) {
+    importFileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const arrayBuffer = event.target.result;
+        processImportData(arrayBuffer, file.name);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+  
+  // Close Import Modal
+  const closeImportModalBtn = document.getElementById("closeImportModalBtn");
+  if (closeImportModalBtn) {
+    closeImportModalBtn.addEventListener("click", closeImportPreview);
+  }
+  
+  const cancelImportBtn = document.getElementById("cancelImportBtn");
+  if (cancelImportBtn) {
+    cancelImportBtn.addEventListener("click", closeImportPreview);
+  }
+  
+  const confirmImportBtn = document.getElementById("confirmImportBtn");
+  if (confirmImportBtn) {
+    confirmImportBtn.addEventListener("click", confirmImport);
+  }
+
+  // Overlay click to close
+  const importPreviewModal = document.getElementById("importPreviewModal");
+  if (importPreviewModal) {
+    importPreviewModal.addEventListener("click", (e) => {
+      if (e.target.id === "importPreviewModal") closeImportPreview();
+    });
+  }
 }
 
 // Escaping values for CSV
@@ -986,6 +1124,308 @@ function exportToCSV() {
   document.body.removeChild(link);
   
   showToast("CSV Exported successfully!", "success");
+}
+
+// --- IMPORT ITALY COLD EMAIL LEADS IMPLEMENTATION ---
+
+const SYNONYMS = {
+  name: ["company", "lead", "business name", "name", "company name", "account"],
+  email: ["email", "email address", "contact email", "mail"],
+  mainLink: ["website", "link", "url", "main link", "profile", "web"],
+  market: ["market", "country", "location"],
+  niche: ["niche", "category", "industry", "type"],
+  source: ["source", "lead source"],
+  status: ["status", "reply status", "result"],
+  date: ["date", "sent date", "first message date", "first email date", "message sent date", "last action date", "1st"],
+  notes: ["notes", "remarks", "comments", "context"]
+};
+
+const REJECT_KEYWORDS = [
+  "rejected", "invalid", "bounced", "not interested", "bad fit", 
+  "wrong email", "no interest", "rejected lead"
+];
+
+const CV_KEYWORDS = [
+  "cv requested", "cv sent", "curriculum", "resume", "follow-up sent"
+];
+
+let pendingImportLeads = [];
+
+function mapHeaders(headers) {
+  const mapping = {};
+  headers.forEach((header, idx) => {
+    if (header === undefined || header === null) return;
+    const cleanHeader = header.toString().trim().toLowerCase();
+    for (const [key, synonyms] of Object.entries(SYNONYMS)) {
+      if (synonyms.includes(cleanHeader)) {
+        if (mapping[key] === undefined) {
+          mapping[key] = idx;
+        }
+      }
+    }
+  });
+  return mapping;
+}
+
+async function tryFetchAndParse() {
+  const filenames = [
+    'italy_cold_email.xlsm',
+    'italy_cold_email.xlsx',
+    'italy_cold_email.xls',
+    'italy_cold_email.csv',
+    'italy_cold_email'
+  ];
+  
+  let fetchSucceeded = false;
+  showToast("Scanning project folder for leads file...", "info");
+  
+  for (const filename of filenames) {
+    try {
+      console.log(`Attempting to fetch local file: ${filename}`);
+      const response = await fetch(filename);
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        console.log(`Successfully fetched ${filename}, size: ${arrayBuffer.byteLength} bytes.`);
+        processImportData(arrayBuffer, filename);
+        fetchSucceeded = true;
+        break; // Success! Stop fetching
+      }
+    } catch (e) {
+      console.warn(`Failed to fetch ${filename}:`, e);
+    }
+  }
+  
+  if (!fetchSucceeded) {
+    console.log("Direct local fetch failed or blocked. Falling back to file picker.");
+    showToast("Direct import blocked or file not found. Please select the file manually.", "info");
+    const fileInput = document.getElementById("importFileInput");
+    if (fileInput) fileInput.click();
+  }
+}
+
+function processImportData(arrayBuffer, filename) {
+  try {
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, { type: 'array', cellStyles: true, cellDates: true });
+    
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    // header: 1 formats it as an array of arrays
+    const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+    
+    if (rawRows.length === 0) {
+      showToast("The imported file is empty.", "error");
+      return;
+    }
+    
+    const headers = rawRows[0];
+    const rows = rawRows.slice(1);
+    
+    // Map headers to column indices
+    const colMapping = mapHeaders(headers);
+    
+    let totalRows = 0;
+    let duplicatesCount = 0;
+    let archivedRejectedCount = 0;
+    let missingEmailCount = 0;
+    let validLeadsCount = 0;
+    
+    const tempImportedLeads = [];
+    
+    rows.forEach((row, rowIdx) => {
+      // Skip completely empty rows
+      if (row.length === 0 || row.every(val => val === undefined || val === null || String(val).trim() === "")) {
+        return;
+      }
+      
+      totalRows++;
+      
+      const getVal = (field) => {
+        const colIdx = colMapping[field];
+        if (colIdx === undefined) return "";
+        const val = row[colIdx];
+        return val !== undefined && val !== null ? val : "";
+      };
+      
+      const rowName = getVal("name");
+      const rowEmail = getVal("email");
+      const rowMainLink = getVal("mainLink");
+      const rowMarket = getVal("market");
+      const rowNiche = getVal("niche");
+      const rowSource = getVal("source");
+      const rowStatus = getVal("status");
+      const rowDateVal = getVal("date");
+      const rowNotes = getVal("notes");
+      
+      // If name and email are both empty, skip this row
+      if (!rowName && !rowEmail) {
+        return;
+      }
+      
+      const isEmailMissing = !rowEmail || String(rowEmail).trim() === "";
+      if (isEmailMissing) {
+        missingEmailCount++;
+      }
+      
+      // Duplicate check
+      const emailLower = rowEmail ? String(rowEmail).trim().toLowerCase() : "";
+      const nameTrimmed = rowName ? String(rowName).trim().toLowerCase() : "";
+      
+      let isDuplicate = false;
+      if (emailLower) {
+        isDuplicate = leads.some(l => l.email && l.email.toLowerCase().trim() === emailLower) ||
+                      tempImportedLeads.some(l => l.email && l.email.toLowerCase().trim() === emailLower);
+      } else if (nameTrimmed) {
+        isDuplicate = leads.some(l => l.name && l.name.toLowerCase().trim() === nameTrimmed) ||
+                      tempImportedLeads.some(l => l.name && l.name.toLowerCase().trim() === nameTrimmed);
+      }
+      
+      if (isDuplicate) {
+        duplicatesCount++;
+        return;
+      }
+      
+      // Check red row color (check styling of mapped columns)
+      let isRedRow = false;
+      const colIndices = Object.values(colMapping);
+      for (const colIdx of colIndices) {
+        const cellAddress = XLSX.utils.encode_cell({ r: rowIdx + 1, c: colIdx });
+        const cell = worksheet[cellAddress];
+        if (cell && cell.s) {
+          if (checkRowRedStyle(cell)) {
+            isRedRow = true;
+            break;
+          }
+        }
+      }
+      
+      const parsedDate = parseExcelDate(rowDateVal);
+      const finalDate = parsedDate || getOffsetDateString(0);
+      
+      let nextActionDateVal = "";
+      if (parsedDate) {
+        nextActionDateVal = addWorkingDays(parsedDate, 5);
+      } else {
+        nextActionDateVal = addWorkingDays(getOffsetDateString(0), 5);
+      }
+      
+      const lead = {
+        dateAdded: finalDate,
+        name: rowName ? String(rowName).trim() : "Unnamed Lead / Company",
+        market: rowMarket ? String(rowMarket).trim() : "Italy",
+        channel: "Email",
+        mainLink: rowMainLink ? String(rowMainLink).trim() : "",
+        niche: rowNiche ? String(rowNiche).trim() : "",
+        source: rowSource ? String(rowSource).trim() : "Google",
+        priority: "B",
+        stage: "First Message Sent",
+        lastActionDate: finalDate,
+        nextAction: "Send follow-up",
+        nextActionDate: nextActionDateVal,
+        replyStatus: "No reply",
+        notes: rowNotes ? String(rowNotes).trim() : "",
+        contactPerson: "",
+        email: rowEmail ? String(rowEmail).trim() : "",
+        whatsappNumber: "",
+        extraLink: "",
+        messageSent: "",
+        followUpCount: 0,
+        firstMessageDate: finalDate
+      };
+      
+      // Process unmapped columns into notes
+      const extraNotesList = [];
+      headers.forEach((header, idx) => {
+        const isMapped = Object.values(colMapping).includes(idx);
+        if (!isMapped) {
+          const val = row[idx];
+          if (val !== undefined && val !== null && String(val).trim() !== "") {
+            const colLetter = String.fromCharCode(65 + idx); // convert 0 -> A, 1 -> B, etc.
+            const headerName = header && String(header).trim() ? String(header).trim() : `Col ${colLetter}`;
+            extraNotesList.push(`${headerName}: ${val}`);
+          }
+        }
+      });
+      
+      if (extraNotesList.length > 0) {
+        lead.notes = (lead.notes ? lead.notes + "\n" : "") + extraNotesList.join(" | ");
+      }
+      
+      // Keyword mapping
+      const combinedText = `${String(rowStatus || "").toLowerCase()} ${String(rowNotes || "").toLowerCase()} ${String(rowDateVal || "").toLowerCase()} ${extraNotesList.join(" ").toLowerCase()}`;
+      
+      let isRejected = false;
+      if (isRedRow) {
+        isRejected = true;
+      } else {
+        isRejected = REJECT_KEYWORDS.some(kw => combinedText.includes(kw));
+      }
+      
+      if (isRejected) {
+        lead.priority = "D";
+        lead.stage = "Archived";
+        lead.replyStatus = "Not interested";
+        lead.nextAction = "Archive";
+        lead.notes = (lead.notes ? lead.notes + "\n" : "") + "Rejected/invalid from imported Italy cold email file.";
+        archivedRejectedCount++;
+      } else {
+        const isCV = CV_KEYWORDS.some(kw => combinedText.includes(kw));
+        if (isCV) {
+          lead.stage = "Samples Sent";
+          lead.replyStatus = "No reply after CV";
+          lead.nextAction = "Wait";
+        }
+        validLeadsCount++;
+      }
+      
+      tempImportedLeads.push(lead);
+    });
+    
+    showImportPreview(totalRows, validLeadsCount, duplicatesCount, archivedRejectedCount, missingEmailCount, tempImportedLeads);
+    
+  } catch (err) {
+    console.error("Error parsing spreadsheet file:", err);
+    showToast(`Error reading spreadsheet: ${err.message}`, "error");
+  }
+}
+
+function showImportPreview(totalRows, valid, duplicates, rejected, missingEmail, leadsToImport) {
+  pendingImportLeads = leadsToImport;
+  
+  document.getElementById("prevTotalRows").textContent = totalRows;
+  document.getElementById("prevValidLeads").textContent = valid;
+  document.getElementById("prevDuplicates").textContent = duplicates;
+  document.getElementById("prevRejectedLeads").textContent = rejected;
+  document.getElementById("prevMissingEmails").textContent = missingEmail;
+  document.getElementById("prevFinalCount").textContent = leadsToImport.length;
+  
+  const modal = document.getElementById("importPreviewModal");
+  if (modal) modal.classList.add("active");
+}
+
+function confirmImport() {
+  if (pendingImportLeads.length > 0) {
+    leads.push(...pendingImportLeads);
+    saveData();
+    updateDashboard();
+    renderLeads();
+    renderTodayActions();
+    
+    showToast(`Successfully imported ${pendingImportLeads.length} leads!`, "success");
+  } else {
+    showToast("No new leads to import.", "info");
+  }
+  
+  closeImportPreview();
+}
+
+function closeImportPreview() {
+  const modal = document.getElementById("importPreviewModal");
+  if (modal) modal.classList.remove("active");
+  pendingImportLeads = [];
+  const fileInput = document.getElementById("importFileInput");
+  if (fileInput) fileInput.value = "";
 }
 
 // Global functions accessible from HTML (inline onclick)

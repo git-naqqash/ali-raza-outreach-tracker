@@ -210,6 +210,7 @@
             <option value="Interested">Interested</option>
             <option value="Samples requested">Samples requested</option>
             <option value="CV requested">CV requested</option>
+            <option value="No reply after CV">No reply after CV</option>
             <option value="Price asked">Price asked</option>
             <option value="Not now">Not now</option>
             <option value="Not interested">Not interested</option>
@@ -239,6 +240,12 @@
           <div class="table-title">
             <h2 id="activeTabTitle">All Leads</h2>
             <span class="table-count-badge" id="leadsCount">0 leads</span>
+          </div>
+          <div id="emailTabActions" style="display: none;">
+            <button id="importEmailLeadsBtn" class="btn btn-success">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M4 9l8 8 8-8M12 17V3"/></svg>
+              Import Italy Cold Email Leads
+            </button>
           </div>
         </div>
         
@@ -743,6 +750,7 @@ Ali Raza</pre>
               <option value="Interested">Interested</option>
               <option value="Samples requested">Samples requested</option>
               <option value="CV requested">CV requested</option>
+              <option value="No reply after CV">No reply after CV</option>
               <option value="Price asked">Price asked</option>
               <option value="Not now">Not now</option>
               <option value="Not interested">Not interested</option>
@@ -822,6 +830,56 @@ Ali Raza</pre>
   <!-- Toast Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Hidden Import File Picker -->
+  <input type="file" id="importFileInput" style="display: none;" accept=".csv,.xlsx,.xls,.xlsm">
+
+  <!-- Import Preview Modal -->
+  <div class="modal-overlay" id="importPreviewModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>Import Preview Summary</h2>
+        <button class="modal-close" id="closeImportModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-form-scroll" style="padding: 20px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+            <td style="padding: 10px 0; font-weight: 600; color: var(--color-deep-navy);">Total Rows Found:</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700;" id="prevTotalRows">0</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+            <td style="padding: 10px 0; font-weight: 600; color: var(--color-royal-blue);">Valid Leads to Import:</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: var(--color-royal-blue);" id="prevValidLeads">0</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+            <td style="padding: 10px 0; font-weight: 600; color: var(--color-soft-gold);">Archived/Rejected Found:</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: var(--color-soft-gold);" id="prevRejectedLeads">0</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+            <td style="padding: 10px 0; font-weight: 600; color: #ef4444;">Duplicates Skipped:</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: #ef4444;" id="prevDuplicates">0</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+            <td style="padding: 10px 0; font-weight: 600; color: #6b7280;">Missing Email Address:</td>
+            <td style="padding: 10px 0; text-align: right; font-weight: 700; color: #6b7280;" id="prevMissingEmails">0</td>
+          </tr>
+          <tr style="border-bottom: 2px solid var(--color-deep-navy);">
+            <td style="padding: 12px 0; font-weight: 800; font-size: 15px; color: var(--color-teal-green);">Final Import Count:</td>
+            <td style="padding: 12px 0; text-align: right; font-weight: 800; font-size: 15px; color: var(--color-teal-green);" id="prevFinalCount">0</td>
+          </tr>
+        </table>
+        <p style="font-size: 12px; color: var(--color-priority-c); line-height: 1.4;">
+          Leads are skipped if their email already exists (or their company name matches, for rows without email). No existing data will be deleted.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelImportBtn">Cancel</button>
+        <button type="button" class="btn btn-success" id="confirmImportBtn">Confirm Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SheetJS Library for Excel Parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- Application Logic -->
   <script src="app.js"></script>
 </body>
