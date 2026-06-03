@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ali Raza Outreach Tracker - Mini CRM</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="logo-section">
+        <div class="logo-icon">AR</div>
+        <div class="logo-text">
+          <h1>Ali Raza Outreach Tracker</h1>
+          <p>Book Content & Lead Magnet Writing CRM</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="exportCsvBtn" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export CSV
+        </button>
+        <button id="addLeadBtn" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Lead
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Dashboard Grid -->
+    <section class="dashboard-grid" aria-label="Dashboard Metrics">
+      <!-- Total Leads -->
+      <div class="metric-card total" id="metricTotal">
+        <span class="metric-title">Total Leads</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">👥</div>
+      </div>
+      <!-- Instagram Leads -->
+      <div class="metric-card instagram" id="metricInstagram">
+        <span class="metric-title">Instagram</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">📷</div>
+      </div>
+      <!-- LinkedIn Leads -->
+      <div class="metric-card linkedin" id="metricLinkedin">
+        <span class="metric-title">LinkedIn</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">💼</div>
+      </div>
+      <!-- Email Leads -->
+      <div class="metric-card email" id="metricEmail">
+        <span class="metric-title">Email</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">✉️</div>
+      </div>
+      <!-- WhatsApp Leads -->
+      <div class="metric-card whatsapp" id="metricWhatsapp">
+        <span class="metric-title">WhatsApp</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">💬</div>
+      </div>
+      <!-- Today's Actions -->
+      <div class="metric-card today-action" id="metricToday">
+        <span class="metric-title">Today's Actions</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">📅</div>
+      </div>
+      <!-- Follow-ups Due -->
+      <div class="metric-card follow-ups" id="metricFollowUps">
+        <span class="metric-title">Follow-ups</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">⏰</div>
+      </div>
+      <!-- A Leads -->
+      <div class="metric-card a-leads" id="metricALeads">
+        <span class="metric-title">A Leads</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">⭐</div>
+      </div>
+      <!-- Warm Leads -->
+      <div class="metric-card warm" id="metricWarmLeads">
+        <span class="metric-title">Warm Leads</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">🔥</div>
+      </div>
+    </section>
+
+    <!-- Control & Filter Center -->
+    <section class="control-center" aria-label="Controls and Filters">
+      <div class="search-and-tabs">
+        <!-- Search bar -->
+        <div class="search-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchInput" placeholder="Search by lead name, niche, company or notes...">
+        </div>
+        <!-- Four tabs (Instagram, LinkedIn, Email, WhatsApp) -->
+        <nav class="channel-tabs" aria-label="Channel tabs">
+          <button class="tab-btn active" data-channel="All">
+            <span>All Leads</span>
+          </button>
+          <button class="tab-btn" data-channel="Instagram">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            Instagram
+          </button>
+          <button class="tab-btn" data-channel="LinkedIn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+            LinkedIn
+          </button>
+          <button class="tab-btn" data-channel="Email">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            Email
+          </button>
+          <button class="tab-btn" data-channel="WhatsApp">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            WhatsApp
+          </button>
+        </nav>
+      </div>
+
+      <!-- Filters & Quick Filter Toggles -->
+      <div class="filters-toggle-row">
+        <div class="quick-filters">
+          <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); margin-right: 4px;">Quick Views:</span>
+          <button class="quick-filter-btn active" id="qFilterAll">All Active</button>
+          <button class="quick-filter-btn" id="qFilterToday">Today’s Actions</button>
+          <button class="quick-filter-btn" id="qFilterFollowUp">Follow-ups Due</button>
+          <button class="quick-filter-btn" id="qFilterA">A Leads</button>
+          <button class="quick-filter-btn" id="qFilterWarm">Warm Leads</button>
+          <button class="quick-filter-btn" id="qFilterArchived">Archived</button>
+        </div>
+        <button id="toggleFiltersBtn" class="toggle-advanced-filters">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span>Show Filters</span>
+        </button>
+      </div>
+
+      <!-- Advanced Filter Panel (Collapsible) -->
+      <div id="advancedFiltersPanel" class="advanced-filters-panel collapsed">
+        <div class="filter-group">
+          <label for="filterChannel">Channel</label>
+          <select id="filterChannel">
+            <option value="All">All Channels</option>
+            <option value="Instagram">Instagram</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Email">Email</option>
+            <option value="WhatsApp">WhatsApp</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterMarket">Market</label>
+          <select id="filterMarket">
+            <option value="All">All Markets</option>
+            <option value="Italy">Italy</option>
+            <option value="US">US</option>
+            <option value="UK">UK</option>
+            <option value="Austria">Austria</option>
+            <option value="Germany">Germany</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterPriority">Priority</label>
+          <select id="filterPriority">
+            <option value="All">All Priorities</option>
+            <option value="A">A - Strong fit</option>
+            <option value="B">B - Good fit</option>
+            <option value="C">C - Weak fit</option>
+            <option value="D">D - Bad / Archive</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterStage">Stage</label>
+          <select id="filterStage">
+            <option value="All">All Active Stages</option>
+            <option value="Found">Found</option>
+            <option value="Engaged">Engaged</option>
+            <option value="First Message Sent">First Message Sent</option>
+            <option value="Follow-up Due">Follow-up Due</option>
+            <option value="Replied">Replied</option>
+            <option value="Samples Sent">Samples Sent</option>
+            <option value="Warm Lead">Warm Lead</option>
+            <option value="Not Now">Not Now</option>
+            <option value="Archived">Archived</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterReply">Reply Status</label>
+          <select id="filterReply">
+            <option value="All">All Statuses</option>
+            <option value="No reply">No reply</option>
+            <option value="Replied">Replied</option>
+            <option value="Interested">Interested</option>
+            <option value="Samples requested">Samples requested</option>
+            <option value="CV requested">CV requested</option>
+            <option value="Price asked">Price asked</option>
+            <option value="Not now">Not now</option>
+            <option value="Not interested">Not interested</option>
+            <option value="Bad fit">Bad fit</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterActionDate">Next Action Date</label>
+          <select id="filterActionDate">
+            <option value="All">Any Time</option>
+            <option value="Overdue">Overdue / Today</option>
+            <option value="Today">Today Only</option>
+            <option value="Tomorrow">Tomorrow</option>
+            <option value="ThisWeek">This Week</option>
+            <option value="NoDate">No Date Scheduled</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Active Leads Table (Desktop) / Cards Grid (Mobile) -->
+    <main class="main-content-section" aria-label="Outreach Leads">
+      
+      <!-- DESKTOP LEADS VIEW -->
+      <div class="leads-table-container">
+        <div class="table-header">
+          <div class="table-title">
+            <h2 id="activeTabTitle">All Leads</h2>
+            <span class="table-count-badge" id="leadsCount">0 leads</span>
+          </div>
+        </div>
+        
+        <div class="leads-table-scroll">
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Lead / Company</th>
+                <th>Channel</th>
+                <th>Market</th>
+                <th>Priority</th>
+                <th>Stage</th>
+                <th>Next Action</th>
+                <th>Next Action Date</th>
+                <th>Reply Status</th>
+                <th style="width: 80px; text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MOBILE LEADS VIEW (Cards Grid) -->
+      <div class="mobile-cards-grid" id="leadsCardsContainer">
+        <!-- Dynamically populated -->
+      </div>
+      
+    </main>
+
+    <!-- Today's Action Center (Filtered Table/Cards) -->
+    <section class="today-actions-section" aria-label="Today's Actions Panel">
+      <div class="today-actions-header">
+        <h2>
+          <span>📅</span>
+          Today's Outreach Actions
+          <span class="table-count-badge" id="todayActionsCount">0 tasks due</span>
+        </h2>
+        <span style="font-size: 12px; color: var(--color-priority-c); font-weight: 600;">(Next Action Date is today/overdue and Stage is not Archived)</span>
+      </div>
+
+      <!-- Desktop View for Today's Actions -->
+      <div class="leads-table-container" id="todayDesktopContainer">
+        <div class="leads-table-scroll">
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Lead / Company</th>
+                <th>Channel</th>
+                <th>Market</th>
+                <th>Priority</th>
+                <th>Stage</th>
+                <th>Next Action</th>
+                <th>Next Action Date</th>
+                <th>Reply Status</th>
+                <th style="width: 80px; text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="todayTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Mobile View for Today's Actions -->
+      <div class="mobile-cards-grid" id="todayCardsContainer">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- Split Section: Message Scripts & Safe Outreach Rules -->
+    <div class="footer-split-grid">
+      
+      <!-- Scripts Section -->
+      <section class="scripts-card" aria-label="Outreach Message Scripts">
+        <h2 style="font-size: 18px; display: flex; align-items: center; gap: 8px;">
+          <span>📝</span>
+          Outreach Message Scripts
+        </h2>
+        <p style="font-size: 13px; color: var(--color-priority-c); margin-top: -8px;">Proven templates for high conversion. Click to expand and copy.</p>
+
+        <div class="scripts-accordion" id="scriptsAccordion">
+          
+          <!-- Instagram DM -->
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              Instagram DM (Found Pitch)
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="accordion-content">
+              <div class="script-body">
+                <div class="script-text-container">
+                  <pre id="scriptIgDm">Ciao [Name]! Love your content on [Topic], especially your post about [Reference]. I help Italian coaches package their expertise into professional PDF workbooks and lead magnets to scale their client acquisition. Just wanted to see if you have any books/lead magnets planned for this quarter?</pre>
+                  <span class="copied-tooltip" id="tooltipIgDm">Copied!</span>
+                </div>
+                <div class="script-actions">
+                  <button class="btn btn-secondary btn-sm copy-script-btn" data-target="scriptIgDm" data-tooltip="tooltipIgDm">Copy Script</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LinkedIn Connection Request -->
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              LinkedIn Connection Request
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="accordion-content">
+              <div class="script-body">
+                <div class="script-text-container">
+                  <pre id="scriptLiConn">Hi [Name], came across your profile and noticed your focus on [Niche]. I write white-label ebooks and interactive workbooks for business agencies and publishing teams in the [Market] region. Would love to connect and keep in touch!</pre>
+                  <span class="copied-tooltip" id="tooltipLiConn">Copied!</span>
+                </div>
+                <div class="script-actions">
+                  <button class="btn btn-secondary btn-sm copy-script-btn" data-target="scriptLiConn" data-tooltip="tooltipLiConn">Copy Script</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LinkedIn After Accept Message -->
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              LinkedIn Message (After Accepting)
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="accordion-content">
+              <div class="script-body">
+                <div class="script-text-container">
+                  <pre id="scriptLiAfter">Thanks for connecting, [Name]! Many agencies and course creators struggle to write high-quality books/lead magnets that engage readers and drive backend sales. I outline, structure, and write white-label books so you can publish faster under your name. Have you ever considered launching an ebook or Canva workbook for your audience?</pre>
+                  <span class="copied-tooltip" id="tooltipLiAfter">Copied!</span>
+                </div>
+                <div class="script-actions">
+                  <button class="btn btn-secondary btn-sm copy-script-btn" data-target="scriptLiAfter" data-tooltip="tooltipLiAfter">Copy Script</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- English First Email -->
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              English First Email (Agencies/Coaches)
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="accordion-content">
+              <div class="script-body">
+                <div class="script-text-container">
+                  <pre id="scriptEmailEn">Subject: Ebook writing & Canva workbook support for [Company]
+
+Hi [Name],
+
+I came across [Company] and love the work you are doing for clients in [Niche]. 
+
+I work as a freelance white-label book writer. I help publishing teams, content agencies, and coaches design and draft high-conversion ebooks, workbook PDFs, and lead magnets. This lets you offer publishing services to your clients or grow your own backend program without doing any writing yourself.
+
+I’d love to send over a brief PDF sample workbook that shows my writing style and Canva layouts. 
+
+Would it be okay to share the link with you?
+
+Best regards,
+Ali Raza
+Ebook & Lead Magnet Writer
+https://alirazawriter.com (Placeholder link)</pre>
+                  <span class="copied-tooltip" id="tooltipEmailEn">Copied!</span>
+                </div>
+                <div class="script-actions">
+                  <button class="btn btn-secondary btn-sm copy-script-btn" data-target="scriptEmailEn" data-tooltip="tooltipEmailEn">Copy Script</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Italian First Email -->
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              Italian First Email (Primo Contatto)
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="accordion-content">
+              <div class="script-body">
+                <div class="script-text-container">
+                  <pre id="scriptEmailIt">Oggetto: Supporto stesura Ebook e Workbook Canva per [Company]
+
+Gentile [Name],
+
+Ho visto il vostro lavoro su [Company] e ho pensato di scrivervi.
+
+Lavoro come scrittore freelance white-label, specializzato nella creazione di ebook, workbook interattivi Canva e lead magnet per coach, agenzie e case editrici. Scrivo i testi in inglese o italiano e realizzo il layout grafico, consentendovi di pubblicare a vostro nome o offrire questo servizio ai clienti senza occuparvene internamente.
+
+Posso inviarvi una breve anteprima dei miei lavori e dei workbook Canva realizzati per altri progetti simili?
+
+Un cordiale saluto,
+Ali Raza
+Scrittore di Ebook & Lead Magnet
+https://alirazawriter.com</pre>
+                  <span class="copied-tooltip" id="tooltipEmailIt">Copied!</span>
+                </div>
+                <div class="script-actions">
+                  <button class="btn btn-secondary btn-sm copy-script-btn" data-target="scriptEmailIt" data-tooltip="tooltipEmailIt">Copy Script</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Follow-up -->
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              Email Follow-up (Polite Nudge)
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="accordion-content">
+              <div class="script-body">
+                <div class="script-text-container">
+                  <pre id="scriptEmailFollow">Subject: Re: Ebook writing & Canva workbook support for [Company]
+
+Hi [Name],
+
+I wanted to quickly bump this in case it got buried in your inbox. I know you're busy growing [Company].
+
+Just to recap: I write and design high-quality white-label ebooks and workbooks so you can deliver premium publishing content to your clients or scale your backend funnel.
+
+If you have 2 minutes, I'd love to drop a quick link to a sample workbook. Would it be worth checking out?
+
+Best,
+Ali Raza</pre>
+                  <span class="copied-tooltip" id="tooltipEmailFollow">Copied!</span>
+                </div>
+                <div class="script-actions">
+                  <button class="btn btn-secondary btn-sm copy-script-btn" data-target="scriptEmailFollow" data-tooltip="tooltipEmailFollow">Copy Script</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WhatsApp First Message -->
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              WhatsApp First Message (Public Contacts Only)
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="accordion-content">
+              <div class="script-body">
+                <div class="script-text-container">
+                  <pre id="scriptWaFirst">Hi [Name]! Ali Raza here. Found your business number on your page. I specialize in writing white-label ebooks and interactive workbooks for coaches & course creators. I noticed you publish digital content and wanted to ask if you currently need support outsourcing workbook copywriting or Canva formatting? Appreciate your time!</pre>
+                  <span class="copied-tooltip" id="tooltipWaFirst">Copied!</span>
+                </div>
+                <div class="script-actions">
+                  <button class="btn btn-secondary btn-sm copy-script-btn" data-target="scriptWaFirst" data-tooltip="tooltipWaFirst">Copy Script</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WhatsApp Follow-up -->
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              WhatsApp Follow-up
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="accordion-content">
+              <div class="script-body">
+                <div class="script-text-container">
+                  <pre id="scriptWaFollow">Hi [Name], just checking if you had a moment to see my previous message about ebook/workbook support? No pressure at all—happy to share a quick PDF sample if you ever want to expand your digital offerings. Have a great day!</pre>
+                  <span class="copied-tooltip" id="tooltipWaFollow">Copied!</span>
+                </div>
+                <div class="script-actions">
+                  <button class="btn btn-secondary btn-sm copy-script-btn" data-target="scriptWaFollow" data-tooltip="tooltipWaFollow">Copy Script</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Rules Section -->
+      <section class="rules-card" aria-label="Safe Outreach Rules">
+        <h2 style="font-size: 18px; display: flex; align-items: center; gap: 8px;">
+          <span>🛡️</span>
+          Safe Outreach Rules
+        </h2>
+        <p style="font-size: 13px; color: var(--color-priority-c); margin-top: -8px;">Daily checklist to maintain high account reputation and response rate.</p>
+        
+        <div class="rules-list">
+          <div class="rule-item alert">
+            <div class="rule-icon">✕</div>
+            <div class="rule-text">
+              <strong>Do not message weak leads:</strong> Focus outreach only on priority <strong>A</strong> and <strong>B</strong>. Weak leads waste limits and decrease response ratios.
+            </div>
+          </div>
+
+          <div class="rule-item warning">
+            <div class="rule-icon">⚠️</div>
+            <div class="rule-text">
+              <strong>No multi-channel flooding:</strong> Do not contact the same lead on Instagram, LinkedIn, and WhatsApp on the same day. Space touches by 4-5 days.
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-icon">✓</div>
+            <div class="rule-text">
+              <strong>Email first:</strong> Prioritize business email when publicly available. It is the most professional channel for corporate contracts and agencies.
+            </div>
+          </div>
+
+          <div class="rule-item warning">
+            <div class="rule-icon">⚠️</div>
+            <div class="rule-text">
+              <strong>WhatsApp restriction:</strong> Contact on WhatsApp <em>only</em> if they publicly showcase their number as a business support or sales path.
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-icon">✓</div>
+            <div class="rule-text">
+              <strong>Follow up max 2 times:</strong> Send a maximum of 1 or 2 friendly nudges. If they remain silent, change status to <em>No Reply</em> and move on.
+            </div>
+          </div>
+
+          <div class="rule-item alert">
+            <div class="rule-icon">✕</div>
+            <div class="rule-text">
+              <strong>No AI jargon:</strong> Do not mention <strong>"AI"</strong>, <strong>"ChatGPT"</strong>, or automated writing in your first pitches. Clients pay for bespoke, high-quality human expertise.
+            </div>
+          </div>
+
+          <div class="rule-item">
+            <div class="rule-icon">✓</div>
+            <div class="rule-text">
+              <strong>Archive inactive:</strong> Switch cold, uninterested, or silent leads to <strong>Archived</strong> or <strong>Not Now</strong> to keep the dashboard clean.
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <!-- Unified Add/Edit Lead Modal -->
+  <div class="modal-overlay" id="leadModal">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Outreach Lead</h2>
+        <button class="modal-close" id="closeModalBtn" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-form-scroll">
+        <form id="leadForm" class="modal-form">
+          <input type="hidden" id="leadIndex" value="">
+
+          <!-- Date Added -->
+          <div class="form-group">
+            <label for="leadDateAdded">Date Added *</label>
+            <input type="date" id="leadDateAdded" required>
+          </div>
+
+          <!-- Lead Name / Company -->
+          <div class="form-group">
+            <label for="leadName">Lead Name / Company *</label>
+            <input type="text" id="leadName" placeholder="e.g. FitCoach Pro, Mario Rossi" required>
+          </div>
+
+          <!-- Market -->
+          <div class="form-group">
+            <label for="leadMarket">Market *</label>
+            <select id="leadMarket" required>
+              <option value="Italy">Italy</option>
+              <option value="US">US</option>
+              <option value="UK">UK</option>
+              <option value="Austria">Austria</option>
+              <option value="Germany">Germany</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- Channel -->
+          <div class="form-group">
+            <label for="leadChannel">Outreach Channel *</label>
+            <select id="leadChannel" required>
+              <option value="Instagram">Instagram</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Email">Email</option>
+              <option value="WhatsApp">WhatsApp</option>
+            </select>
+          </div>
+
+          <!-- Main Link -->
+          <div class="form-group">
+            <label for="leadMainLink">Main Profile Link *</label>
+            <input type="url" id="leadMainLink" placeholder="e.g. https://instagram.com/profile" required>
+          </div>
+
+          <!-- Niche -->
+          <div class="form-group">
+            <label for="leadNiche">Niche *</label>
+            <input type="text" id="leadNiche" placeholder="e.g. Fitness Coach, KDP Publisher" required>
+          </div>
+
+          <!-- Priority -->
+          <div class="form-group">
+            <label for="leadPriority">Priority *</label>
+            <select id="leadPriority" required>
+              <option value="A">A - Strong Fit (Need signal)</option>
+              <option value="B">B - Good Fit (Unclear signal)</option>
+              <option value="C">C - Weak Lead (Later)</option>
+              <option value="D">D - Bad Fit / Archive</option>
+            </select>
+          </div>
+
+          <!-- Stage -->
+          <div class="form-group">
+            <label for="leadStage">Outreach Stage *</label>
+            <select id="leadStage" required>
+              <option value="Found">Found</option>
+              <option value="Engaged">Engaged</option>
+              <option value="First Message Sent">First Message Sent</option>
+              <option value="Follow-up Due">Follow-up Due</option>
+              <option value="Replied">Replied</option>
+              <option value="Samples Sent">Samples Sent</option>
+              <option value="Warm Lead">Warm Lead</option>
+              <option value="Not Now">Not Now</option>
+              <option value="Archived">Archived</option>
+            </select>
+          </div>
+
+          <!-- Last Action Date -->
+          <div class="form-group">
+            <label for="leadLastActionDate">Last Action Date *</label>
+            <input type="date" id="leadLastActionDate" required>
+          </div>
+
+          <!-- Next Action -->
+          <div class="form-group">
+            <label for="leadNextAction">Next Action *</label>
+            <select id="leadNextAction" required>
+              <option value="Like/comment">Like/comment</option>
+              <option value="Follow">Follow</option>
+              <option value="Send DM">Send DM</option>
+              <option value="Send connection request">Send connection request</option>
+              <option value="Send email">Send email</option>
+              <option value="Send WhatsApp">Send WhatsApp</option>
+              <option value="Send follow-up">Send follow-up</option>
+              <option value="Send samples">Send samples</option>
+              <option value="Send CV">Send CV</option>
+              <option value="Send quote">Send quote</option>
+              <option value="Wait">Wait</option>
+              <option value="Archive">Archive</option>
+            </select>
+          </div>
+
+          <!-- Next Action Date -->
+          <div class="form-group">
+            <label for="leadNextActionDate">Next Action Date *</label>
+            <input type="date" id="leadNextActionDate" required>
+          </div>
+
+          <!-- Reply Status -->
+          <div class="form-group">
+            <label for="leadReplyStatus">Reply Status *</label>
+            <select id="leadReplyStatus" required>
+              <option value="No reply">No reply</option>
+              <option value="Replied">Replied</option>
+              <option value="Interested">Interested</option>
+              <option value="Samples requested">Samples requested</option>
+              <option value="CV requested">CV requested</option>
+              <option value="Price asked">Price asked</option>
+              <option value="Not now">Not now</option>
+              <option value="Not interested">Not interested</option>
+              <option value="Bad fit">Bad fit</option>
+            </select>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-group full-width">
+            <label for="leadNotes">Notes (Need details, context, pitch triggers) *</label>
+            <textarea id="leadNotes" placeholder="Context info about the lead, what we discussed..." required></textarea>
+          </div>
+
+          <!-- OPTIONAL FIELDS COLLAPSIBLE TOGGLE -->
+          <div class="form-group full-width" style="margin-top: 8px;">
+            <details>
+              <summary style="font-weight: 700; cursor: pointer; font-size: 13px; color: var(--color-royal-blue);">
+                + Show Optional Fields (Contact Details, Sent Msg, Follow-ups)
+              </summary>
+              <div class="modal-form" style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(11,31,58,0.08);">
+                
+                <div class="form-group">
+                  <label for="leadContactPerson">Contact Person</label>
+                  <input type="text" id="leadContactPerson" placeholder="e.g. Jane Doe">
+                </div>
+
+                <div class="form-group">
+                  <label for="leadEmail">Email Address</label>
+                  <input type="email" id="leadEmail" placeholder="e.g. contact@business.com">
+                </div>
+
+                <div class="form-group">
+                  <label for="leadWhatsappNumber">WhatsApp Number</label>
+                  <input type="tel" id="leadWhatsappNumber" placeholder="e.g. +39 333 1234567">
+                </div>
+
+                <div class="form-group">
+                  <label for="leadExtraLink">Extra Link</label>
+                  <input type="url" id="leadExtraLink" placeholder="e.g. Portfolio or Website">
+                </div>
+
+                <div class="form-group">
+                  <label for="leadFollowUpCount">Follow-up Count</label>
+                  <input type="number" id="leadFollowUpCount" min="0" value="0">
+                </div>
+
+                <div class="form-group full-width">
+                  <label for="leadMessageSent">Exact Message Sent</label>
+                  <textarea id="leadMessageSent" placeholder="Copy-paste the exact message or DM you sent here for tracking..."></textarea>
+                </div>
+
+              </div>
+            </details>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+        <button type="submit" form="leadForm" class="btn btn-primary" id="saveLeadBtn">Save Lead</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
