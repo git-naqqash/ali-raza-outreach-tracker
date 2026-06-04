@@ -1392,3 +1392,170 @@ table.leads-table tr:hover {
     padding: 24px 20px;
   }
 }
+
+/* Keyword Chips */
+.keyword-chip {
+  display: inline-flex;
+  padding: 6px 12px;
+  background-color: var(--color-off-white);
+  border: var(--border-light);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  color: var(--color-deep-navy);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.keyword-chip:hover {
+  background-color: rgba(30, 91, 255, 0.08);
+  border-color: rgba(30, 91, 255, 0.15);
+  color: var(--color-royal-blue);
+  transform: translateY(-1px);
+}
+.keyword-chip.active {
+  background-color: var(--color-royal-blue);
+  color: var(--color-white);
+  border-color: var(--color-royal-blue);
+}
+
+/* Today Mode Workflow Layout */
+.today-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-top: 14px;
+}
+
+.today-mode-column {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  border: var(--border-light);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+}
+
+.today-mode-column-header {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: var(--border-light);
+}
+
+.today-mode-column-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.today-mode-column-header .badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.today-mode-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  flex: 1;
+  background-color: #fafbfc;
+}
+
+/* Workflow Card Inside Today Mode */
+.workflow-card {
+  background-color: var(--color-white);
+  border: var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.workflow-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(11, 31, 58, 0.06);
+}
+
+.workflow-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.workflow-card-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-deep-navy);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.workflow-card-details {
+  font-size: 12px;
+  color: var(--color-dark-gray);
+  background-color: var(--color-off-white);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgba(11, 31, 58, 0.06);
+  line-height: 1.4;
+}
+
+.workflow-card-notes {
+  font-size: 11.5px;
+  color: var(--color-priority-c);
+  word-break: break-word;
+  max-height: 50px;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+.workflow-card-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-top: 1px dashed rgba(11, 31, 58, 0.06);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.workflow-card-buttons button {
+  flex: 1;
+  min-width: calc(50% - 3px);
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  justify-content: center;
+}
+
+/* Stacking columns on tablet/mobile */
+@media (max-width: 1024px) {
+  .today-mode-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .today-mode-column {
+    height: 450px;
+  }
+}

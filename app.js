@@ -77,10 +77,18 @@ function addWorkingDays(startDateStr, days) {
   while (added < days) {
     date.setDate(date.getDate() + 1);
     const day = date.getDay();
-    if (day !== 0 && day !== 6) { // Not Sunday (0) and not Saturday (6)
-      added++;
     }
   }
+  return date.toISOString().split('T')[0];
+}
+
+// Add calendar days to a date
+function addDays(startDateStr, days) {
+  let date = new Date(startDateStr);
+  if (isNaN(date.getTime())) {
+    date = new Date();
+  }
+  date.setDate(date.getDate() + days);
   return date.toISOString().split('T')[0];
 }
 
@@ -490,7 +498,7 @@ function getFilteredLeads() {
     lead.originalIndex = index;
 
     // 1. Channel Tab filtering (sync with tab nav)
-    if (activeTab !== "All" && lead.channel !== activeTab) return false;
+    if (activeTab !== "All" && activeTab !== "LeadFinder" && lead.channel !== activeTab) return false;
 
     // 2. Search Query matching
     if (searchQuery) {
@@ -581,11 +589,13 @@ function getReplyBadge(status) {
 
 // Render Leads Grid (Table and Mobile Cards)
 function renderLeads() {
+  const isLeadFinder = activeTab === "LeadFinder";
+
   // Toggle the tab action button container and text dynamically
   const tabActions = document.getElementById("tabActionsContainer");
   const btnText = document.getElementById("importLeadsBtnText");
   if (tabActions && btnText) {
-    if (activeTab === "All") {
+    if (activeTab === "All" || isLeadFinder) {
       tabActions.style.display = "none";
     } else {
       tabActions.style.display = "block";
@@ -599,14 +609,40 @@ function renderLeads() {
   const countBadge = document.getElementById("leadsCount");
 
   // Update headers / titles
-  countBadge.textContent = `${filtered.length} leads`;
-  document.getElementById("activeTabTitle").textContent = activeTab === "All" ? "Dashboard" : `${activeTab} Leads`;
+  if (countBadge) {
+    countBadge.textContent = isLeadFinder ? "" : `${filtered.length} leads`;
+  }
+  if (document.getElementById("activeTabTitle")) {
+    document.getElementById("activeTabTitle").textContent = isLeadFinder ? "Lead Finder" : (activeTab === "All" ? "Dashboard" : `${activeTab} Leads`);
+  }
 
   // Toggle Today's Action Center section visibility (only on Dashboard tab)
-  const todaySection = document.querySelector(".today-actions-section");
+  const todaySection = document.getElementById("todayModeSection");
   if (todaySection) {
-    todaySection.style.display = activeTab === "All" ? "block" : "none";
+    todaySection.style.display = (activeTab === "All" && !isLeadFinder) ? "block" : "none";
   }
+
+  // Toggle Lead Finder section
+  const finderSection = document.getElementById("leadFinderSection");
+  if (finderSection) {
+    finderSection.style.display = isLeadFinder ? "block" : "none";
+  }
+
+  // Toggle other dashboard/main view elements
+  const dashGrid = document.querySelector(".dashboard-grid");
+  if (dashGrid) dashGrid.style.display = isLeadFinder ? "none" : "grid";
+
+  const searchBox = document.querySelector(".search-box");
+  if (searchBox) searchBox.style.display = isLeadFinder ? "none" : "flex";
+
+  const filterToggle = document.querySelector(".filters-toggle-row");
+  if (filterToggle) filterToggle.style.display = isLeadFinder ? "none" : "flex";
+
+  const advPanel = document.getElementById("advancedFiltersPanel");
+  if (advPanel) advPanel.style.display = isLeadFinder ? "none" : "";
+
+  const mainContent = document.querySelector(".main-content-section");
+  if (mainContent) mainContent.style.display = isLeadFinder ? "none" : "block";
 
   // Update table header text dynamically
   const contactHeader = document.getElementById("dynamicContactHeader");
@@ -776,138 +812,134 @@ function renderLeads() {
   });
 }
 
-// Render "Today's Actions" section
+// Render "Today's Actions" section in the new Today Mode columns
 function renderTodayActions() {
   const todayStr = new Date().toISOString().split('T')[0];
-  const tableBody = document.getElementById("todayTableBody");
-  const cardsContainer = document.getElementById("todayCardsContainer");
-  const countBadge = document.getElementById("todayActionsCount");
+  
+  const todayModeCount = document.getElementById("todayModeCount");
+  const firstMessagesCount = document.getElementById("firstMessagesCount");
+  const followupsCount = document.getElementById("followupsCount");
+  const warmCount = document.getElementById("warmCount");
+  
+  const firstList = document.getElementById("firstMessagesList");
+  const followupsList = document.getElementById("followupsList");
+  const warmList = document.getElementById("warmList");
+
+  if (!firstList || !followupsList || !warmList) return;
 
   // Filter criteria: Next Action Date is today or earlier AND Stage is not Archived
   const todayLeads = leads
     .map((lead, index) => ({ ...lead, originalIndex: index }))
-    .filter(lead => lead.nextActionDate <= todayStr && lead.stage !== "Archived");
+    .filter(lead => lead.nextActionDate && lead.nextActionDate <= todayStr && lead.stage !== "Archived");
 
-  countBadge.textContent = `${todayLeads.length} active`;
+  if (todayModeCount) todayModeCount.textContent = `${todayLeads.length} active`;
 
-  tableBody.innerHTML = "";
-  cardsContainer.innerHTML = "";
+  // Partition leads
+  // 1. Send First Messages: Stage is Found or Engaged
+  const firstMessages = todayLeads.filter(l => l.stage === "Found" || l.stage === "Engaged");
+  // 2. Warm Leads: Stage is Warm Lead
+  const warmLeads = todayLeads.filter(l => l.stage === "Warm Lead");
+  // 3. Follow-ups Due: Any other active stage
+  const followups = todayLeads.filter(l => l.stage !== "Found" && l.stage !== "Engaged" && l.stage !== "Warm Lead");
 
-  if (todayLeads.length === 0) {
-    const emptyHtml = `
-      <tr>
-        <td colspan="9" style="text-align: center;">
-          <div class="empty-state">
-            <span class="empty-state-icon">🎉</span>
-            <h3>Inbox Zero! All actions completed.</h3>
-            <p>You have no pending or overdue outreach actions for today.</p>
-          </div>
-        </td>
-      </tr>
-    `;
-    tableBody.innerHTML = emptyHtml;
-    document.getElementById("todayDesktopContainer").style.display = "block";
+  if (firstMessagesCount) firstMessagesCount.textContent = firstMessages.length;
+  if (followupsCount) followupsCount.textContent = followups.length;
+  if (warmCount) warmCount.textContent = warmLeads.length;
 
-    cardsContainer.innerHTML = `
-      <div class="empty-state">
-        <span class="empty-state-icon">🎉</span>
-        <h3>Inbox Zero! All tasks done.</h3>
-      </div>
-    `;
-    return;
-  }
-
-  // Render Table & Cards
-  todayLeads.forEach(lead => {
-    // 1. Table
-    const tr = document.createElement("tr");
-    tr.style.backgroundColor = "rgba(214, 168, 79, 0.03)"; // slight gold highlight
-    tr.innerHTML = `
-      <td>
-        <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name || "Unnamed Lead / Company"}</div>
-        ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
-          Open Link ↗
-        </a>` : ''}
-      </td>
-      <td>${getChannelBadge(lead.channel)}</td>
-      <td><strong>${lead.market}</strong></td>
-      <td>${lead.niche}</td>
-      <td><span style="font-size: 12.5px; font-weight: 600; color: var(--color-priority-c);">${lead.source || "Other"}</span></td>
-      <td>${getPriorityBadge(lead.priority)}</td>
-      <td>${getStageBadge(lead.stage)}</td>
-      <td style="font-weight: 700; color: var(--color-royal-blue);">${lead.nextAction}</td>
-      <td style="white-space: nowrap;">
-        <span style="font-weight: 800; color: #ef4444;">
-          ${lead.nextActionDate || '-'} (Overdue/Due)
-        </span>
-      </td>
-      <td>${getReplyBadge(lead.replyStatus)}</td>
-      <td>
-        <div class="action-buttons">
-          <button class="action-btn edit-btn" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-          </button>
-          <button class="action-btn archive-btn" onclick="archiveLead(${lead.originalIndex})" title="Archive Lead">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-          </button>
-          <button class="action-btn delete-btn" onclick="deleteLead(${lead.originalIndex})" title="Delete Lead">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-          </button>
-        </div>
-      </td>
-    `;
-    tableBody.appendChild(tr);
-
-    // 2. Mobile Cards
-    const card = document.createElement("div");
-    card.className = "lead-card-mobile";
-    card.style.borderLeft = "4px solid var(--color-soft-gold)";
-    card.innerHTML = `
-      <div class="lead-card-header">
-        <div class="lead-card-title">
-          <h3>${lead.name || "Unnamed Lead / Company"}</h3>
-          <span class="market-lbl">${lead.market || "-"} • ${lead.niche || "-"} • ${lead.source || "Other"}</span>
-        </div>
-        <div class="lead-card-badges">
-          ${getPriorityBadge(lead.priority)}
-          ${getChannelBadge(lead.channel)}
-        </div>
-      </div>
+  // Helper to render workflow cards
+  const renderColumnList = (container, listLeads, columnType) => {
+    container.innerHTML = "";
+    if (listLeads.length === 0) {
+      let emptyMsg = "No actions pending";
+      if (columnType === "first") emptyMsg = "No new messages to send";
+      else if (columnType === "followup") emptyMsg = "No follow-ups due";
+      else if (columnType === "warm") emptyMsg = "No warm leads pending";
       
-      <div class="lead-card-details-grid">
-        <div class="lead-card-detail-item">
-          <span class="lbl">Stage</span>
-          <span class="val">${getStageBadge(lead.stage)}</span>
+      container.innerHTML = `
+        <div style="text-align: center; padding: 16px; color: var(--color-priority-c); font-size: 12px; background: rgba(11, 31, 58, 0.02); border-radius: var(--radius-sm); border: 1px dashed rgba(11, 31, 58, 0.06);">
+          ${emptyMsg}
         </div>
-        <div class="lead-card-detail-item">
-          <span class="lbl">Next Action</span>
-          <span class="val" style="font-weight: 700; color: var(--color-royal-blue);">${lead.nextAction}</span>
-        </div>
-        <div class="lead-card-detail-item" style="grid-column: span 2;">
-          <span class="lbl">Action Date</span>
-          <span class="val" style="font-weight: 800; color: #ef4444;">${lead.nextActionDate || '-'} (Due Now)</span>
-        </div>
-      </div>
+      `;
+      return;
+    }
 
-      <div class="lead-card-notes">
-        <strong>Notes:</strong> ${lead.notes}
-      </div>
+    listLeads.forEach(lead => {
+      const card = document.createElement("div");
+      card.className = "workflow-card";
+      
+      // Determine contact detail
+      let contactHtml = "";
+      if (lead.channel === "Email") {
+        contactHtml = `<div><strong>Email:</strong> ${lead.email ? `<a href="mailto:${lead.email}">${lead.email}</a>` : '-'}</div>`;
+      } else if (lead.channel === "WhatsApp") {
+        contactHtml = `<div><strong>WhatsApp:</strong> ${lead.whatsappNumber || '-'}</div>`;
+      } else {
+        const linkText = lead.mainLink ? (lead.mainLink.length > 25 ? lead.mainLink.substring(0, 25) + "..." : lead.mainLink) : "-";
+        contactHtml = `<div><strong>Profile:</strong> ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank">${linkText}</a>` : '-'}</div>`;
+      }
 
-      <div class="lead-card-actions">
-        ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
-        <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        </button>
-        <button class="btn btn-secondary btn-icon-only" onclick="archiveLead(${lead.originalIndex})" title="Archive Lead">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-        </button>
-        <button class="btn btn-secondary btn-icon-only btn-danger-outline" onclick="deleteLead(${lead.originalIndex})" title="Delete Lead">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-        </button>
-      </div>
-    `;
-    cardsContainer.appendChild(card);
-  });
+      // Generate buttons based on channel
+      let buttonsHtml = "";
+      if (lead.channel === "Email") {
+        buttonsHtml = `
+          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized outreach email message">📝 Copy Script</button>
+          <button class="btn btn-primary" onclick="markSentEmail(${lead.originalIndex})" title="Mark email sent & reschedule follow-up">✉️ Mark Sent</button>
+          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open lead's website/link">🌐 Open Link</button>
+          <button class="btn btn-secondary" onclick="setFollowupCalendar(${lead.originalIndex})" title="Reschedule next action date">📅 Reschedule</button>
+          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">🗄️ Archive</button>
+        `;
+      } else if (lead.channel === "WhatsApp") {
+        buttonsHtml = `
+          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized WhatsApp pitch message">📝 Copy Script</button>
+          <button class="btn btn-secondary" onclick="openWhatsAppChat(${lead.originalIndex})" title="Open click-to-chat WhatsApp link">💬 Open WA</button>
+          <button class="btn btn-primary" onclick="markSentWhatsApp(${lead.originalIndex})" title="Mark WhatsApp sent & reschedule follow-up">✔️ Mark Sent</button>
+          <button class="btn btn-secondary" onclick="setFollowupCalendar(${lead.originalIndex})" title="Reschedule next action date">📅 Reschedule</button>
+          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">🗄️ Archive</button>
+        `;
+      } else if (lead.channel === "Instagram") {
+        buttonsHtml = `
+          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open Instagram profile in new tab">📷 Open IG</button>
+          <button class="btn btn-secondary" onclick="markInstagramCommented(${lead.originalIndex})" title="Log a comment action on lead's post">💬 Commented</button>
+          <button class="btn btn-secondary" onclick="markInstagramFollowed(${lead.originalIndex})" title="Log a followed action on lead's profile">👤 Followed</button>
+          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized Instagram DM script">📝 Copy DM</button>
+          <button class="btn btn-primary" onclick="markSentDM(${lead.originalIndex})" title="Mark Instagram DM sent & reschedule follow-up">✔️ DM Sent</button>
+          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">🗄️ Archive</button>
+        `;
+      } else if (lead.channel === "LinkedIn") {
+        buttonsHtml = `
+          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open LinkedIn profile in new tab">💼 Open LI</button>
+          <button class="btn btn-secondary" onclick="markLinkedInConnectionSent(${lead.originalIndex})" title="Mark connection request sent & wait 3 days">➕ Conn Sent</button>
+          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized LinkedIn script">📝 Copy Script</button>
+          <button class="btn btn-primary" onclick="markSentLinkedInMessage(${lead.originalIndex})" title="Mark message sent & reschedule follow-up">✔️ Msg Sent</button>
+          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">🗄️ Archive</button>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="workflow-card-header">
+          <div class="workflow-card-name" title="${escapeHtml(lead.name)}">${escapeHtml(lead.name)}</div>
+          <div class="workflow-card-badges">
+            ${getPriorityBadge(lead.priority)}
+            ${getChannelBadge(lead.channel)}
+          </div>
+        </div>
+        <div class="workflow-card-details">
+          <div><strong>Niche:</strong> ${escapeHtml(lead.niche || '-')} (${escapeHtml(lead.market || '-')})</div>
+          <div><strong>Next Action:</strong> <span style="color: var(--color-royal-blue); font-weight: 700;">${escapeHtml(lead.nextAction || '-')}</span></div>
+          ${contactHtml}
+        </div>
+        ${lead.notes ? `<div class="workflow-card-notes" title="Notes"><strong>Notes:</strong> ${escapeHtml(lead.notes)}</div>` : ''}
+        <div class="workflow-card-buttons">
+          ${buttonsHtml}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  };
+
+  renderColumnList(firstList, firstMessages, "first");
+  renderColumnList(followupsList, followups, "followup");
+  renderColumnList(warmList, warmLeads, "warm");
 }
 
 // Modal open: Add Mode
@@ -1511,6 +1543,137 @@ function setupEventListeners() {
   if (chkUpdateExistingDup) {
     chkUpdateExistingDup.addEventListener("change", updateImportPreviewCounts);
   }
+
+  // --- Lead Finder Event Listeners ---
+  const finderMarket = document.getElementById("finderMarket");
+  const finderTargetType = document.getElementById("finderTargetType");
+  const finderKeyword = document.getElementById("finderKeyword");
+  
+  if (finderMarket) {
+    finderMarket.addEventListener("change", () => {
+      const captureMarket = document.getElementById("captureMarket");
+      if (captureMarket) captureMarket.value = finderMarket.value;
+      updateChipsVisibility();
+      generateSearchLinks();
+    });
+  }
+  if (finderTargetType) finderTargetType.addEventListener("change", generateSearchLinks);
+  if (finderKeyword) finderKeyword.addEventListener("input", generateSearchLinks);
+
+  document.querySelectorAll(".keyword-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".keyword-chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      
+      if (finderKeyword) finderKeyword.value = chip.getAttribute("data-keyword");
+      
+      const captureMarket = document.getElementById("captureMarket");
+      if (captureMarket && finderMarket) captureMarket.value = finderMarket.value;
+      
+      generateSearchLinks();
+    });
+  });
+
+  const quickCaptureForm = document.getElementById("quickCaptureForm");
+  if (quickCaptureForm) {
+    quickCaptureForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const emailVal = document.getElementById("captureEmail").value.trim().toLowerCase();
+      const phoneVal = document.getElementById("captureWhatsApp").value.trim().replace(/[\s\+\(\)\-\[\]]/g, "");
+      const mainLinkVal = document.getElementById("captureMainLink").value.trim().toLowerCase();
+      const igLinkVal = document.getElementById("captureIgLink").value.trim().toLowerCase();
+      const liLinkVal = document.getElementById("captureLiLink").value.trim().toLowerCase();
+      
+      let isDuplicate = false;
+      for (let l of leads) {
+        if (emailVal && l.email && l.email.trim().toLowerCase() === emailVal) {
+          isDuplicate = true;
+          break;
+        }
+        if (phoneVal) {
+          const existingPhone = (l.whatsappNumber || "").trim().replace(/[\s\+\(\)\-\[\]]/g, "");
+          if (existingPhone && existingPhone === phoneVal) {
+            isDuplicate = true;
+            break;
+          }
+        }
+        if (mainLinkVal && l.mainLink && l.mainLink.trim().toLowerCase() === mainLinkVal) {
+          isDuplicate = true;
+          break;
+        }
+        const linksToCheck = [mainLinkVal, igLinkVal, liLinkVal].filter(Boolean);
+        const existingLinks = [l.mainLink, l.extraLink].map(x => (x || "").trim().toLowerCase()).filter(Boolean);
+        for (let link of linksToCheck) {
+          if (existingLinks.includes(link)) {
+            isDuplicate = true;
+            break;
+          }
+        }
+        if (isDuplicate) break;
+      }
+      
+      if (isDuplicate) {
+        const proceed = confirm("A lead with matching contact details or link already exists in the tracker. Do you still want to save this new lead?");
+        if (!proceed) return;
+      }
+      
+      const channel = document.getElementById("captureChannel").value;
+      let nextAction = "Send DM";
+      if (channel === "LinkedIn") nextAction = "Send connection request";
+      else if (channel === "Email") nextAction = "Send pitch email";
+      else if (channel === "WhatsApp") nextAction = "Send WhatsApp pitch";
+      
+      const keyword = finderKeyword ? finderKeyword.value.trim() : "";
+      const notesPrefix = keyword ? `[Keyword: ${keyword}] ` : "";
+      const notesVal = notesPrefix + document.getElementById("captureNotes").value.trim();
+      
+      const newLead = {
+        dateAdded: new Date().toISOString().split('T')[0],
+        name: document.getElementById("captureName").value.trim(),
+        market: document.getElementById("captureMarket").value,
+        channel: channel,
+        mainLink: document.getElementById("captureMainLink").value.trim(),
+        niche: document.getElementById("captureNiche").value.trim(),
+        source: "Lead Finder",
+        priority: document.getElementById("capturePriority").value,
+        stage: "Found",
+        lastActionDate: "",
+        nextAction: nextAction,
+        nextActionDate: new Date().toISOString().split('T')[0],
+        replyStatus: "No reply",
+        notes: notesVal,
+        
+        email: document.getElementById("captureEmail").value.trim(),
+        whatsappNumber: document.getElementById("captureWhatsApp").value.trim(),
+        extraLink: document.getElementById("captureWebsite").value.trim() || document.getElementById("captureIgLink").value.trim() || document.getElementById("captureLiLink").value.trim(),
+        contactPerson: "",
+        followUpCount: 0,
+        messageSent: ""
+      };
+      
+      leads.unshift(newLead);
+      saveData();
+      quickCaptureForm.reset();
+      
+      document.querySelectorAll(".keyword-chip").forEach(c => c.classList.remove("active"));
+      if (finderKeyword) finderKeyword.value = "";
+      if (document.getElementById("searchButtonsContainer")) {
+        document.getElementById("searchButtonsContainer").innerHTML = `
+          <div style="font-size: 12px; color: var(--color-priority-c); text-align: center; padding: 12px; background: var(--color-off-white); border-radius: var(--radius-sm);">
+            Type a keyword or click a chip above to generate safe search buttons.
+          </div>
+        `;
+      }
+      
+      updateDashboard();
+      renderLeads();
+      renderTodayActions();
+      showToast(`Lead "${newLead.name}" captured successfully!`, "success");
+    });
+  }
+
+  updateChipsVisibility();
 }
 
 // Escaping values for CSV
@@ -2186,3 +2349,381 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+// Lead Finder Safe Link Generator
+function generateSearchLinks() {
+  const market = document.getElementById("finderMarket").value;
+  const targetType = document.getElementById("finderTargetType").value;
+  const keyword = document.getElementById("finderKeyword").value.trim();
+  const container = document.getElementById("searchButtonsContainer");
+  
+  if (!keyword) {
+    container.innerHTML = `
+      <div style="font-size: 12px; color: var(--color-priority-c); text-align: center; padding: 12px; background: var(--color-off-white); border-radius: var(--radius-sm);">
+        Type a keyword or click a chip above to generate safe search buttons.
+      </div>
+    `;
+    return;
+  }
+  
+  let googleDomain = "google.com";
+  if (market === "Italy") googleDomain = "google.it";
+  else if (market === "UK") googleDomain = "google.co.uk";
+  else if (market === "Germany") googleDomain = "google.de";
+  else if (market === "Austria") googleDomain = "google.at";
+  
+  const targetPart = targetType !== "Other" ? `"${targetType}"` : "";
+  const marketPart = market !== "Other" ? `"${market}"` : "";
+  
+  const igQuery = `site:instagram.com ${targetPart} "${keyword}"`.replace(/\s+/g, ' ').trim();
+  const liQuery = `site:linkedin.com/in/ ${targetPart} "${keyword}"`.replace(/\s+/g, ' ').trim();
+  const webQuery = `${targetPart} "${keyword}" ${marketPart}`.replace(/\s+/g, ' ').trim();
+  
+  const igUrl = `https://www.${googleDomain}/search?q=${encodeURIComponent(igQuery)}`;
+  const liUrl = `https://www.${googleDomain}/search?q=${encodeURIComponent(liQuery)}`;
+  const webUrl = `https://www.${googleDomain}/search?q=${encodeURIComponent(webQuery)}`;
+  
+  container.innerHTML = `
+    <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+      <a href="${igUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; text-decoration: none;">
+        <span>📸 Google Instagram Search</span>
+        <span style="font-size: 11px; color: var(--color-priority-c); font-weight: normal; margin-left: 8px;">site:instagram.com ...</span>
+      </a>
+      <a href="${liUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; text-decoration: none;">
+        <span>💼 Google LinkedIn Search</span>
+        <span style="font-size: 11px; color: var(--color-priority-c); font-weight: normal; margin-left: 8px;">site:linkedin.com/in/ ...</span>
+      </a>
+      <a href="${webUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; text-decoration: none;">
+        <span>🌐 Google Web Search</span>
+        <span style="font-size: 11px; color: var(--color-priority-c); font-weight: normal; margin-left: 8px;">"${keyword}" ...</span>
+      </a>
+    </div>
+  `;
+}
+
+// Update keyword chips visibility based on market
+function updateChipsVisibility() {
+  const finderMarket = document.getElementById("finderMarket");
+  const market = finderMarket ? finderMarket.value : "Italy";
+  const italyGroup = document.getElementById("italyChips")?.closest("div");
+  const usGroup = document.getElementById("usChips")?.closest("div");
+  
+  if (italyGroup && usGroup) {
+    if (market === "Italy") {
+      italyGroup.style.display = "block";
+      usGroup.style.display = "none";
+    } else if (market === "US" || market === "UK") {
+      italyGroup.style.display = "none";
+      usGroup.style.display = "block";
+    } else {
+      italyGroup.style.display = "block";
+      usGroup.style.display = "block";
+    }
+  }
+}
+
+// Clipboard helper
+function copyTextToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  } else {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      console.error('Fallback copy failed', err);
+    }
+    document.body.removeChild(textarea);
+    return Promise.resolve();
+  }
+}
+
+// Helper to get script with replaced placeholders
+function getPersonalizedScript(lead, script) {
+  if (!script) return "";
+  
+  const nameVal = lead.contactPerson ? lead.contactPerson : "there";
+  const nomeVal = lead.contactPerson ? lead.contactPerson : (lead.name || "");
+  
+  let body = script.body;
+  body = body.replace(/\[Name\]/gi, nameVal);
+  body = body.replace(/\[Nome\]/gi, nomeVal);
+  body = body.replace(/\[Company\]/gi, lead.name || "");
+  body = body.replace(/\[Niche\]/gi, lead.niche || "");
+  body = body.replace(/\[Market\]/gi, lead.market || "");
+  
+  return body;
+}
+
+// One-click actions
+function copyPersonalizedScript(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  let scriptType = "First Message";
+  if (lead.stage !== "Found" && lead.stage !== "Engaged") {
+    scriptType = "Follow-up";
+  }
+  
+  let script = scripts.find(s => s.channel === lead.channel && s.type === scriptType);
+  if (!script) {
+    script = scripts.find(s => s.channel === "General" && s.type === scriptType);
+  }
+  if (!script) {
+    script = scripts.find(s => s.type === scriptType);
+  }
+  if (!script) {
+    script = scripts[0];
+  }
+  
+  if (!script) {
+    showToast("No templates available. Add one in Scripts Manager first.", "error");
+    return;
+  }
+  
+  const text = getPersonalizedScript(lead, script);
+  copyTextToClipboard(text).then(() => {
+    showToast(`Copied personalized script (${script.title})!`, "success");
+  }).catch(() => {
+    showToast("Failed to copy script.", "error");
+  });
+}
+
+function openLeadLink(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  const url = lead.mainLink || lead.extraLink;
+  if (url) {
+    window.open(normalizeUrl(url), '_blank');
+  } else {
+    showToast("No website or profile link available.", "error");
+  }
+}
+
+function openWhatsAppChat(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  if (lead.whatsappNumber) {
+    window.open(getWhatsAppLink(lead.whatsappNumber), '_blank');
+  } else {
+    showToast("No WhatsApp number available.", "error");
+  }
+}
+
+function setFollowupCalendar(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const currentVal = lead.nextActionDate || new Date().toISOString().split('T')[0];
+  const input = prompt(`Reschedule next action date for "${lead.name}":\nEnter a date (YYYY-MM-DD) or number of days (e.g. "+3" or "3"):`, currentVal);
+  
+  if (input === null) return;
+  
+  let newDate = "";
+  const cleaned = input.trim();
+  if (/^\+?\d+$/.test(cleaned)) {
+    const offset = parseInt(cleaned);
+    newDate = addDays(new Date().toISOString().split('T')[0], offset);
+  } else {
+    const d = new Date(cleaned);
+    if (!isNaN(d.getTime())) {
+      newDate = d.toISOString().split('T')[0];
+    } else {
+      alert("Invalid date format. Please use YYYY-MM-DD or a number of days.");
+      return;
+    }
+  }
+  
+  lead.nextActionDate = newDate;
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`Rescheduled follow-up to ${newDate}`, "success");
+}
+
+function markSentEmail(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  
+  if (lead.stage === "Found" || lead.stage === "Engaged") {
+    lead.stage = "First Message Sent";
+    lead.nextAction = "Send follow-up";
+    lead.followUpCount = 0;
+  } else {
+    lead.stage = "Follow-up Due";
+    lead.followUpCount = (lead.followUpCount || 0) + 1;
+    lead.nextAction = `Send follow-up #${lead.followUpCount + 1}`;
+  }
+  
+  lead.nextActionDate = addWorkingDays(today, 5);
+  lead.messageSent = `Sent email on ${today}`;
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`Email marked sent! Scheduled follow-up for ${lead.nextActionDate}`, "success");
+}
+
+function markSentWhatsApp(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  
+  if (lead.stage === "Found" || lead.stage === "Engaged") {
+    lead.stage = "First Message Sent";
+    lead.nextAction = "Send WhatsApp follow-up";
+    lead.followUpCount = 0;
+  } else {
+    lead.stage = "Follow-up Due";
+    lead.followUpCount = (lead.followUpCount || 0) + 1;
+    lead.nextAction = `Send WhatsApp follow-up #${lead.followUpCount + 1}`;
+  }
+  
+  lead.nextActionDate = addDays(today, 7);
+  lead.messageSent = `Sent WhatsApp on ${today}`;
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`WhatsApp marked sent! Scheduled follow-up for ${lead.nextActionDate}`, "success");
+}
+
+function markInstagramCommented(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  
+  const commentNote = `[${today}] Commented on Instagram post.`;
+  if (lead.notes) {
+    lead.notes = lead.notes.trim() + "\n" + commentNote;
+  } else {
+    lead.notes = commentNote;
+  }
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast("Notes updated: Commented on Instagram post", "success");
+}
+
+function markInstagramFollowed(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  
+  const followNote = `[${today}] Followed Instagram profile.`;
+  if (lead.notes) {
+    lead.notes = lead.notes.trim() + "\n" + followNote;
+  } else {
+    lead.notes = followNote;
+  }
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast("Notes updated: Followed Instagram profile", "success");
+}
+
+function markSentDM(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  
+  if (lead.stage === "Found" || lead.stage === "Engaged") {
+    lead.stage = "First Message Sent";
+    lead.nextAction = "Send DM follow-up";
+    lead.followUpCount = 0;
+  } else {
+    lead.stage = "Follow-up Due";
+    lead.followUpCount = (lead.followUpCount || 0) + 1;
+    lead.nextAction = `Send DM follow-up #${lead.followUpCount + 1}`;
+  }
+  
+  lead.nextActionDate = addDays(today, 7);
+  lead.messageSent = `Sent Instagram DM on ${today}`;
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`Instagram DM marked sent! Scheduled follow-up for ${lead.nextActionDate}`, "success");
+}
+
+function markLinkedInConnectionSent(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  lead.stage = "First Message Sent";
+  lead.nextAction = "Send LinkedIn message";
+  lead.nextActionDate = addDays(today, 3);
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`LinkedIn connection request sent! Scheduled check for ${lead.nextActionDate}`, "success");
+}
+
+function markSentLinkedInMessage(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  
+  if (lead.stage === "Found" || lead.stage === "Engaged" || lead.nextAction === "Send LinkedIn message") {
+    lead.stage = "First Message Sent";
+    lead.nextAction = "Send LinkedIn follow-up";
+    lead.followUpCount = 0;
+  } else {
+    lead.stage = "Follow-up Due";
+    lead.followUpCount = (lead.followUpCount || 0) + 1;
+    lead.nextAction = `Send LinkedIn follow-up #${lead.followUpCount + 1}`;
+  }
+  
+  lead.nextActionDate = addDays(today, 7);
+  lead.messageSent = `Sent LinkedIn message on ${today}`;
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`LinkedIn message marked sent! Scheduled follow-up for ${lead.nextActionDate}`, "success");
+}
+
+// Expose functions to window
+window.addDays = addDays;
+window.copyPersonalizedScript = copyPersonalizedScript;
+window.openLeadLink = openLeadLink;
+window.openWhatsAppChat = openWhatsAppChat;
+window.setFollowupCalendar = setFollowupCalendar;
+window.markSentEmail = markSentEmail;
+window.markSentWhatsApp = markSentWhatsApp;
+window.markInstagramCommented = markInstagramCommented;
+window.markInstagramFollowed = markInstagramFollowed;
+window.markSentDM = markSentDM;
+window.markLinkedInConnectionSent = markLinkedInConnectionSent;
+window.markSentLinkedInMessage = markSentLinkedInMessage;

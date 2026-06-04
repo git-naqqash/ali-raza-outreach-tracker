@@ -153,6 +153,10 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
             WhatsApp
           </button>
+          <button class="tab-btn" data-channel="LeadFinder">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Lead Finder
+          </button>
         </nav>
       </div>
 
@@ -315,46 +319,251 @@
       
     </main>
 
-    <!-- Today's Action Center (Filtered Table/Cards) -->
-    <section class="today-actions-section" aria-label="Today's Actions Panel">
-      <div class="today-actions-header">
+    <!-- Lead Finder Section -->
+    <section id="leadFinderSection" style="display: none; margin-top: 24px; margin-bottom: 24px;">
+      <div class="today-mode-grid" style="grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start;">
+        
+        <!-- Left Column: Safe Search Generator -->
+        <div class="scripts-card" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <h2 style="font-size: 18px; color: var(--color-deep-navy); margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>🔍</span> Safe Lead Search
+            </h2>
+            <p style="font-size: 13px; color: var(--color-priority-c); margin-top: 4px; margin-bottom: 0;">Generate secure query links to search platforms via Google safely.</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Market</label>
+              <select id="finderMarket" style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none;">
+                <option value="Italy">Italy</option>
+                <option value="US">US</option>
+                <option value="UK">UK</option>
+                <option value="Austria">Austria</option>
+                <option value="Germany">Germany</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Target Type</label>
+              <select id="finderTargetType" style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none;">
+                <option value="Coaches">Coaches</option>
+                <option value="Book Coaches">Book Coaches</option>
+                <option value="Self-publishing / KDP">Self-publishing / KDP</option>
+                <option value="Agencies">Agencies</option>
+                <option value="Course Creators">Course Creators</option>
+                <option value="Publishing Consultants">Publishing Consultants</option>
+                <option value="Lead Magnet / Workbook">Lead Magnet / Workbook</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Keyword</label>
+            <input type="text" id="finderKeyword" placeholder="Enter keyword or select a chip below..." style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none;">
+          </div>
+
+          <!-- Keyword Chips Groups -->
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block; margin-bottom: 6px;">Italy Keywords:</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="italyChips">
+                <span class="keyword-chip" data-keyword="self publishing italia">self publishing italia</span>
+                <span class="keyword-chip" data-keyword="amazon kdp italia">amazon kdp italia</span>
+                <span class="keyword-chip" data-keyword="pubblicare un libro">pubblicare un libro</span>
+                <span class="keyword-chip" data-keyword="ghostwriter libri">ghostwriter libri</span>
+                <span class="keyword-chip" data-keyword="servizi editoriali">servizi editoriali</span>
+                <span class="keyword-chip" data-keyword="libro per imprenditori">libro per imprenditori</span>
+                <span class="keyword-chip" data-keyword="lead magnet coach">lead magnet coach</span>
+                <span class="keyword-chip" data-keyword="ebook coach">ebook coach</span>
+                <span class="keyword-chip" data-keyword="workbook coach">workbook coach</span>
+              </div>
+            </div>
+
+            <div>
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block; margin-bottom: 6px;">US / UK Keywords:</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="usChips">
+                <span class="keyword-chip" data-keyword="book coach">book coach</span>
+                <span class="keyword-chip" data-keyword="self publishing coach">self publishing coach</span>
+                <span class="keyword-chip" data-keyword="publishing consultant">publishing consultant</span>
+                <span class="keyword-chip" data-keyword="ghostwriting agency">ghostwriting agency</span>
+                <span class="keyword-chip" data-keyword="lead magnet designer">lead magnet designer</span>
+                <span class="keyword-chip" data-keyword="business book coach">business book coach</span>
+                <span class="keyword-chip" data-keyword="course creator workbook">course creator workbook</span>
+                <span class="keyword-chip" data-keyword="content agency lead magnet">content agency lead magnet</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generate Search Buttons Action -->
+          <div style="border-top: var(--border-light); padding-top: 16px; margin-top: 8px;">
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block; margin-bottom: 8px;">Generated Safe Search Queries:</span>
+            <div style="display: flex; flex-direction: column; gap: 8px;" id="searchButtonsContainer">
+              <div style="font-size: 12px; color: var(--color-priority-c); text-align: center; padding: 12px; background: var(--color-off-white); border-radius: var(--radius-sm);">
+                Type a keyword or click a chip above to generate safe search buttons.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Quick Capture Form -->
+        <div class="scripts-card" style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <div>
+            <h2 style="font-size: 18px; color: var(--color-deep-navy); margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>➕</span> Quick Capture Lead
+            </h2>
+            <p style="font-size: 13px; color: var(--color-priority-c); margin-top: 4px; margin-bottom: 0;">Quickly save a found lead directly into the tracker.</p>
+          </div>
+
+          <form id="quickCaptureForm" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Lead Name / Company *</label>
+              <input type="text" id="captureName" required placeholder="e.g. Mario Books, Jane Coach" style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Market</label>
+                <select id="captureMarket" style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                  <option value="Italy">Italy</option>
+                  <option value="US">US</option>
+                  <option value="UK">UK</option>
+                  <option value="Austria">Austria</option>
+                  <option value="Germany">Germany</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Priority</label>
+                <select id="capturePriority" style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                  <option value="A">A - Strong fit</option>
+                  <option value="B">B - Good fit</option>
+                  <option value="C">C - Weak fit</option>
+                  <option value="D">D - Bad / Archive</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Main Link / Outreach URL *</label>
+              <input type="text" id="captureMainLink" required placeholder="e.g. instagram.com/username or email address" style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none;">
+            </div>
+
+            <details style="border: var(--border-light); border-radius: var(--radius-sm); padding: 8px 12px; background-color: var(--color-off-white);">
+              <summary style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy); cursor: pointer; outline: none;">
+                Show Optional Fields (Website, Instagram, LinkedIn, Contact info)
+              </summary>
+              <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px; border-top: 1px dashed rgba(11,31,58,0.08); padding-top: 10px;">
+                
+                <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--color-deep-navy);">Website</label>
+                  <input type="text" id="captureWebsite" placeholder="e.g. clientwebsite.com" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                </div>
+
+                <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--color-deep-navy);">Instagram Profile Link</label>
+                  <input type="text" id="captureIgLink" placeholder="e.g. instagram.com/mario" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                </div>
+
+                <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--color-deep-navy);">LinkedIn Profile Link</label>
+                  <input type="text" id="captureLiLink" placeholder="e.g. linkedin.com/in/jane" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                  <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 11px; font-weight: 700; color: var(--color-deep-navy);">Email</label>
+                    <input type="email" id="captureEmail" placeholder="e.g. contact@domain.com" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                  </div>
+                  <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 11px; font-weight: 700; color: var(--color-deep-navy);">WhatsApp Number</label>
+                    <input type="text" id="captureWhatsApp" placeholder="e.g. +39333123456" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--color-deep-navy);">Niche</label>
+                  <input type="text" id="captureNiche" placeholder="e.g. Business Coach, KDP Author" style="padding: 6px 10px; font-size: 12px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                </div>
+              </div>
+            </details>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
+              <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Channel to Save *</label>
+                <select id="captureChannel" required style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; background: var(--color-white);">
+                  <option value="Instagram">Instagram</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Email">Email</option>
+                  <option value="WhatsApp">WhatsApp</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Save Target</label>
+                <span style="font-size: 11px; color: var(--color-priority-c); font-weight: 600; padding-top: 10px;">Source: Lead Finder</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Notes</label>
+              <textarea id="captureNotes" rows="3" placeholder="Add custom notes..." style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none; resize: vertical; font-family: var(--font-body); line-height: 1.4;"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="justify-content: center; width: 100%; margin-top: 8px;">
+              💾 Save to Tracker
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Today Mode Panel -->
+    <section class="today-actions-section" aria-label="Today Mode Dashboard" id="todayModeSection">
+      <div class="today-actions-header" style="margin-bottom: 16px;">
         <h2>
           <span>📅</span>
-          Today's Outreach Actions
-          <span class="table-count-badge" id="todayActionsCount">0 tasks due</span>
+          Today Mode Workflow
+          <span class="table-count-badge" id="todayModeCount" style="background-color: var(--color-royal-blue); color: var(--color-white); margin-left: 8px;">0 active</span>
         </h2>
-        <span style="font-size: 12px; color: var(--color-priority-c); font-weight: 600;">(Next Action Date is today/overdue and Stage is not Archived)</span>
+        <span style="font-size: 12.5px; color: var(--color-priority-c); font-weight: 600;">One-click high-speed outreach actions for pending leads.</span>
       </div>
 
-      <!-- Desktop View for Today's Actions -->
-      <div class="leads-table-container" id="todayDesktopContainer">
-        <div class="leads-table-scroll">
-          <table class="leads-table">
-            <thead>
-              <tr>
-                <th>Lead / Company</th>
-                <th>Channel</th>
-                <th>Market</th>
-                <th>Niche</th>
-                <th>Source</th>
-                <th>Priority</th>
-                <th>Stage</th>
-                <th>Next Action</th>
-                <th>Next Action Date</th>
-                <th>Reply Status</th>
-                <th style="width: 100px; text-align: center;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="todayTableBody">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
+      <div class="today-mode-grid">
+        <!-- 1. Send First Messages Column -->
+        <div class="today-mode-column">
+          <div class="today-mode-column-header" style="background-color: rgba(30, 91, 255, 0.05); color: var(--color-royal-blue);">
+            <h3 style="font-size: 14px; font-weight: 700; margin: 0; text-transform: uppercase;">1. Send First Messages</h3>
+            <span class="badge" id="firstMessagesCount" style="background-color: var(--color-royal-blue); color: var(--color-white); border-radius: var(--radius-full); font-size: 11px; padding: 2px 8px;">0</span>
+          </div>
+          <div class="today-mode-list" id="firstMessagesList">
+            <!-- Dynamically populated -->
+          </div>
         </div>
-      </div>
 
-      <!-- Mobile View for Today's Actions -->
-      <div class="mobile-cards-grid" id="todayCardsContainer">
-        <!-- Dynamically populated -->
+        <!-- 2. Follow-ups Due Column -->
+        <div class="today-mode-column">
+          <div class="today-mode-column-header" style="background-color: rgba(214, 168, 79, 0.05); color: var(--color-soft-gold);">
+            <h3 style="font-size: 14px; font-weight: 700; margin: 0; text-transform: uppercase;">2. Follow-ups Due</h3>
+            <span class="badge" id="followupsCount" style="background-color: var(--color-soft-gold); color: var(--color-white); border-radius: var(--radius-full); font-size: 11px; padding: 2px 8px;">0</span>
+          </div>
+          <div class="today-mode-list" id="followupsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- 3. Warm Leads Column -->
+        <div class="today-mode-column">
+          <div class="today-mode-column-header" style="background-color: rgba(15, 174, 150, 0.05); color: var(--color-teal-green);">
+            <h3 style="font-size: 14px; font-weight: 700; margin: 0; text-transform: uppercase;">3. Warm Leads</h3>
+            <span class="badge" id="warmCount" style="background-color: var(--color-teal-green); color: var(--color-white); border-radius: var(--radius-full); font-size: 11px; padding: 2px 8px;">0</span>
+          </div>
+          <div class="today-mode-list" id="warmList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
       </div>
     </section>
 
