@@ -77,6 +77,8 @@ function addWorkingDays(startDateStr, days) {
   while (added < days) {
     date.setDate(date.getDate() + 1);
     const day = date.getDay();
+    if (day !== 0 && day !== 6) { // Not Sunday (0) and not Saturday (6)
+      added++;
     }
   }
   return date.toISOString().split('T')[0];
@@ -1061,15 +1063,18 @@ function setupEventListeners() {
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
+      console.log("Login attempted");
       const usernameInput = document.getElementById("loginUsername").value.trim();
-      const passwordInput = document.getElementById("loginPassword").value;
+      const passwordInput = document.getElementById("loginPassword").value.trim();
       
       if (usernameInput === LOGIN_USER && passwordInput === LOGIN_PASS) {
+        console.log("Login successful");
         localStorage.setItem("ali_raza_logged_in", "true");
         if (loginError) loginError.classList.remove("active");
         checkAuth();
         showToast("Welcome back, Ali Raza!", "success");
       } else {
+        console.log("Login failed");
         if (loginError) {
           loginError.textContent = "Invalid username or password.";
           loginError.classList.add("active");
