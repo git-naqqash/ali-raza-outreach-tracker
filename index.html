@@ -51,6 +51,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <span id="syncStatusBadge" class="sync-badge sync-checking">⬡ Cloud Sync: Checking…</span>
         <button id="exportBackupJsonBtn" class="btn btn-secondary" type="button">
           📤 Export Backup JSON
         </button>
@@ -88,6 +89,18 @@
       <div class="backup-reminder-card">
         <span class="backup-reminder-icon">💡</span>
         <span class="backup-reminder-text">Recommended: Export backup at the end of each outreach day.</span>
+      </div>
+
+      <!-- Upload Local Data to Cloud (shown only when Supabase is empty but localStorage has leads) -->
+      <div id="uploadLocalBanner" style="display:none; margin-top:12px; background: linear-gradient(135deg,rgba(59,130,246,0.08),rgba(99,102,241,0.08)); border:1px solid rgba(59,130,246,0.25); border-radius:10px; padding:14px 18px; display:none; align-items:center; gap:14px; flex-wrap:wrap;">
+        <span style="font-size:22px;">☁</span>
+        <div style="flex:1; min-width:200px;">
+          <strong style="color:#1e40af; font-size:14px;">Cloud is empty — your local data is not in the cloud yet.</strong>
+          <p style="margin:2px 0 0; font-size:12.5px; color:#4b5563;">Click the button to upload your local leads to Supabase so they sync across all browsers and devices.</p>
+        </div>
+        <button id="uploadLocalToCloudBtn" class="btn btn-primary" type="button" onclick="uploadLocalDataToCloud()" style="white-space:nowrap;">
+          ☁ Upload Local Leads to Cloud
+        </button>
       </div>
     </div>
 
@@ -1219,6 +1232,10 @@
     </div>
   </div>
 
+  <!-- Supabase Cloud Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- App Configuration (Supabase URL & Key) -->
+  <script src="config.js"></script>
   <!-- SheetJS Library for Excel Parsing -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- Application Logic -->

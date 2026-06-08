@@ -379,16 +379,356 @@ let activeTab = "All"; // All, Instagram, LinkedIn, Email, WhatsApp
 let activeQuickFilter = "All"; // All, Today, FollowUp, A, Warm, Archived
 let activeTodayFilter = "All"; // All, Email, WhatsApp, Instagram, LinkedIn, A, Warm, Overdue
 
+// ============================================================
+// SUPABASE CLOUD SYNC ENGINE
+// ============================================================
+let supaClient = null;
+let supabaseReady = false;
+
+/** Initialize the Supabase JS client from config.js constants */
+function initSupabase() {
+  try {
+    if (typeof window.supabase === "undefined" || typeof SUPABASE_URL === "undefined") {
+      supabaseReady = false;
+      return;
+    }
+    supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseReady = true;
+  } catch (e) {
+    console.error("Supabase init failed:", e);
+    supabaseReady = false;
+  }
+}
+
+/** Update the header sync status badge */
+function setSyncStatus(status) {
+  const badge = document.getElementById("syncStatusBadge");
+  if (!badge) return;
+  if (status === "connected") {
+    badge.className = "sync-badge sync-connected";
+    badge.textContent = "☁ Cloud Sync: Connected";
+  } else if (status === "syncing") {
+    badge.className = "sync-badge sync-syncing";
+    badge.textContent = "↻ Cloud Sync: Syncing…";
+  } else if (status === "offline") {
+    badge.className = "sync-badge sync-offline";
+    badge.textContent = "⚠ Cloud Sync: Offline";
+  } else {
+    badge.className = "sync-badge sync-checking";
+    badge.textContent = "⬡ Cloud Sync: Checking…";
+  }
+}
+
+/** Generate a v4-style UUID for lead/script IDs */
+function generateId() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
+/** Ensure a lead object has a unique id (mutates in place, returns lead) */
+function ensureLeadId(lead) {
+  if (!lead.id) lead.id = generateId();
+  return lead;
+}
+
+// --- Field Mapping: JS camelCase ↔ Supabase snake_case ---
+
+function leadToRow(lead) {
+  ensureLeadId(lead);
+  return {
+    id:               lead.id,
+    date_added:       lead.dateAdded       || "",
+    name:             lead.name            || "",
+    market:           lead.market          || "",
+    channel:          lead.channel         || "",
+    main_link:        lead.mainLink        || "",
+    niche:            lead.niche           || "",
+    source:           lead.source          || "",
+    priority:         lead.priority        || "",
+    stage:            lead.stage           || "",
+    last_action_date: lead.lastActionDate  || "",
+    next_action:      lead.nextAction      || "",
+    next_action_date: lead.nextActionDate  || "",
+    reply_status:     lead.replyStatus     || "",
+    notes:            lead.notes           || "",
+    contact_person:   lead.contactPerson   || "",
+    email:            lead.email           || "",
+    whatsapp_number:  lead.whatsappNumber  || "",
+    extra_link:       lead.extraLink       || "",
+    follow_up_count:  lead.followUpCount   || 0,
+    message_sent:     lead.messageSent     || ""
+  };
+}
+
+function rowToLead(row) {
+  return {
+    id:             row.id,
+    dateAdded:      row.date_added        || "",
+    name:           row.name              || "",
+    market:         row.market            || "",
+    channel:        row.channel           || "",
+    mainLink:       row.main_link         || "",
+    niche:          row.niche             || "",
+    source:         row.source            || "Other",
+    priority:       row.priority          || "",
+    stage:          row.stage             || "",
+    lastActionDate: row.last_action_date  || "",
+    nextAction:     row.next_action       || "",
+    nextActionDate: row.next_action_date  || "",
+    replyStatus:    row.reply_status      || "",
+    notes:          row.notes             || "",
+    contactPerson:  row.contact_person    || "",
+    email:          row.email             || "",
+    whatsappNumber: row.whatsapp_number   || "",
+    extraLink:      row.extra_link        || "",
+    followUpCount:  row.follow_up_count   || 0,
+    messageSent:    row.message_sent      || ""
+  };
+}
+
+function scriptToRow(s) {
+  if (!s.id) s.id = generateId();
+  return {
+    id:         s.id,
+    title:      s.title      || "",
+    channel:    s.channel    || "",
+    type:       s.type       || "",
+    body:       s.body       || "",
+    is_default: s.isDefault  || false
+  };
+}
+
+function rowToScript(row) {
+  return {
+    id:        row.id,
+    title:     row.title      || "",
+    channel:   row.channel    || "",
+    type:      row.type       || "",
+    body:      row.body       || "",
+    isDefault: row.is_default || false
+  };
+}
+
+// --- Supabase Sync: Full Replace Strategy ---
+// Every saveData() call syncs ALL current leads to cloud (upsert + delete orphans).
+// This is reliable and requires no per-field change tracking.
+
+async function syncAllLeadsToSupabase() {
+  if (!supabaseReady || !supaClient) return;
+  try {
+    setSyncStatus("syncing");
+
+    // Ensure every lead has an id before syncing
+    leads.forEach(ensureLeadId);
+
+    // Fetch existing IDs from Supabase
+    const { data: existing, error: fetchErr } = await supaClient
+      .from("leads")
+      .select("id");
+    if (fetchErr) throw fetchErr;
+
+    const existingIds = new Set((existing || []).map((r) => r.id));
+    const currentIds  = new Set(leads.map((l) => l.id));
+
+    // Delete leads no longer in local state (handles real deletes)
+    const toDelete = [...existingIds].filter((id) => !currentIds.has(id));
+    if (toDelete.length > 0) {
+      const { error: delErr } = await supaClient.from("leads").delete().in("id", toDelete);
+      if (delErr) console.warn("Supabase delete error:", delErr);
+    }
+
+    // Upsert all current leads (insert new + update changed)
+    if (leads.length > 0) {
+      const rows = leads.map(leadToRow);
+      // Batch in groups of 100 to stay within request limits
+      const batchSize = 100;
+      for (let i = 0; i < rows.length; i += batchSize) {
+        const { error: upsertErr } = await supaClient
+          .from("leads")
+          .upsert(rows.slice(i, i + batchSize));
+        if (upsertErr) throw upsertErr;
+      }
+    }
+
+    setSyncStatus("connected");
+  } catch (err) {
+    console.error("Supabase leads sync error:", err);
+    setSyncStatus("offline");
+  }
+}
+
+async function syncAllScriptsToSupabase() {
+  if (!supabaseReady || !supaClient) return;
+  try {
+    const { data: existing } = await supaClient.from("scripts").select("id");
+    const existingIds = new Set((existing || []).map((r) => r.id));
+    const currentIds  = new Set(scripts.map((s) => s.id));
+
+    const toDelete = [...existingIds].filter((id) => !currentIds.has(id));
+    if (toDelete.length > 0) {
+      await supaClient.from("scripts").delete().in("id", toDelete);
+    }
+
+    if (scripts.length > 0) {
+      const rows = scripts.map(scriptToRow);
+      await supaClient.from("scripts").upsert(rows);
+    }
+  } catch (err) {
+    console.error("Supabase scripts sync error:", err);
+  }
+}
+
+// --- Upload local localStorage data to Supabase (one-time migration) ---
+async function uploadLocalDataToCloud() {
+  const banner = document.getElementById("uploadLocalBanner");
+  const btn    = document.getElementById("uploadLocalToCloudBtn");
+
+  if (btn) { btn.disabled = true; btn.textContent = "↻ Uploading…"; }
+  setSyncStatus("syncing");
+
+  try {
+    const localLeads   = JSON.parse(localStorage.getItem("ali_raza_leads")   || "[]");
+    const localScripts = JSON.parse(localStorage.getItem("ali_raza_scripts") || "[]");
+
+    // Ensure all have IDs
+    localLeads.forEach(ensureLeadId);
+    localScripts.forEach((s) => { if (!s.id) s.id = generateId(); });
+
+    // Persist IDs back to localStorage
+    localStorage.setItem("ali_raza_leads",   JSON.stringify(localLeads));
+    localStorage.setItem("ali_raza_scripts", JSON.stringify(localScripts));
+
+    // Upload leads in batches of 50
+    const batchSize = 50;
+    for (let i = 0; i < localLeads.length; i += batchSize) {
+      const batch = localLeads.slice(i, i + batchSize).map(leadToRow);
+      const { error } = await supaClient.from("leads").upsert(batch);
+      if (error) throw error;
+    }
+
+    // Upload scripts
+    if (localScripts.length > 0) {
+      const { error } = await supaClient.from("scripts").upsert(localScripts.map(scriptToRow));
+      if (error) console.warn("Scripts upload error:", error);
+    }
+
+    // Reload from cloud to confirm
+    const { data: cloudLeads, error: fetchErr } = await supaClient
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (fetchErr) throw fetchErr;
+
+    if (cloudLeads && cloudLeads.length > 0) {
+      leads = cloudLeads.map(rowToLead);
+      localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+    }
+
+    if (banner) banner.style.display = "none";
+    setSyncStatus("connected");
+    updateDashboard();
+    renderLeads();
+    renderTodayActions();
+    showToast(`✅ Uploaded ${localLeads.length} leads to Supabase cloud!`, "success");
+
+  } catch (err) {
+    console.error("Upload to cloud failed:", err);
+    showToast("Upload failed: " + (err.message || err), "error");
+    setSyncStatus("offline");
+    if (btn) { btn.disabled = false; btn.textContent = "☁ Retry Upload"; }
+  }
+}
+
+// --- Show / hide the upload banner ---
+function showUploadBanner(count) {
+  const banner = document.getElementById("uploadLocalBanner");
+  const btn    = document.getElementById("uploadLocalToCloudBtn");
+  if (banner) banner.style.display = "flex";
+  if (btn)    btn.textContent = `☁ Upload ${count} Local Leads to Cloud`;
+}
+function hideUploadBanner() {
+  const banner = document.getElementById("uploadLocalBanner");
+  if (banner) banner.style.display = "none";
+}
+
+// --- On-login async init: fetch from Supabase, fall back to localStorage ---
+async function initAppData() {
+  initSupabase();
+
+  if (!supabaseReady) {
+    setSyncStatus("offline");
+    return;
+  }
+
+  setSyncStatus("syncing");
+
+  try {
+    // --- Leads ---
+    const { data: cloudLeads, error: leadsErr } = await supaClient
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (leadsErr) throw leadsErr;
+
+    const localLeads = JSON.parse(localStorage.getItem("ali_raza_leads") || "[]");
+
+    if (cloudLeads && cloudLeads.length > 0) {
+      // Cloud has data — use it as source of truth
+      leads = cloudLeads.map(rowToLead);
+      localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+      hideUploadBanner();
+    } else if (localLeads.length > 0) {
+      // Cloud is empty but localStorage has leads — offer migration
+      showUploadBanner(localLeads.length);
+    }
+
+    // --- Scripts ---
+    const { data: cloudScripts, error: scriptsErr } = await supaClient
+      .from("scripts")
+      .select("*");
+
+    if (!scriptsErr && cloudScripts && cloudScripts.length > 0) {
+      scripts = cloudScripts.map(rowToScript);
+      localStorage.setItem("ali_raza_scripts", JSON.stringify(scripts));
+    }
+
+    setSyncStatus("connected");
+
+  } catch (err) {
+    console.error("Supabase init fetch failed:", err);
+    setSyncStatus("offline");
+    showToast("Cloud unavailable — using local backup.", "info");
+    return;
+  }
+
+  // Re-render with cloud data
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  renderScripts();
+}
+
+window.uploadLocalDataToCloud = uploadLocalDataToCloud;
+
+// ============================================================
+// END SUPABASE CLOUD SYNC ENGINE
+// ============================================================
+
 // On Page Load
 document.addEventListener("DOMContentLoaded", () => {
-  loadData();
+  loadData();            // Immediately load localStorage (fast, no flicker)
   setupEventListeners();
   updateDashboard();
   renderLeads();
   renderTodayActions();
   renderScripts();
   checkAuth();
+  initAppData();         // Async: sync with Supabase cloud in background
 });
+
 
 // Authentication Status Toggle
 function checkAuth() {
@@ -442,9 +782,10 @@ function loadData() {
   }
 }
 
-// Save Leads to LocalStorage
+// Save Leads to LocalStorage + fire-and-forget cloud sync
 function saveData() {
   localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+  syncAllLeadsToSupabase(); // async, fire-and-forget
 }
 
 // Calculate and Render Dashboard Metrics
@@ -2522,9 +2863,10 @@ window.openEditModal = openEditModal;
 window.archiveLead = archiveLead;
 window.deleteLead = deleteLead;
 
-// Save Scripts to LocalStorage
+// Save Scripts to LocalStorage + fire-and-forget cloud sync
 function saveScripts() {
   localStorage.setItem("ali_raza_scripts", JSON.stringify(scripts));
+  syncAllScriptsToSupabase(); // async, fire-and-forget
 }
 
 // Render outreach message scripts dynamically
