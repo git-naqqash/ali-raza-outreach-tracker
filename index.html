@@ -52,6 +52,9 @@
       </div>
       <div class="header-actions">
         <span id="syncStatusBadge" class="sync-badge sync-checking">⬡ Cloud Sync: Checking…</span>
+        <button id="testCloudBtn" class="btn btn-secondary" type="button" onclick="testCloudConnection()" title="Run a live Supabase connection test">
+          🔌 Test Cloud
+        </button>
         <button id="exportBackupJsonBtn" class="btn btn-secondary" type="button">
           📤 Export Backup JSON
         </button>
@@ -92,7 +95,7 @@
       </div>
 
       <!-- Upload Local Data to Cloud (shown only when Supabase is empty but localStorage has leads) -->
-      <div id="uploadLocalBanner" style="display:none; margin-top:12px; background: linear-gradient(135deg,rgba(59,130,246,0.08),rgba(99,102,241,0.08)); border:1px solid rgba(59,130,246,0.25); border-radius:10px; padding:14px 18px; display:none; align-items:center; gap:14px; flex-wrap:wrap;">
+      <div id="uploadLocalBanner" style="display:none; margin-top:12px; background: linear-gradient(135deg,rgba(59,130,246,0.08),rgba(99,102,241,0.08)); border:1px solid rgba(59,130,246,0.25); border-radius:10px; padding:14px 18px; align-items:center; gap:14px; flex-wrap:wrap;">
         <span style="font-size:22px;">☁</span>
         <div style="flex:1; min-width:200px;">
           <strong style="color:#1e40af; font-size:14px;">Cloud is empty — your local data is not in the cloud yet.</strong>
@@ -102,6 +105,9 @@
           ☁ Upload Local Leads to Cloud
         </button>
       </div>
+
+      <!-- Supabase Error Display (shown when cloud connection fails) -->
+      <div id="supaErrorDisplay" style="display:none; margin-top:10px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:12px 16px; color:#dc2626; font-size:13px; font-family:monospace; word-break:break-all;"></div>
     </div>
 
     <!-- Top Dashboard Grid -->

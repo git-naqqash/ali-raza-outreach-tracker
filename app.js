@@ -388,14 +388,26 @@ let supabaseReady = false;
 /** Initialize the Supabase JS client from config.js constants */
 function initSupabase() {
   try {
-    if (typeof window.supabase === "undefined" || typeof SUPABASE_URL === "undefined") {
+    // Startup debug: confirm config vars loaded
+    console.log("[Supabase] URL loaded:", typeof SUPABASE_URL !== "undefined" ? SUPABASE_URL : "MISSING");
+    console.log("[Supabase] Key exists:", typeof SUPABASE_ANON_KEY !== "undefined" && Boolean(SUPABASE_ANON_KEY));
+    console.log("[Supabase] window.supabase exists:", typeof window.supabase !== "undefined");
+
+    if (typeof window.supabase === "undefined") {
+      console.error("[Supabase] CDN not loaded — window.supabase is undefined");
+      supabaseReady = false;
+      return;
+    }
+    if (typeof SUPABASE_URL === "undefined" || typeof SUPABASE_ANON_KEY === "undefined") {
+      console.error("[Supabase] config.js not loaded — SUPABASE_URL or SUPABASE_ANON_KEY is undefined");
       supabaseReady = false;
       return;
     }
     supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log("[Supabase] Client created:", Boolean(supaClient));
     supabaseReady = true;
   } catch (e) {
-    console.error("Supabase init failed:", e);
+    console.error("[Supabase] init failed:", e);
     supabaseReady = false;
   }
 }
@@ -433,14 +445,22 @@ function ensureLeadId(lead) {
   return lead;
 }
 
-// --- Field Mapping: JS camelCase ↔ Supabase snake_case ---
+// ─────────────────────────────────────────────────────────────
+// Field Mapping: JS camelCase  ↔  Supabase snake_case
+// Supabase column names confirmed: id, lead_name, contact_person,
+// market, channel, main_link, niche, source, priority, stage,
+// last_action_date, next_action, next_action_date, reply_status,
+// notes, email, whatsapp_number, extra_link, followup_count,
+// message_sent, date_added, created_at, updated_at
+// ─────────────────────────────────────────────────────────────
 
-function leadToRow(lead) {
+function mapLeadToSupabase(lead) {
   ensureLeadId(lead);
   return {
     id:               lead.id,
+    lead_name:        lead.name            || "",
+    contact_person:   lead.contactPerson   || "",
     date_added:       lead.dateAdded       || "",
-    name:             lead.name            || "",
     market:           lead.market          || "",
     channel:          lead.channel         || "",
     main_link:        lead.mainLink        || "",
@@ -453,20 +473,23 @@ function leadToRow(lead) {
     next_action_date: lead.nextActionDate  || "",
     reply_status:     lead.replyStatus     || "",
     notes:            lead.notes           || "",
-    contact_person:   lead.contactPerson   || "",
     email:            lead.email           || "",
     whatsapp_number:  lead.whatsappNumber  || "",
     extra_link:       lead.extraLink       || "",
-    follow_up_count:  lead.followUpCount   || 0,
+    followup_count:   lead.followUpCount   || 0,
     message_sent:     lead.messageSent     || ""
   };
 }
 
-function rowToLead(row) {
+// Keep old name as alias so existing calls don't break
+const leadToRow = mapLeadToSupabase;
+
+function mapLeadFromSupabase(row) {
   return {
     id:             row.id,
+    name:           row.lead_name         || "",
+    contactPerson:  row.contact_person    || "",
     dateAdded:      row.date_added        || "",
-    name:           row.name              || "",
     market:         row.market            || "",
     channel:        row.channel           || "",
     mainLink:       row.main_link         || "",
@@ -479,14 +502,16 @@ function rowToLead(row) {
     nextActionDate: row.next_action_date  || "",
     replyStatus:    row.reply_status      || "",
     notes:          row.notes             || "",
-    contactPerson:  row.contact_person    || "",
     email:          row.email             || "",
     whatsappNumber: row.whatsapp_number   || "",
     extraLink:      row.extra_link        || "",
-    followUpCount:  row.follow_up_count   || 0,
+    followUpCount:  row.followup_count    || 0,
     messageSent:    row.message_sent      || ""
   };
 }
+
+// Keep old name as alias
+const rowToLead = mapLeadFromSupabase;
 
 function scriptToRow(s) {
   if (!s.id) s.id = generateId();
@@ -653,31 +678,96 @@ function hideUploadBanner() {
   if (banner) banner.style.display = "none";
 }
 
+// --- Test Cloud Connection (called by Test button in header) ---
+async function testCloudConnection() {
+  const badge = document.getElementById("syncStatusBadge");
+  setSyncStatus("syncing");
+  showToast("Testing cloud connection…", "info");
+  console.log("[Supabase] Running connection test…");
+
+  if (!supabaseReady || !supaClient) {
+    initSupabase();
+  }
+
+  if (!supabaseReady || !supaClient) {
+    const msg = "Supabase client not initialized. Check config.js and CDN loading order.";
+    console.error("[Supabase Test]", msg);
+    setSyncStatus("offline");
+    showToast("❌ " + msg, "error");
+    if (badge) badge.title = msg;
+    return;
+  }
+
+  try {
+    const { data, error } = await supaClient
+      .from("leads")
+      .select("*")
+      .limit(1);
+
+    if (error) {
+      const msg = `Error ${error.code || ""}: ${error.message || JSON.stringify(error)}`;
+      console.error("[Supabase Test] FAILED:", error);
+      setSyncStatus("offline");
+      showToast("❌ Cloud test failed: " + msg, "error");
+      if (badge) badge.title = msg;
+      // Also surface the error in a visible alert
+      const errDiv = document.getElementById("supaErrorDisplay");
+      if (errDiv) {
+        errDiv.style.display = "block";
+        errDiv.textContent = "Supabase error: " + msg;
+      }
+    } else {
+      const rowCount = data ? data.length : 0;
+      const msg = `Cloud connected! ${rowCount} row(s) returned from leads table.`;
+      console.log("[Supabase Test] SUCCESS:", msg, data);
+      setSyncStatus("connected");
+      showToast("✅ " + msg, "success");
+      if (badge) badge.title = "";
+      const errDiv = document.getElementById("supaErrorDisplay");
+      if (errDiv) errDiv.style.display = "none";
+    }
+  } catch (err) {
+    const msg = err.message || String(err);
+    console.error("[Supabase Test] Exception:", err);
+    setSyncStatus("offline");
+    showToast("❌ Cloud exception: " + msg, "error");
+  }
+}
+window.testCloudConnection = testCloudConnection;
+
 // --- On-login async init: fetch from Supabase, fall back to localStorage ---
 async function initAppData() {
   initSupabase();
 
   if (!supabaseReady) {
     setSyncStatus("offline");
+    console.warn("[Supabase] initAppData: client not ready — staying offline");
     return;
   }
 
   setSyncStatus("syncing");
 
   try {
+    console.log("[Supabase] Fetching leads from cloud…");
+
     // --- Leads ---
     const { data: cloudLeads, error: leadsErr } = await supaClient
       .from("leads")
       .select("*")
       .order("created_at", { ascending: true });
 
-    if (leadsErr) throw leadsErr;
+    if (leadsErr) {
+      console.error("[Supabase] leads fetch error:", leadsErr);
+      throw leadsErr;
+    }
+
+    console.log("[Supabase] Cloud leads count:", cloudLeads ? cloudLeads.length : 0);
 
     const localLeads = JSON.parse(localStorage.getItem("ali_raza_leads") || "[]");
 
     if (cloudLeads && cloudLeads.length > 0) {
       // Cloud has data — use it as source of truth
-      leads = cloudLeads.map(rowToLead);
+      leads = cloudLeads.map(mapLeadFromSupabase);
       localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
       hideUploadBanner();
     } else if (localLeads.length > 0) {
@@ -690,7 +780,9 @@ async function initAppData() {
       .from("scripts")
       .select("*");
 
-    if (!scriptsErr && cloudScripts && cloudScripts.length > 0) {
+    if (scriptsErr) {
+      console.warn("[Supabase] scripts fetch error:", scriptsErr);
+    } else if (cloudScripts && cloudScripts.length > 0) {
       scripts = cloudScripts.map(rowToScript);
       localStorage.setItem("ali_raza_scripts", JSON.stringify(scripts));
     }
@@ -698,9 +790,16 @@ async function initAppData() {
     setSyncStatus("connected");
 
   } catch (err) {
-    console.error("Supabase init fetch failed:", err);
+    const msg = err.message || JSON.stringify(err);
+    console.error("[Supabase] initAppData failed:", err);
     setSyncStatus("offline");
-    showToast("Cloud unavailable — using local backup.", "info");
+    // Show real error — not just generic message
+    showToast("⚠ Cloud error: " + msg, "error");
+    const errDiv = document.getElementById("supaErrorDisplay");
+    if (errDiv) {
+      errDiv.style.display = "block";
+      errDiv.textContent = "Supabase error: " + msg;
+    }
     return;
   }
 
