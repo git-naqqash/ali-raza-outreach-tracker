@@ -111,6 +111,7 @@ function checkRowRedStyle(cell) {
 function normalizeUrl(url) {
   if (!url) return "";
   const trimmed = url.trim();
+  if (!trimmed) return "";
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     return trimmed;
   }
@@ -376,6 +377,7 @@ const DEFAULT_LEADS = [
 let leads = [];
 let activeTab = "All"; // All, Instagram, LinkedIn, Email, WhatsApp
 let activeQuickFilter = "All"; // All, Today, FollowUp, A, Warm, Archived
+let activeTodayFilter = "All"; // All, Email, WhatsApp, Instagram, LinkedIn, A, Warm, Overdue
 
 // On Page Load
 document.addEventListener("DOMContentLoaded", () => {
@@ -500,7 +502,7 @@ function getFilteredLeads() {
     lead.originalIndex = index;
 
     // 1. Channel Tab filtering (sync with tab nav)
-    if (activeTab !== "All" && activeTab !== "LeadFinder" && lead.channel !== activeTab) return false;
+    if (activeTab !== "All" && activeTab !== "LeadFinder" && activeTab !== "TodayMode" && lead.channel !== activeTab) return false;
 
     // 2. Search Query matching
     if (searchQuery) {
@@ -592,12 +594,14 @@ function getReplyBadge(status) {
 // Render Leads Grid (Table and Mobile Cards)
 function renderLeads() {
   const isLeadFinder = activeTab === "LeadFinder";
+  const isTodayMode = activeTab === "TodayMode";
+  const isStandardView = !isLeadFinder && !isTodayMode;
 
   // Toggle the tab action button container and text dynamically
   const tabActions = document.getElementById("tabActionsContainer");
   const btnText = document.getElementById("importLeadsBtnText");
   if (tabActions && btnText) {
-    if (activeTab === "All" || isLeadFinder) {
+    if (activeTab === "All" || isLeadFinder || isTodayMode) {
       tabActions.style.display = "none";
     } else {
       tabActions.style.display = "block";
@@ -612,16 +616,16 @@ function renderLeads() {
 
   // Update headers / titles
   if (countBadge) {
-    countBadge.textContent = isLeadFinder ? "" : `${filtered.length} leads`;
+    countBadge.textContent = (isLeadFinder || isTodayMode) ? "" : `${filtered.length} leads`;
   }
   if (document.getElementById("activeTabTitle")) {
-    document.getElementById("activeTabTitle").textContent = isLeadFinder ? "Lead Finder" : (activeTab === "All" ? "Dashboard" : `${activeTab} Leads`);
+    document.getElementById("activeTabTitle").textContent = isLeadFinder ? "Lead Finder" : (isTodayMode ? "Today Mode" : (activeTab === "All" ? "Dashboard" : `${activeTab} Leads`));
   }
 
-  // Toggle Today's Action Center section visibility (only on Dashboard tab)
+  // Toggle Today's Action Center section visibility (only on Today Mode tab)
   const todaySection = document.getElementById("todayModeSection");
   if (todaySection) {
-    todaySection.style.display = (activeTab === "All" && !isLeadFinder) ? "block" : "none";
+    todaySection.style.display = isTodayMode ? "block" : "none";
   }
 
   // Toggle Lead Finder section
@@ -631,20 +635,25 @@ function renderLeads() {
   }
 
   // Toggle other dashboard/main view elements
+  const storageNotice = document.getElementById("storageNoticeContainer");
+  if (storageNotice) {
+    storageNotice.style.display = isStandardView ? "block" : "none";
+  }
+
   const dashGrid = document.querySelector(".dashboard-grid");
-  if (dashGrid) dashGrid.style.display = isLeadFinder ? "none" : "grid";
+  if (dashGrid) dashGrid.style.display = isStandardView ? "grid" : "none";
 
   const searchBox = document.querySelector(".search-box");
-  if (searchBox) searchBox.style.display = isLeadFinder ? "none" : "flex";
+  if (searchBox) searchBox.style.display = isStandardView ? "flex" : "none";
 
   const filterToggle = document.querySelector(".filters-toggle-row");
-  if (filterToggle) filterToggle.style.display = isLeadFinder ? "none" : "flex";
+  if (filterToggle) filterToggle.style.display = isStandardView ? "flex" : "none";
 
   const advPanel = document.getElementById("advancedFiltersPanel");
-  if (advPanel) advPanel.style.display = isLeadFinder ? "none" : "";
+  if (advPanel) advPanel.style.display = isStandardView ? "" : "none";
 
   const mainContent = document.querySelector(".main-content-section");
-  if (mainContent) mainContent.style.display = isLeadFinder ? "none" : "block";
+  if (mainContent) mainContent.style.display = isStandardView ? "block" : "none";
 
   // Update table header text dynamically
   const contactHeader = document.getElementById("dynamicContactHeader");
@@ -715,6 +724,7 @@ function renderLeads() {
     // 1. Table Row (Desktop)
     const tr = document.createElement("tr");
     tr.innerHTML = `
+      <td style="text-align: center;"><input type="checkbox" class="lead-checkbox" data-index="${lead.originalIndex}" onchange="updateSelectedLeadsCount()"></td>
       <td>
         <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name || "Unnamed Lead / Company"}</div>
         ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
@@ -735,12 +745,10 @@ function renderLeads() {
       </td>
       <td>${getReplyBadge(lead.replyStatus)}</td>
       <td>
-        <div class="action-buttons">
+        <div class="action-buttons" style="display: flex; gap: 4px; align-items: center; justify-content: center;">
+          ${getQuickActionsDropdownHtml(lead)}
           <button class="action-btn edit-btn" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-          </button>
-          <button class="action-btn archive-btn" onclick="archiveLead(${lead.originalIndex})" title="Archive Lead">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
           </button>
           <button class="action-btn delete-btn" onclick="deleteLead(${lead.originalIndex})" title="Delete Lead">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -754,8 +762,9 @@ function renderLeads() {
     const card = document.createElement("div");
     card.className = "lead-card-mobile";
     card.innerHTML = `
-      <div class="lead-card-header">
-        <div class="lead-card-title">
+      <div class="lead-card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <input type="checkbox" class="lead-checkbox" data-index="${lead.originalIndex}" onchange="updateSelectedLeadsCount()" style="width: 16px; height: 16px; cursor: pointer; margin-right: 4px;">
+        <div class="lead-card-title" style="flex: 1;">
           <h3>${lead.name || "Unnamed Lead / Company"}</h3>
           <span class="market-lbl">${lead.market || "-"} • ${lead.niche || "-"} • ${lead.source || "Other"}</span>
         </div>
@@ -797,13 +806,11 @@ function renderLeads() {
         ${lead.lastActionDate ? `<strong>Last Action:</strong> ${lead.lastActionDate}` : ''}
       </div>` : ''}
 
-      <div class="lead-card-actions">
+      <div class="lead-card-actions" style="display: flex; align-items: center; gap: 6px;">
+        ${getQuickActionsDropdownHtml(lead)}
         ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
         <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        </button>
-        <button class="btn btn-secondary btn-icon-only" onclick="archiveLead(${lead.originalIndex})" title="Archive Lead">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
         </button>
         <button class="btn btn-secondary btn-icon-only btn-danger-outline" onclick="deleteLead(${lead.originalIndex})" title="Delete Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -812,6 +819,10 @@ function renderLeads() {
     `;
     cardsContainer.appendChild(card);
   });
+
+  if (isTodayMode) {
+    renderTodayActions();
+  }
 }
 
 // Render "Today's Actions" section in the new Today Mode columns
@@ -1119,7 +1130,7 @@ function setupEventListeners() {
       name: document.getElementById("leadName").value.trim(),
       market: document.getElementById("leadMarket").value,
       channel: document.getElementById("leadChannel").value,
-      mainLink: document.getElementById("leadMainLink").value.trim(),
+      mainLink: normalizeUrl(document.getElementById("leadMainLink").value),
       niche: document.getElementById("leadNiche").value.trim(),
       source: document.getElementById("leadSource").value,
       priority: document.getElementById("leadPriority").value,
@@ -1134,7 +1145,7 @@ function setupEventListeners() {
       contactPerson: document.getElementById("leadContactPerson").value.trim(),
       email: document.getElementById("leadEmail").value.trim(),
       whatsappNumber: document.getElementById("leadWhatsappNumber").value.trim(),
-      extraLink: document.getElementById("leadExtraLink").value.trim(),
+      extraLink: normalizeUrl(document.getElementById("leadExtraLink").value),
       followUpCount: parseInt(document.getElementById("leadFollowUpCount").value) || 0,
       messageSent: document.getElementById("leadMessageSent").value.trim()
     };
@@ -1490,6 +1501,65 @@ function setupEventListeners() {
   // CSV Export trigger
   exportBtn.addEventListener("click", exportToCSV);
 
+  // --- Backup JSON System Event Listeners (wired directly to the visible header buttons) ---
+  const exportBackupJsonBtn = document.getElementById("exportBackupJsonBtn");
+  if (exportBackupJsonBtn) {
+    exportBackupJsonBtn.addEventListener("click", exportBackupJSON);
+  }
+
+  const importBackupJsonBtn = document.getElementById("importBackupJsonBtn");
+  if (importBackupJsonBtn) {
+    importBackupJsonBtn.addEventListener("click", () => {
+      const fileInput = document.getElementById("backupFileInput");
+      if (fileInput) fileInput.click();
+    });
+  }
+
+
+  const backupFileInput = document.getElementById("backupFileInput");
+  if (backupFileInput) {
+    backupFileInput.addEventListener("change", handleBackupFileSelect);
+  }
+
+  const cancelBackupImportBtn = document.getElementById("cancelBackupImportBtn");
+  if (cancelBackupImportBtn) {
+    cancelBackupImportBtn.addEventListener("click", closeBackupImportModal);
+  }
+
+  const closeBackupImportModalBtn = document.getElementById("closeBackupImportModalBtn");
+  if (closeBackupImportModalBtn) {
+    closeBackupImportModalBtn.addEventListener("click", closeBackupImportModal);
+  }
+
+  const confirmBackupImportBtn = document.getElementById("confirmBackupImportBtn");
+  if (confirmBackupImportBtn) {
+    confirmBackupImportBtn.addEventListener("click", confirmBackupImport);
+  }
+
+  const backupImportPreviewModal = document.getElementById("backupImportPreviewModal");
+  if (backupImportPreviewModal) {
+    backupImportPreviewModal.addEventListener("click", (e) => {
+      if (e.target.id === "backupImportPreviewModal") {
+        closeBackupImportModal();
+      }
+    });
+  }
+
+  const backModeMerge = document.getElementById("backModeMerge");
+  if (backModeMerge) {
+    backModeMerge.addEventListener("change", updateBackupPreviewCounts);
+  }
+
+  const backModeReplace = document.getElementById("backModeReplace");
+  if (backModeReplace) {
+    backModeReplace.addEventListener("change", updateBackupPreviewCounts);
+  }
+
+  const backImportDuplicatesAnyway = document.getElementById("backImportDuplicatesAnyway");
+  if (backImportDuplicatesAnyway) {
+    backImportDuplicatesAnyway.addEventListener("change", updateBackupPreviewCounts);
+  }
+
   // Import Leads Button
   const importLeadsBtn = document.getElementById("importLeadsBtn");
   if (importLeadsBtn) {
@@ -1586,9 +1656,10 @@ function setupEventListeners() {
       
       const emailVal = document.getElementById("captureEmail").value.trim().toLowerCase();
       const phoneVal = document.getElementById("captureWhatsApp").value.trim().replace(/[\s\+\(\)\-\[\]]/g, "");
-      const mainLinkVal = document.getElementById("captureMainLink").value.trim().toLowerCase();
-      const igLinkVal = document.getElementById("captureIgLink").value.trim().toLowerCase();
-      const liLinkVal = document.getElementById("captureLiLink").value.trim().toLowerCase();
+      const mainLinkVal = normalizeUrl(document.getElementById("captureMainLink").value).toLowerCase();
+      const igLinkVal = normalizeUrl(document.getElementById("captureIgLink").value).toLowerCase();
+      const liLinkVal = normalizeUrl(document.getElementById("captureLiLink").value).toLowerCase();
+      const webLinkVal = normalizeUrl(document.getElementById("captureWebsite").value).toLowerCase();
       
       let isDuplicate = false;
       for (let l of leads) {
@@ -1607,7 +1678,7 @@ function setupEventListeners() {
           isDuplicate = true;
           break;
         }
-        const linksToCheck = [mainLinkVal, igLinkVal, liLinkVal].filter(Boolean);
+        const linksToCheck = [mainLinkVal, igLinkVal, liLinkVal, webLinkVal].filter(Boolean);
         const existingLinks = [l.mainLink, l.extraLink].map(x => (x || "").trim().toLowerCase()).filter(Boolean);
         for (let link of linksToCheck) {
           if (existingLinks.includes(link)) {
@@ -1638,7 +1709,7 @@ function setupEventListeners() {
         name: document.getElementById("captureName").value.trim(),
         market: document.getElementById("captureMarket").value,
         channel: channel,
-        mainLink: document.getElementById("captureMainLink").value.trim(),
+        mainLink: normalizeUrl(document.getElementById("captureMainLink").value),
         niche: document.getElementById("captureNiche").value.trim(),
         source: "Lead Finder",
         priority: document.getElementById("capturePriority").value,
@@ -1651,7 +1722,7 @@ function setupEventListeners() {
         
         email: document.getElementById("captureEmail").value.trim(),
         whatsappNumber: document.getElementById("captureWhatsApp").value.trim(),
-        extraLink: document.getElementById("captureWebsite").value.trim() || document.getElementById("captureIgLink").value.trim() || document.getElementById("captureLiLink").value.trim(),
+        extraLink: normalizeUrl(document.getElementById("captureWebsite").value || document.getElementById("captureIgLink").value || document.getElementById("captureLiLink").value),
         contactPerson: "",
         followUpCount: 0,
         messageSent: ""
@@ -1891,7 +1962,7 @@ function processImportData(arrayBuffer, filename) {
         name: rowName ? String(rowName).trim() : "Unnamed Lead / Company",
         market: rowMarket ? String(rowMarket).trim() : "Italy",
         channel: activeTab, // Assigned to current tab
-        mainLink: rowMainLink ? String(rowMainLink).trim() : "",
+        mainLink: rowMainLink ? normalizeUrl(String(rowMainLink)) : "",
         niche: rowNiche ? String(rowNiche).trim() : "",
         source: rowSource ? String(rowSource).trim() : "Import",
         priority: rowPriority ? String(rowPriority).trim() : "B",
@@ -2175,6 +2246,277 @@ function closeImportPreview() {
   if (fileInput) fileInput.value = "";
 }
 
+// --- BACKUP JSON IMPLEMENTATION ---
+let pendingBackupData = null;
+
+// Helper to merge lead objects without overwriting populated fields with empty values
+function mergeLeadObjects(existingLead, newLead) {
+  const merged = { ...existingLead };
+  Object.keys(newLead).forEach(key => {
+    const newVal = newLead[key];
+    if (newVal !== undefined && newVal !== null && String(newVal).trim() !== "") {
+      merged[key] = newVal;
+    }
+  });
+  return merged;
+}
+
+// Check if a backup lead matches an existing lead by email, phone, main link, or name
+function checkBackupLeadDuplicate(newLead) {
+  const emailVal = newLead.email ? newLead.email.trim().toLowerCase() : "";
+  const phoneVal = newLead.whatsappNumber ? newLead.whatsappNumber.trim().replace(/[\s\+\(\)\-\[\]]/g, "") : "";
+  const mainLinkVal = newLead.mainLink ? newLead.mainLink.trim().toLowerCase() : "";
+  const nameVal = newLead.name ? newLead.name.trim().toLowerCase() : "";
+  
+  for (let i = 0; i < leads.length; i++) {
+    const l = leads[i];
+    
+    // Check Email
+    if (emailVal && l.email && l.email.trim().toLowerCase() === emailVal) {
+      return { type: "duplicate", index: i, reason: "Email match" };
+    }
+    
+    // Check WhatsApp
+    if (phoneVal) {
+      const existingPhone = (l.whatsappNumber || "").trim().replace(/[\s\+\(\)\-\[\]]/g, "");
+      if (existingPhone && existingPhone === phoneVal) {
+        return { type: "duplicate", index: i, reason: "WhatsApp match" };
+      }
+    }
+    
+    // Check Main Link
+    if (mainLinkVal && l.mainLink && l.mainLink.trim().toLowerCase() === mainLinkVal) {
+      return { type: "duplicate", index: i, reason: "Main link match" };
+    }
+    
+    // Check Name
+    if (nameVal && l.name && l.name.trim().toLowerCase() === nameVal) {
+      return { type: "duplicate", index: i, reason: "Name match" };
+    }
+  }
+  return null;
+}
+
+// Export Backup JSON
+function exportBackupJSON() {
+  const data = {
+    appName: "Ali Raza Outreach Tracker",
+    appVersion: "1.0.0",
+    backupCreatedDate: new Date().toISOString(),
+    leads: leads,
+    scripts: scripts,
+    settings: {
+      theme: localStorage.getItem("theme") || "dark",
+      ali_raza_logged_in: localStorage.getItem("ali_raza_logged_in")
+    }
+  };
+  const jsonStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  
+  const dateStr = new Date().toISOString().split('T')[0];
+  const filename = `ali-raza-outreach-backup-${dateStr}.json`;
+  
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  showToast("Backup JSON exported successfully!", "success");
+}
+
+// Handle backup file select
+function handleBackupFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data || (!Array.isArray(data.leads) && !Array.isArray(data.scripts))) {
+        showToast("Invalid backup file format. Leads or scripts array not found.", "error");
+        return;
+      }
+      
+      pendingBackupData = {
+        leads: Array.isArray(data.leads) ? data.leads : [],
+        scripts: Array.isArray(data.scripts) ? data.scripts : []
+      };
+      
+      showBackupImportPreview();
+    } catch (err) {
+      showToast("Error parsing backup file: " + err.message, "error");
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Show backup import preview summary in the modal
+function showBackupImportPreview() {
+  if (!pendingBackupData) return;
+  
+  const leadsInBackup = pendingBackupData.leads;
+  const scriptsInBackup = pendingBackupData.scripts;
+  
+  let duplicateCount = 0;
+  
+  leadsInBackup.forEach(lead => {
+    const dupCheck = checkBackupLeadDuplicate(lead);
+    if (dupCheck) {
+      duplicateCount++;
+    }
+  });
+  
+  document.getElementById("backLeadsFound").textContent = leadsInBackup.length;
+  document.getElementById("backScriptsFound").textContent = scriptsInBackup.length;
+  document.getElementById("backExistingLeads").textContent = leads.length;
+  document.getElementById("backDuplicatesFound").textContent = duplicateCount;
+  
+  // Reset select radio to default 'merge' and duplicate checkbox to unchecked
+  const radioMerge = document.getElementById("backModeMerge");
+  if (radioMerge) radioMerge.checked = true;
+  
+  const chkDupAnyway = document.getElementById("backImportDuplicatesAnyway");
+  if (chkDupAnyway) chkDupAnyway.checked = false;
+  
+  updateBackupPreviewCounts();
+  
+  const modal = document.getElementById("backupImportPreviewModal");
+  if (modal) modal.classList.add("active");
+}
+
+// Update counts dynamically when toggle mode (Merge vs Replace) or toggle import duplicates checkbox
+function updateBackupPreviewCounts() {
+  if (!pendingBackupData) return;
+  
+  const radioMerge = document.getElementById("backModeMerge");
+  const mode = (radioMerge && radioMerge.checked) ? "merge" : "replace";
+  const importDuplicates = document.getElementById("backImportDuplicatesAnyway")?.checked || false;
+  const leadsInBackup = pendingBackupData.leads;
+  
+  let finalCount = 0;
+  if (mode === "replace") {
+    finalCount = leadsInBackup.length;
+  } else {
+    // Merge mode
+    if (importDuplicates) {
+      finalCount = leads.length + leadsInBackup.length;
+    } else {
+      let newCount = 0;
+      leadsInBackup.forEach(lead => {
+        const dupCheck = checkBackupLeadDuplicate(lead);
+        if (!dupCheck) {
+          newCount++;
+        }
+      });
+      finalCount = leads.length + newCount;
+    }
+  }
+  
+  document.getElementById("backFinalCount").textContent = finalCount;
+}
+
+// Confirm and execute the JSON import
+function confirmBackupImport() {
+  if (!pendingBackupData) return;
+  
+  const radioMerge = document.getElementById("backModeMerge");
+  const mode = (radioMerge && radioMerge.checked) ? "merge" : "replace";
+  
+  if (mode === "replace") {
+    const warningText = "This will replace all current leads/scripts in this browser. Export a backup first. Continue?";
+    if (!confirm(warningText)) {
+      return;
+    }
+    
+    // Replace mode
+    leads = pendingBackupData.leads;
+    if (pendingBackupData.scripts.length > 0) {
+      scripts = pendingBackupData.scripts;
+    }
+    
+    showToast("Application data replaced successfully!", "success");
+  } else {
+    // Merge mode
+    let addedCount = 0;
+    let skippedCount = 0;
+    
+    const importDuplicates = document.getElementById("backImportDuplicatesAnyway")?.checked || false;
+    
+    pendingBackupData.leads.forEach(newLead => {
+      const dupCheck = checkBackupLeadDuplicate(newLead);
+      if (dupCheck) {
+        if (importDuplicates) {
+          leads.push(newLead);
+          addedCount++;
+        } else {
+          skippedCount++;
+        }
+      } else {
+        leads.push(newLead);
+        addedCount++;
+      }
+    });
+    
+    // Merge scripts
+    let scriptsAdded = 0;
+    pendingBackupData.scripts.forEach(newScript => {
+      const existingIdx = scripts.findIndex(s => s.id === newScript.id || s.title.toLowerCase() === newScript.title.toLowerCase());
+      if (existingIdx !== -1) {
+        scripts[existingIdx] = newScript;
+      } else {
+        scripts.push(newScript);
+        scriptsAdded++;
+      }
+    });
+    
+    let toastMsg = `Merged backup successfully: added ${addedCount} leads`;
+    if (skippedCount > 0) {
+      toastMsg += `, skipped ${skippedCount} duplicates`;
+    }
+    toastMsg += `.`;
+    showToast(toastMsg, "success");
+  }
+  
+  saveData();
+  saveScripts();
+  closeBackupImportModal();
+  
+  // Refresh views
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  renderScripts();
+}
+
+function closeBackupImportModal() {
+  const modal = document.getElementById("backupImportPreviewModal");
+  if (modal) modal.classList.remove("active");
+  document.getElementById("backupFileInput").value = "";
+  pendingBackupData = null;
+}
+
+window.toggleBackupDropdown = function(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById("backupDropdown");
+  if (!dropdown) return;
+  const wasOpen = dropdown.classList.contains("show");
+  
+  document.querySelectorAll(".dropdown-content.show").forEach(d => {
+    if (d.id !== "backupDropdown") d.classList.remove("show");
+  });
+  
+  if (wasOpen) {
+    dropdown.classList.remove("show");
+  } else {
+    dropdown.classList.add("show");
+  }
+};
+
 // Global functions accessible from HTML (inline onclick)
 window.openEditModal = openEditModal;
 window.archiveLead = archiveLead;
@@ -2355,6 +2697,29 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
+// Helpers to identify action categories
+function isFirstAction(action) {
+  if (!action) return false;
+  const act = action.toLowerCase();
+  return act.includes("email") || act.includes("whatsapp") || act.includes("dm") || act.includes("connection");
+}
+
+function isFollowupAction(action) {
+  if (!action) return false;
+  const act = action.toLowerCase();
+  return act.includes("follow-up") || act.includes("follow up");
+}
+
+function isWarmStatus(status) {
+  if (!status) return false;
+  const s = status.toLowerCase();
+  const warmStatuses = [
+    "replied", "interested", "samples requested", "cv requested", 
+    "price asked", "test project", "warm lead", "samples sent", "cv sent"
+  ];
+  return warmStatuses.some(ws => s.includes(ws));
+}
+
 // Lead Finder Safe Link Generator
 function generateSearchLinks() {
   const market = document.getElementById("finderMarket").value;
@@ -2452,74 +2817,228 @@ function copyTextToClipboard(text) {
 function getPersonalizedScript(lead, script) {
   if (!script) return "";
   
-  const nameVal = lead.contactPerson ? lead.contactPerson : "there";
-  const nomeVal = lead.contactPerson ? lead.contactPerson : (lead.name || "");
+  const nameVal = lead.contactPerson ? lead.contactPerson : (lead.name || "there");
+  const companyVal = lead.name || "";
+  const nicheVal = lead.niche || "";
+  const marketVal = lead.market || "";
   
   let body = script.body;
   body = body.replace(/\[Name\]/gi, nameVal);
-  body = body.replace(/\[Nome\]/gi, nomeVal);
-  body = body.replace(/\[Company\]/gi, lead.name || "");
-  body = body.replace(/\[Niche\]/gi, lead.niche || "");
-  body = body.replace(/\[Market\]/gi, lead.market || "");
+  body = body.replace(/\[Nome\]/gi, nameVal);
+  body = body.replace(/\[Company\]/gi, companyVal);
+  body = body.replace(/\[Nome Azienda\]/gi, companyVal);
+  body = body.replace(/\[Azienda\]/gi, companyVal);
+  body = body.replace(/\[Niche\]/gi, nicheVal);
+  body = body.replace(/\[Market\]/gi, marketVal);
   
   return body;
 }
 
-// One-click actions
-function copyPersonalizedScript(originalIndex) {
+// Smart Message Copy
+function copyPersonalizedScript(originalIndex, scriptType) {
   const lead = leads[originalIndex];
   if (!lead) return;
-  
-  let scriptType = "First Message";
-  if (lead.stage !== "Found" && lead.stage !== "Engaged") {
-    scriptType = "Follow-up";
+
+  let scriptTitle = "";
+  let typeKey = "";
+  let channelKey = "";
+
+  if (scriptType === "Email") {
+    scriptTitle = lead.market === "Italy" ? "Italian First Email (Primo Contatto)" : "English First Email (Agencies/Coaches)";
+    typeKey = "First Message";
+    channelKey = "Email";
+  } else if (scriptType === "WhatsApp") {
+    scriptTitle = "WhatsApp First Message (Public Contacts Only)";
+    typeKey = "First Message";
+    channelKey = "WhatsApp";
+  } else if (scriptType === "Instagram" || scriptType === "DM") {
+    scriptTitle = "Instagram DM (Found Pitch)";
+    typeKey = "First Message";
+    channelKey = "Instagram";
+  } else if (scriptType === "LinkedIn") {
+    if (lead.stage === "Found" || lead.stage === "Engaged") {
+      scriptTitle = "LinkedIn Connection Request";
+      typeKey = "Connection Request";
+    } else {
+      scriptTitle = "LinkedIn Message (After Accepting)";
+      typeKey = "After Accepting";
+    }
+    channelKey = "LinkedIn";
+  } else if (scriptType === "Follow-up") {
+    if (lead.channel === "Email") scriptTitle = "Email Follow-up (Polite Nudge)";
+    else if (lead.channel === "WhatsApp") scriptTitle = "WhatsApp Follow-up";
+    else {
+      typeKey = "Follow-up";
+      channelKey = lead.channel;
+    }
+  } else if (scriptType === "Sample Reply") {
+    scriptTitle = lead.market === "Italy" ? "Italian Sample Reply" : "English Sample Reply";
+    typeKey = "Sample Reply";
+  } else if (scriptType === "CV Reply") {
+    scriptTitle = "Italian CV Sent Reply";
+    typeKey = "CV Reply";
+  } else if (scriptType === "Price Reply") {
+    scriptTitle = "Price Reply";
+    typeKey = "Price Reply";
   }
-  
-  let script = scripts.find(s => s.channel === lead.channel && s.type === scriptType);
-  if (!script) {
-    script = scripts.find(s => s.channel === "General" && s.type === scriptType);
+
+  let script = null;
+  if (scriptTitle) {
+    script = scripts.find(s => s.title.toLowerCase() === scriptTitle.toLowerCase());
   }
-  if (!script) {
-    script = scripts.find(s => s.type === scriptType);
+  if (!script && typeKey) {
+    script = scripts.find(s => s.type === typeKey && (channelKey ? s.channel === channelKey : true));
+  }
+  if (!script && typeKey) {
+    script = scripts.find(s => s.type === typeKey);
   }
   if (!script) {
     script = scripts[0];
   }
-  
+
   if (!script) {
-    showToast("No templates available. Add one in Scripts Manager first.", "error");
+    showToast("No template script found. Please add a script first.", "error");
     return;
   }
-  
+
   const text = getPersonalizedScript(lead, script);
   copyTextToClipboard(text).then(() => {
-    showToast(`Copied personalized script (${script.title})!`, "success");
+    showToast("Message copied", "success");
   }).catch(() => {
     showToast("Failed to copy script.", "error");
   });
 }
 
+// Quick Actions Dropdown Builder
+function getQuickActionsDropdownHtml(lead) {
+  const index = lead.originalIndex;
+  let itemsHtml = "";
+
+  if (lead.channel === "Email") {
+    itemsHtml = `
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Email')">📝 Copy Email Script</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">📝 Copy Follow-up</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Sample Reply')">📝 Copy Sample Reply</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'CV Reply')">📝 Copy CV Reply</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">📝 Copy Price Reply</button>
+      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+      <button class="dropdown-item" onclick="markSentEmail(${index})">✉️ Mark Email Sent</button>
+      <button class="dropdown-item" onclick="markFollowupSent(${index})">🔄 Mark Follow-up Sent</button>
+      <button class="dropdown-item" onclick="sendSamples(${index})">📦 Send Samples</button>
+      <button class="dropdown-item" onclick="sendCV(${index})">📄 Send CV</button>
+      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+      <button class="dropdown-item" onclick="openLeadLink(${index})">🌐 Open Website</button>
+      <button class="dropdown-item" onclick="archiveLead(${index})">🗄️ Archive</button>
+    `;
+  } else if (lead.channel === "WhatsApp") {
+    itemsHtml = `
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'WhatsApp')">📝 Copy WhatsApp Script</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">📝 Copy Follow-up</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">📝 Copy Price Reply</button>
+      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+      <button class="dropdown-item" onclick="openWhatsAppChat(${index})">💬 Open WhatsApp</button>
+      <button class="dropdown-item" onclick="markSentWhatsApp(${index})">✔️ Mark WhatsApp Sent</button>
+      <button class="dropdown-item" onclick="markFollowupSent(${index})">🔄 Mark Follow-up Sent</button>
+      <button class="dropdown-item" onclick="sendSamples(${index})">📦 Send Samples</button>
+      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+      <button class="dropdown-item" onclick="archiveLead(${index})">🗄️ Archive</button>
+    `;
+  } else if (lead.channel === "Instagram") {
+    itemsHtml = `
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Instagram')">📝 Copy DM Script</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">📝 Copy Follow-up</button>
+      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+      <button class="dropdown-item" onclick="openLeadLink(${index})">📷 Open Profile</button>
+      <button class="dropdown-item" onclick="markInstagramCommented(${index})">💬 Mark Commented</button>
+      <button class="dropdown-item" onclick="markInstagramFollowed(${index})">👤 Mark Followed</button>
+      <button class="dropdown-item" onclick="markSentDM(${index})">✔️ Mark DM Sent</button>
+      <button class="dropdown-item" onclick="markFollowupSent(${index})">🔄 Mark Follow-up Sent</button>
+      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+      <button class="dropdown-item" onclick="archiveLead(${index})">🗄️ Archive</button>
+    `;
+  } else if (lead.channel === "LinkedIn") {
+    itemsHtml = `
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'LinkedIn')">📝 Copy LinkedIn Script</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">📝 Copy Follow-up</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">📝 Copy Price Reply</button>
+      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+      <button class="dropdown-item" onclick="openLeadLink(${index})">💼 Open Profile</button>
+      <button class="dropdown-item" onclick="markLinkedInConnectionSent(${index})">➕ Mark Connection Sent</button>
+      <button class="dropdown-item" onclick="markSentLinkedInMessage(${index})">✔️ Mark Message Sent</button>
+      <button class="dropdown-item" onclick="markFollowupSent(${index})">🔄 Mark Follow-up Sent</button>
+      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+      <button class="dropdown-item" onclick="archiveLead(${index})">🗄️ Archive</button>
+    `;
+  }
+
+  return `
+    <div class="quick-actions-dropdown">
+      <button type="button" class="action-btn quick-btn" onclick="toggleDropdown(${index}, event)" title="Quick outreach actions" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: var(--radius-sm); border: var(--border-light); background-color: var(--color-off-white); cursor: pointer; font-size: 13px; color: var(--color-royal-blue);">
+        ⚡
+      </button>
+      <div id="dropdown-${index}" class="dropdown-content">
+        ${itemsHtml}
+      </div>
+    </div>
+  `;
+}
+
+// Toggle Quick Actions dropdown view
+window.toggleDropdown = function(index, event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById(`dropdown-${index}`);
+  if (!dropdown) return;
+  const wasOpen = dropdown.classList.contains("show");
+  
+  document.querySelectorAll(".dropdown-content.show").forEach(d => {
+    d.classList.remove("show");
+  });
+  
+  if (!wasOpen) {
+    dropdown.classList.add("show");
+  }
+};
+
+// Set Active Quick Filter inside Today Mode
+window.setTodayFilter = function(filterVal) {
+  activeTodayFilter = filterVal;
+  
+  const buttons = document.querySelectorAll(".today-mode-filters .quick-filter-btn");
+  buttons.forEach(btn => {
+    if (btn.getAttribute("data-today-filter") === filterVal) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+  
+  renderTodayActions();
+};
+
+// Open profile or main website URL
 function openLeadLink(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   const url = lead.mainLink || lead.extraLink;
   if (url) {
-    window.open(normalizeUrl(url), '_blank');
+    window.open(normalizeUrl(url), "_blank", "noopener,noreferrer");
   } else {
     showToast("No website or profile link available.", "error");
   }
 }
 
+// Open click-to-chat WhatsApp link
 function openWhatsAppChat(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   if (lead.whatsappNumber) {
-    window.open(getWhatsAppLink(lead.whatsappNumber), '_blank');
+    window.open(getWhatsAppLink(lead.whatsappNumber), "_blank", "noopener,noreferrer");
   } else {
     showToast("No WhatsApp number available.", "error");
   }
 }
 
+// Prompt calendar next action date
 function setFollowupCalendar(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
@@ -2552,31 +3071,43 @@ function setFollowupCalendar(originalIndex) {
   showToast(`Rescheduled follow-up to ${newDate}`, "success");
 }
 
+// Auto follow-up sent functions with rules
 function markSentEmail(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
   const today = new Date().toISOString().split('T')[0];
   lead.lastActionDate = today;
+  lead.replyStatus = "No reply";
   
-  if (lead.stage === "Found" || lead.stage === "Engaged") {
+  const isFirstEmail = (lead.stage === "Found" || lead.stage === "Engaged");
+  if (isFirstEmail) {
     lead.stage = "First Message Sent";
-    lead.nextAction = "Send follow-up";
     lead.followUpCount = 0;
+    lead.nextAction = "Send follow-up";
+    lead.nextActionDate = addWorkingDays(today, 5);
   } else {
     lead.stage = "Follow-up Due";
     lead.followUpCount = (lead.followUpCount || 0) + 1;
-    lead.nextAction = `Send follow-up #${lead.followUpCount + 1}`;
+    
+    const limit = 2; // email limit
+    if (lead.followUpCount >= limit) {
+      lead.nextAction = "Archive";
+      lead.stage = "Follow-up Sent";
+      alert(`Follow-up limit of ${limit} reached for ${lead.name}. Consider archiving this lead.`);
+    } else {
+      lead.nextAction = "Send follow-up";
+      lead.nextActionDate = addWorkingDays(today, 5);
+    }
   }
   
-  lead.nextActionDate = addWorkingDays(today, 5);
   lead.messageSent = `Sent email on ${today}`;
   
   saveData();
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  showToast(`Email marked sent! Scheduled follow-up for ${lead.nextActionDate}`, "success");
+  showToast(isFirstEmail ? "First email marked sent!" : `Follow-up email #${lead.followUpCount} marked sent!`, "success");
 }
 
 function markSentWhatsApp(originalIndex) {
@@ -2585,17 +3116,9 @@ function markSentWhatsApp(originalIndex) {
   
   const today = new Date().toISOString().split('T')[0];
   lead.lastActionDate = today;
-  
-  if (lead.stage === "Found" || lead.stage === "Engaged") {
-    lead.stage = "First Message Sent";
-    lead.nextAction = "Send WhatsApp follow-up";
-    lead.followUpCount = 0;
-  } else {
-    lead.stage = "Follow-up Due";
-    lead.followUpCount = (lead.followUpCount || 0) + 1;
-    lead.nextAction = `Send WhatsApp follow-up #${lead.followUpCount + 1}`;
-  }
-  
+  lead.stage = "First Message Sent";
+  lead.replyStatus = "No reply";
+  lead.nextAction = "Send follow-up";
   lead.nextActionDate = addDays(today, 7);
   lead.messageSent = `Sent WhatsApp on ${today}`;
   
@@ -2603,7 +3126,7 @@ function markSentWhatsApp(originalIndex) {
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  showToast(`WhatsApp marked sent! Scheduled follow-up for ${lead.nextActionDate}`, "success");
+  showToast("WhatsApp marked sent! Follow-up scheduled (+7 days).", "success");
 }
 
 function markInstagramCommented(originalIndex) {
@@ -2624,7 +3147,7 @@ function markInstagramCommented(originalIndex) {
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  showToast("Notes updated: Commented on Instagram post", "success");
+  showToast("Instagram commented logged!", "success");
 }
 
 function markInstagramFollowed(originalIndex) {
@@ -2645,7 +3168,7 @@ function markInstagramFollowed(originalIndex) {
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  showToast("Notes updated: Followed Instagram profile", "success");
+  showToast("Instagram follow logged!", "success");
 }
 
 function markSentDM(originalIndex) {
@@ -2654,17 +3177,9 @@ function markSentDM(originalIndex) {
   
   const today = new Date().toISOString().split('T')[0];
   lead.lastActionDate = today;
-  
-  if (lead.stage === "Found" || lead.stage === "Engaged") {
-    lead.stage = "First Message Sent";
-    lead.nextAction = "Send DM follow-up";
-    lead.followUpCount = 0;
-  } else {
-    lead.stage = "Follow-up Due";
-    lead.followUpCount = (lead.followUpCount || 0) + 1;
-    lead.nextAction = `Send DM follow-up #${lead.followUpCount + 1}`;
-  }
-  
+  lead.stage = "First Message Sent";
+  lead.replyStatus = "No reply";
+  lead.nextAction = "Send follow-up";
   lead.nextActionDate = addDays(today, 7);
   lead.messageSent = `Sent Instagram DM on ${today}`;
   
@@ -2672,7 +3187,7 @@ function markSentDM(originalIndex) {
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  showToast(`Instagram DM marked sent! Scheduled follow-up for ${lead.nextActionDate}`, "success");
+  showToast("Instagram DM marked sent! Follow-up scheduled (+7 days).", "success");
 }
 
 function markLinkedInConnectionSent(originalIndex) {
@@ -2682,14 +3197,16 @@ function markLinkedInConnectionSent(originalIndex) {
   const today = new Date().toISOString().split('T')[0];
   lead.lastActionDate = today;
   lead.stage = "First Message Sent";
-  lead.nextAction = "Send LinkedIn message";
+  lead.replyStatus = "No reply";
+  lead.nextAction = "Wait";
   lead.nextActionDate = addDays(today, 3);
+  lead.messageSent = `Sent LinkedIn connection request on ${today}`;
   
   saveData();
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  showToast(`LinkedIn connection request sent! Scheduled check for ${lead.nextActionDate}`, "success");
+  showToast("LinkedIn connection sent! Next action Wait (+3 days).", "success");
 }
 
 function markSentLinkedInMessage(originalIndex) {
@@ -2698,26 +3215,392 @@ function markSentLinkedInMessage(originalIndex) {
   
   const today = new Date().toISOString().split('T')[0];
   lead.lastActionDate = today;
-  
-  if (lead.stage === "Found" || lead.stage === "Engaged" || lead.nextAction === "Send LinkedIn message") {
-    lead.stage = "First Message Sent";
-    lead.nextAction = "Send LinkedIn follow-up";
-    lead.followUpCount = 0;
-  } else {
-    lead.stage = "Follow-up Due";
-    lead.followUpCount = (lead.followUpCount || 0) + 1;
-    lead.nextAction = `Send LinkedIn follow-up #${lead.followUpCount + 1}`;
-  }
-  
-  lead.nextActionDate = addDays(today, 7);
+  lead.stage = "First Message Sent";
+  lead.replyStatus = "No reply";
+  lead.nextAction = "Wait";
+  lead.nextActionDate = addDays(today, 3);
   lead.messageSent = `Sent LinkedIn message on ${today}`;
   
   saveData();
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  showToast(`LinkedIn message marked sent! Scheduled follow-up for ${lead.nextActionDate}`, "success");
+  showToast("LinkedIn message marked sent! Next action Wait (+3 days).", "success");
 }
+
+function markFollowupSent(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  lead.followUpCount = (lead.followUpCount || 0) + 1;
+  lead.replyStatus = "No reply";
+  
+  let limit = 2;
+  if (lead.channel === "WhatsApp") limit = 1;
+  else if (lead.channel === "Instagram") limit = 1;
+  else if (lead.channel === "LinkedIn") limit = 2;
+  
+  if (lead.followUpCount >= limit) {
+    lead.nextAction = "Archive";
+    lead.stage = "Follow-up Sent";
+    alert(`Follow-up limit of ${limit} reached for ${lead.name}. Consider archiving this lead.`);
+  } else {
+    lead.nextAction = "Send follow-up";
+    if (lead.channel === "Email") {
+      lead.nextActionDate = addWorkingDays(today, 5);
+    } else if (lead.channel === "LinkedIn") {
+      lead.nextActionDate = addDays(today, 5);
+    } else {
+      lead.nextActionDate = addDays(today, 7);
+    }
+  }
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`Follow-up #${lead.followUpCount} marked sent!`, "success");
+}
+
+function sendSamples(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  lead.stage = "Samples Sent";
+  lead.replyStatus = "Samples requested";
+  lead.nextAction = "Send follow-up";
+  if (lead.channel === "Email") {
+    lead.nextActionDate = addWorkingDays(today, 5);
+  } else {
+    lead.nextActionDate = addDays(today, 7);
+  }
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast("Samples marked sent!", "success");
+}
+
+function sendCV(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  lead.lastActionDate = today;
+  lead.replyStatus = "CV requested";
+  lead.nextAction = "Send follow-up";
+  lead.nextActionDate = addWorkingDays(today, 5);
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast("CV marked sent!", "success");
+}
+
+// Checkbox selections helpers
+function getSelectedLeadIndexes() {
+  const checkboxes = document.querySelectorAll(".lead-checkbox:checked");
+  const indexes = [];
+  checkboxes.forEach(cb => {
+    indexes.push(parseInt(cb.dataset.index));
+  });
+  return indexes;
+}
+
+window.updateSelectedLeadsCount = function() {
+  const indexes = getSelectedLeadIndexes();
+  const count = indexes.length;
+  const toolbar = document.getElementById("bulkActionsToolbar");
+  const selectedCountBadge = document.getElementById("bulkSelectedCount");
+  
+  document.querySelectorAll(".leads-table tbody tr").forEach(tr => {
+    const cb = tr.querySelector(".lead-checkbox");
+    if (cb && cb.checked) {
+      tr.classList.add("selected-row");
+    } else {
+      tr.classList.remove("selected-row");
+    }
+  });
+  
+  if (count > 0) {
+    if (toolbar) toolbar.classList.remove("hidden");
+    if (selectedCountBadge) selectedCountBadge.textContent = `${count} selected`;
+  } else {
+    if (toolbar) toolbar.classList.add("hidden");
+    const selectAllCheckbox = document.getElementById("selectAllLeads");
+    if (selectAllCheckbox) selectAllCheckbox.checked = false;
+  }
+};
+
+window.toggleSelectAllLeads = function(masterCheckbox) {
+  const checkboxes = document.querySelectorAll(".lead-checkbox");
+  checkboxes.forEach(cb => {
+    cb.checked = masterCheckbox.checked;
+  });
+  updateSelectedLeadsCount();
+};
+
+window.clearBulkSelection = function() {
+  const checkboxes = document.querySelectorAll(".lead-checkbox");
+  checkboxes.forEach(cb => {
+    cb.checked = false;
+  });
+  const selectAllCheckbox = document.getElementById("selectAllLeads");
+  if (selectAllCheckbox) selectAllCheckbox.checked = false;
+  updateSelectedLeadsCount();
+};
+
+// Bulk action commands implementation
+window.applyBulkChange = function(field, value) {
+  if (!value) return;
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+  
+  indexes.forEach(idx => {
+    if (leads[idx]) leads[idx][field] = value;
+  });
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  
+  document.getElementById("bulkStageSelect").value = "";
+  document.getElementById("bulkPrioritySelect").value = "";
+  document.getElementById("bulkReplySelect").value = "";
+  
+  showToast(`Updated ${field} for ${indexes.length} leads!`, "success");
+  clearBulkSelection();
+};
+
+window.triggerBulkNextActionPrompt = function() {
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+  
+  const newAction = prompt("Enter next action text:");
+  if (newAction === null) return;
+  
+  const newDate = prompt("Enter next action date (YYYY-MM-DD) or number of days (e.g. +3):");
+  if (newDate === null) return;
+  
+  let parsedDate = "";
+  const cleaned = newDate.trim();
+  if (/^\+?\d+$/.test(cleaned)) {
+    const offset = parseInt(cleaned);
+    parsedDate = addDays(new Date().toISOString().split('T')[0], offset);
+  } else {
+    const d = new Date(cleaned);
+    if (!isNaN(d.getTime())) {
+      parsedDate = d.toISOString().split('T')[0];
+    } else {
+      alert("Invalid date format.");
+      return;
+    }
+  }
+  
+  indexes.forEach(idx => {
+    if (leads[idx]) {
+      leads[idx].nextAction = newAction.trim();
+      leads[idx].nextActionDate = parsedDate;
+    }
+  });
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`Updated next action for ${indexes.length} leads!`, "success");
+  clearBulkSelection();
+};
+
+window.bulkMarkFirstMessageSent = function() {
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  
+  indexes.forEach(idx => {
+    const lead = leads[idx];
+    if (!lead) return;
+    
+    lead.lastActionDate = today;
+    lead.stage = "First Message Sent";
+    lead.replyStatus = "No reply";
+    lead.followUpCount = 0;
+    
+    if (lead.channel === "Email") {
+      lead.nextAction = "Send follow-up";
+      lead.nextActionDate = addWorkingDays(today, 5);
+    } else if (lead.channel === "LinkedIn") {
+      lead.nextAction = "Wait";
+      lead.nextActionDate = addDays(today, 3);
+    } else {
+      lead.nextAction = "Send follow-up";
+      lead.nextActionDate = addDays(today, 7);
+    }
+  });
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`Marked first message sent for ${indexes.length} leads!`, "success");
+  clearBulkSelection();
+};
+
+window.bulkMarkFollowupSent = function() {
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  let limitWarningTriggered = false;
+  
+  indexes.forEach(idx => {
+    const lead = leads[idx];
+    if (!lead) return;
+    
+    lead.lastActionDate = today;
+    lead.followUpCount = (lead.followUpCount || 0) + 1;
+    lead.replyStatus = "No reply";
+    
+    let limit = 2;
+    if (lead.channel === "WhatsApp") limit = 1;
+    else if (lead.channel === "Instagram") limit = 1;
+    else if (lead.channel === "LinkedIn") limit = 2;
+    
+    if (lead.followUpCount >= limit) {
+      lead.nextAction = "Archive";
+      lead.stage = "Follow-up Sent";
+      limitWarningTriggered = true;
+    } else {
+      lead.nextAction = "Send follow-up";
+      if (lead.channel === "Email") {
+        lead.nextActionDate = addWorkingDays(today, 5);
+      } else if (lead.channel === "LinkedIn") {
+        lead.nextActionDate = addDays(today, 5);
+      } else {
+        lead.nextActionDate = addDays(today, 7);
+      }
+    }
+  });
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  
+  if (limitWarningTriggered) {
+    alert("One or more leads reached their follow-up limit. Consider archiving them.");
+  }
+  
+  showToast(`Marked follow-up sent for ${indexes.length} leads!`, "success");
+  clearBulkSelection();
+};
+
+window.bulkArchiveSelected = function() {
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+  
+  const confirmArchive = confirm("Are you sure you want to archive selected leads?");
+  if (!confirmArchive) return;
+  
+  indexes.forEach(idx => {
+    if (leads[idx]) leads[idx].stage = "Archived";
+  });
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`Archived ${indexes.length} leads!`, "success");
+  clearBulkSelection();
+};
+
+window.bulkDeleteSelected = function() {
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+  
+  const confirmDelete = confirm("Are you sure you want to permanently delete selected leads? This cannot be undone.");
+  if (!confirmDelete) return;
+  
+  indexes.sort((a, b) => b - a);
+  
+  indexes.forEach(idx => {
+    leads.splice(idx, 1);
+  });
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast(`Deleted ${indexes.length} leads!`, "success");
+  clearBulkSelection();
+};
+
+window.bulkExportCSV = function() {
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+  
+  const selectedLeads = indexes.map(idx => leads[idx]).filter(Boolean);
+  if (selectedLeads.length === 0) return;
+  
+  const headers = [
+    "Date Added", "Lead Name/Company", "Contact Person", "Market", 
+    "Channel", "Main Link", "Extra Link", "Niche", "Source", "Priority", 
+    "Stage", "Last Action Date", "Next Action", "Next Action Date", 
+    "Reply Status", "Notes", "Message Sent", "Follow-up Count"
+  ];
+  
+  const rows = selectedLeads.map(lead => [
+    lead.dateAdded || "",
+    lead.name || "",
+    lead.contactPerson || "",
+    lead.market || "",
+    lead.channel || "",
+    lead.mainLink || "",
+    lead.extraLink || "",
+    lead.niche || "",
+    lead.source || "",
+    lead.priority || "",
+    lead.stage || "",
+    lead.lastActionDate || "",
+    lead.nextAction || "",
+    lead.nextActionDate || "",
+    lead.replyStatus || "",
+    lead.notes || "",
+    lead.messageSent || "",
+    lead.followUpCount !== undefined ? lead.followUpCount : 0
+  ]);
+  
+  let csvContent = "data:text/csv;charset=utf-8," 
+    + [headers.join(","), ...rows.map(r => r.map(val => escapeCsvValue(val)).join(","))].join("\n");
+    
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `outreach_leads_selected_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast(`Exported ${selectedLeads.length} leads to CSV!`, "success");
+  clearBulkSelection();
+};
+
+// Dismiss dropdowns when clicking outside
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".quick-actions-dropdown")) {
+    document.querySelectorAll(".dropdown-content.show").forEach(d => {
+      d.classList.remove("show");
+    });
+  }
+});
 
 // Expose functions to window
 window.addDays = addDays;
@@ -2732,3 +3615,27 @@ window.markInstagramFollowed = markInstagramFollowed;
 window.markSentDM = markSentDM;
 window.markLinkedInConnectionSent = markLinkedInConnectionSent;
 window.markSentLinkedInMessage = markSentLinkedInMessage;
+window.markFollowupSent = markFollowupSent;
+window.sendSamples = sendSamples;
+window.sendCV = sendCV;
+window.toggleDropdown = toggleDropdown;
+window.setTodayFilter = setTodayFilter;
+window.toggleSelectAllLeads = toggleSelectAllLeads;
+window.updateSelectedLeadsCount = updateSelectedLeadsCount;
+window.clearBulkSelection = clearBulkSelection;
+window.applyBulkChange = applyBulkChange;
+window.triggerBulkNextActionPrompt = triggerBulkNextActionPrompt;
+window.bulkMarkFirstMessageSent = bulkMarkFirstMessageSent;
+window.bulkMarkFollowupSent = bulkMarkFollowupSent;
+window.bulkArchiveSelected = bulkArchiveSelected;
+window.bulkDeleteSelected = bulkDeleteSelected;
+window.bulkExportCSV = bulkExportCSV;
+
+// Backup operations exports
+window.exportBackupJSON = exportBackupJSON;
+window.handleBackupFileSelect = handleBackupFileSelect;
+window.showBackupImportPreview = showBackupImportPreview;
+window.updateBackupPreviewCounts = updateBackupPreviewCounts;
+window.confirmBackupImport = confirmBackupImport;
+window.closeBackupImportModal = closeBackupImportModal;
+
