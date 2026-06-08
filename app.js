@@ -680,60 +680,115 @@ function hideUploadBanner() {
 
 // --- Test Cloud Connection (called by Test button in header) ---
 async function testCloudConnection() {
-  const badge = document.getElementById("syncStatusBadge");
   setSyncStatus("syncing");
-  showToast("Testing cloud connection…", "info");
-  console.log("[Supabase] Running connection test…");
+  const errDiv = document.getElementById("supaErrorDisplay");
+  if (errDiv) { errDiv.style.display = "none"; errDiv.textContent = ""; }
 
-  if (!supabaseReady || !supaClient) {
-    initSupabase();
-  }
-
-  if (!supabaseReady || !supaClient) {
-    const msg = "Supabase client not initialized. Check config.js and CDN loading order.";
+  function showError(msg) {
     console.error("[Supabase Test]", msg);
     setSyncStatus("offline");
     showToast("❌ " + msg, "error");
-    if (badge) badge.title = msg;
+    if (errDiv) { errDiv.style.display = "block"; errDiv.innerHTML = msg; }
+  }
+  function showSuccess(msg) {
+    console.log("[Supabase Test] SUCCESS:", msg);
+    setSyncStatus("connected");
+    showToast("✅ " + msg, "success");
+    if (errDiv) { errDiv.style.display = "none"; }
+  }
+
+  // ── Stage 1: Re-init the client ──────────────────────────────
+  if (!supabaseReady || !supaClient) initSupabase();
+
+  if (!supabaseReady || !supaClient) {
+    showError(
+      "Supabase client failed to initialize.<br>" +
+      "Check browser console for: <b>window.supabase exists</b> and <b>Key exists</b>.<br>" +
+      "Likely cause: CDN blocked or config.js not loaded."
+    );
     return;
   }
 
+  // ── Stage 2: Raw fetch — bypasses supabase-js to isolate network ─
+  console.log("[Supabase Test] Stage 2: raw fetch to Supabase REST endpoint…");
+  const testUrl = SUPABASE_URL + "/rest/v1/leads?limit=1";
   try {
-    const { data, error } = await supaClient
-      .from("leads")
-      .select("*")
-      .limit(1);
-
-    if (error) {
-      const msg = `Error ${error.code || ""}: ${error.message || JSON.stringify(error)}`;
-      console.error("[Supabase Test] FAILED:", error);
-      setSyncStatus("offline");
-      showToast("❌ Cloud test failed: " + msg, "error");
-      if (badge) badge.title = msg;
-      // Also surface the error in a visible alert
-      const errDiv = document.getElementById("supaErrorDisplay");
-      if (errDiv) {
-        errDiv.style.display = "block";
-        errDiv.textContent = "Supabase error: " + msg;
+    const rawRes = await fetch(testUrl, {
+      method: "GET",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
       }
-    } else {
-      const rowCount = data ? data.length : 0;
-      const msg = `Cloud connected! ${rowCount} row(s) returned from leads table.`;
-      console.log("[Supabase Test] SUCCESS:", msg, data);
-      setSyncStatus("connected");
-      showToast("✅ " + msg, "success");
-      if (badge) badge.title = "";
-      const errDiv = document.getElementById("supaErrorDisplay");
-      if (errDiv) errDiv.style.display = "none";
+    });
+    console.log("[Supabase Test] Raw fetch HTTP status:", rawRes.status);
+
+    if (!rawRes.ok) {
+      const body = await rawRes.text();
+      console.error("[Supabase Test] Raw fetch failed body:", body);
+
+      if (rawRes.status === 401) {
+        showError(
+          "HTTP 401 Unauthorized.<br>" +
+          "<b>Fix:</b> Your anon key is wrong or expired.<br>" +
+          "Go to Supabase → Project Settings → API and copy the <b>anon / public</b> key (starts with <code>eyJ...</code> — NOT a publishable key)."
+        );
+      } else if (rawRes.status === 404) {
+        showError(
+          "HTTP 404 — table <b>leads</b> not found.<br>" +
+          "Check your Supabase table is named exactly <code>leads</code> (lowercase)."
+        );
+      } else if (rawRes.status === 0 || rawRes.status === 403) {
+        showError(
+          "HTTP " + rawRes.status + " — possible CORS block.<br>" +
+          "<b>Fix:</b> Go to Supabase → Project Settings → API → <b>CORS Allowed Origins</b> and add your Vercel domain, e.g. <code>https://ali-raza-outreach-tracker.vercel.app</code>"
+        );
+      } else {
+        showError("HTTP " + rawRes.status + ": " + body.slice(0, 300));
+      }
+      return;
     }
-  } catch (err) {
-    const msg = err.message || String(err);
-    console.error("[Supabase Test] Exception:", err);
-    setSyncStatus("offline");
-    showToast("❌ Cloud exception: " + msg, "error");
+
+    // Raw fetch succeeded — now test via supabase-js client
+    console.log("[Supabase Test] Raw fetch OK. Now testing supabase-js client…");
+
+  } catch (netErr) {
+    // Failed to fetch = network error or CORS preflight blocked
+    console.error("[Supabase Test] Raw fetch exception:", netErr);
+    showError(
+      "<b>TypeError: Failed to fetch</b><br><br>" +
+      "The browser cannot reach Supabase. Check these in order:<br><br>" +
+      "1️⃣ <b>Is your Supabase project paused?</b><br>" +
+      "&nbsp;&nbsp;→ Go to <a href='https://supabase.com/dashboard' target='_blank'>supabase.com/dashboard</a>, open your project. If it says <b>Paused</b>, click <b>Restore project</b>.<br><br>" +
+      "2️⃣ <b>CORS not configured?</b><br>" +
+      "&nbsp;&nbsp;→ Supabase Dashboard → Project Settings → API → CORS Allowed Origins<br>" +
+      "&nbsp;&nbsp;→ Add: <code>https://ali-raza-outreach-tracker.vercel.app</code><br><br>" +
+      "3️⃣ <b>Wrong anon key format?</b><br>" +
+      "&nbsp;&nbsp;→ The key should start with <code>eyJ</code> (JWT format), NOT <code>sb_publishable_</code><br>" +
+      "&nbsp;&nbsp;→ Get it from: Supabase → Project Settings → API → <b>Project API Keys → anon public</b>"
+    );
+    return;
+  }
+
+  // ── Stage 3: supabase-js client test ───────────────────────────
+  try {
+    const { data, error } = await supaClient.from("leads").select("*").limit(1);
+    if (error) {
+      showError(
+        "supabase-js error: <b>" + (error.message || JSON.stringify(error)) + "</b><br>" +
+        "Code: " + (error.code || "none") + "<br>" +
+        "Details: " + (error.details || "none")
+      );
+    } else {
+      const count = data ? data.length : 0;
+      showSuccess("Cloud connected! " + count + " row(s) returned from leads table.");
+    }
+  } catch (e) {
+    showError("supabase-js client exception: " + (e.message || e));
   }
 }
 window.testCloudConnection = testCloudConnection;
+
 
 // --- On-login async init: fetch from Supabase, fall back to localStorage ---
 async function initAppData() {
