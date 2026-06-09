@@ -156,7 +156,7 @@ const DEFAULT_SCRIPTS = [
     title: "English First Email (Agencies/Coaches)",
     channel: "Email",
     type: "First Message",
-    body: "Subject: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI came across [Company] and love the work you are doing for clients in [Niche]. \n\nI work as a freelance white-label book writer. I help publishing teams, content agencies, and coaches design and draft high-conversion ebooks, workbook PDFs, and lead magnets. This lets you offer publishing services to your clients or grow your own backend program without doing any writing yourself.\n\nI’d love to send over a brief PDF sample workbook that shows my writing style and Canva layouts. \n\nWould it be okay to share the link with you?\n\nBest regards,\nAli Raza\nEbook & Lead Magnet Writer\nhttps://alirazawriter.com (Placeholder link)",
+    body: "Subject: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI came across [Company] and love the work you are doing for clients in [Niche]. \n\nI work as a freelance white-label book writer. I help publishing teams, content agencies, and coaches design and draft high-conversion ebooks, workbook PDFs, and lead magnets. This lets you offer publishing services to your clients or grow your own backend program without doing any writing yourself.\n\nIâ€™d love to send over a brief PDF sample workbook that shows my writing style and Canva layouts. \n\nWould it be okay to share the link with you?\n\nBest regards,\nAli Raza\nEbook & Lead Magnet Writer\nhttps://alirazawriter.com (Placeholder link)",
     isDefault: true
   },
   {
@@ -188,7 +188,7 @@ const DEFAULT_SCRIPTS = [
     title: "WhatsApp Follow-up",
     channel: "WhatsApp",
     type: "Follow-up",
-    body: "Hi [Name], just checking if you had a moment to see my previous message about ebook/workbook support? No pressure at all—happy to share a quick PDF sample if you ever want to expand your digital offerings. Have a great day!",
+    body: "Hi [Name], just checking if you had a moment to see my previous message about ebook/workbook support? No pressure at allâ€”happy to share a quick PDF sample if you ever want to expand your digital offerings. Have a great day!",
     isDefault: true
   },
   {
@@ -196,7 +196,7 @@ const DEFAULT_SCRIPTS = [
     title: "Italian Sample Reply",
     channel: "Email",
     type: "Sample Reply",
-    body: "Buongiorno [Nome],\n\ncerto, posso inviarvi 2 sample per valutare struttura, stile e qualità del lavoro.\n\nPer comodità, qui trova anche il mio portfolio:\nlinktr.ee/aliraza.ebooks\n\nResto disponibile se desiderate un esempio più vicino al vostro tipo di progetto.\n\nCordiali saluti,\nAli Raza",
+    body: "Buongiorno [Nome],\n\ncerto, posso inviarvi 2 sample per valutare struttura, stile e qualitÃ  del lavoro.\n\nPer comoditÃ , qui trova anche il mio portfolio:\nlinktr.ee/aliraza.ebooks\n\nResto disponibile se desiderate un esempio piÃ¹ vicino al vostro tipo di progetto.\n\nCordiali saluti,\nAli Raza",
     isDefault: true
   },
   {
@@ -212,7 +212,7 @@ const DEFAULT_SCRIPTS = [
     title: "Italian CV Sent Reply",
     channel: "Email",
     type: "CV Reply",
-    body: "Buongiorno [Nome],\n\ngrazie mille per la risposta.\n\nLe invio il mio CV e i dettagli della mia attività.\n\nLavoro come supporto white-label per contenuti in inglese: ebook, workbook, Canva book e lead magnet per team editoriali, self-publishing, coach, agenzie e content business.\n\nPer comodità, qui trova anche il mio portfolio:\nlinktr.ee/aliraza.ebooks\n\nResto disponibile anche per una piccola prova gratuita, così potete valutare qualità, struttura e tempi di consegna.\n\nCordiali saluti,\nAli Raza",
+    body: "Buongiorno [Nome],\n\ngrazie mille per la risposta.\n\nLe invio il mio CV e i dettagli della mia attivitÃ .\n\nLavoro come supporto white-label per contenuti in inglese: ebook, workbook, Canva book e lead magnet per team editoriali, self-publishing, coach, agenzie e content business.\n\nPer comoditÃ , qui trova anche il mio portfolio:\nlinktr.ee/aliraza.ebooks\n\nResto disponibile anche per una piccola prova gratuita, cosÃ¬ potete valutare qualitÃ , struttura e tempi di consegna.\n\nCordiali saluti,\nAli Raza",
     isDefault: true
   },
   {
@@ -228,7 +228,7 @@ const DEFAULT_SCRIPTS = [
     title: "Not Now Reply",
     channel: "General",
     type: "Not Now Reply",
-    body: "No problem at all, thank you for letting me know.\n\nI’ll stay available if you ever need extra white-label support for ebook, workbook, Canva book, or lead magnet projects in the future.\n\nBest regards,\nAli Raza",
+    body: "No problem at all, thank you for letting me know.\n\nIâ€™ll stay available if you ever need extra white-label support for ebook, workbook, Canva book, or lead magnet projects in the future.\n\nBest regards,\nAli Raza",
     isDefault: true
   }
 ];
@@ -297,12 +297,12 @@ const DEFAULT_LEADS = [
     nextAction: "Send follow-up",
     nextActionDate: getOffsetDateString(-1), // Overdue (Yesterday)
     replyStatus: "No reply",
-    notes: "Strong fit. Sells €2k mindset courses. No active lead magnet on website. Sent first pitch on LinkedIn about workbook companion design.",
+    notes: "Strong fit. Sells â‚¬2k mindset courses. No active lead magnet on website. Sent first pitch on LinkedIn about workbook companion design.",
     contactPerson: "Andrea Gruber",
     email: "",
     whatsappNumber: "",
     extraLink: "https://mindset-academy.at",
-    messageSent: "Hi Andrea, loved your post on cognitive reframing. Sells €2k mindset courses...",
+    messageSent: "Hi Andrea, loved your post on cognitive reframing. Sells â‚¬2k mindset courses...",
     followUpCount: 0
   },
   {
@@ -379,59 +379,34 @@ let activeTab = "All"; // All, Instagram, LinkedIn, Email, WhatsApp
 let activeQuickFilter = "All"; // All, Today, FollowUp, A, Warm, Archived
 let activeTodayFilter = "All"; // All, Email, WhatsApp, Instagram, LinkedIn, A, Warm, Overdue
 
+
 // ============================================================
-// SUPABASE CLOUD SYNC ENGINE
+// NEON DATABASE SYNC ENGINE
+// All DB calls go through /api/ serverless routes â€” no CORS,
+// no CDN dependency, works in all browsers.
 // ============================================================
-let supaClient = null;
-let supabaseReady = false;
+let cloudReady = false;
 
-/** Initialize the Supabase JS client from config.js constants */
-function initSupabase() {
-  try {
-    // Startup debug: confirm config vars loaded
-    console.log("[Supabase] URL loaded:", typeof SUPABASE_URL !== "undefined" ? SUPABASE_URL : "MISSING");
-    console.log("[Supabase] Key exists:", typeof SUPABASE_ANON_KEY !== "undefined" && Boolean(SUPABASE_ANON_KEY));
-    console.log("[Supabase] window.supabase exists:", typeof window.supabase !== "undefined");
-
-    if (typeof window.supabase === "undefined") {
-      console.error("[Supabase] CDN not loaded — window.supabase is undefined");
-      supabaseReady = false;
-      return;
-    }
-    if (typeof SUPABASE_URL === "undefined" || typeof SUPABASE_ANON_KEY === "undefined") {
-      console.error("[Supabase] config.js not loaded — SUPABASE_URL or SUPABASE_ANON_KEY is undefined");
-      supabaseReady = false;
-      return;
-    }
-    supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log("[Supabase] Client created:", Boolean(supaClient));
-    supabaseReady = true;
-  } catch (e) {
-    console.error("[Supabase] init failed:", e);
-    supabaseReady = false;
-  }
-}
-
-/** Update the header sync status badge */
+// â”€â”€ Sync status badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function setSyncStatus(status) {
   const badge = document.getElementById("syncStatusBadge");
   if (!badge) return;
   if (status === "connected") {
     badge.className = "sync-badge sync-connected";
-    badge.textContent = "☁ Cloud Sync: Connected";
+    badge.textContent = "â˜ Cloud Sync: Connected";
   } else if (status === "syncing") {
     badge.className = "sync-badge sync-syncing";
-    badge.textContent = "↻ Cloud Sync: Syncing…";
+    badge.textContent = "â†» Cloud Sync: Syncingâ€¦";
   } else if (status === "offline") {
     badge.className = "sync-badge sync-offline";
-    badge.textContent = "⚠ Cloud Sync: Offline";
+    badge.textContent = "âš  Cloud Sync: Offline";
   } else {
     badge.className = "sync-badge sync-checking";
-    badge.textContent = "⬡ Cloud Sync: Checking…";
+    badge.textContent = "â¬¡ Cloud Sync: Checkingâ€¦";
   }
 }
 
-/** Generate a v4-style UUID for lead/script IDs */
+// â”€â”€ UUID generator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function generateId() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -439,179 +414,88 @@ function generateId() {
   });
 }
 
-/** Ensure a lead object has a unique id (mutates in place, returns lead) */
 function ensureLeadId(lead) {
   if (!lead.id) lead.id = generateId();
   return lead;
 }
 
-// ─────────────────────────────────────────────────────────────
-// Field Mapping: JS camelCase  ↔  Supabase snake_case
-// Supabase column names confirmed: id, lead_name, contact_person,
-// market, channel, main_link, niche, source, priority, stage,
-// last_action_date, next_action, next_action_date, reply_status,
-// notes, email, whatsapp_number, extra_link, followup_count,
-// message_sent, date_added, created_at, updated_at
-// ─────────────────────────────────────────────────────────────
-
-function mapLeadToSupabase(lead) {
-  ensureLeadId(lead);
-  return {
-    id:               lead.id,
-    lead_name:        lead.name            || "",
-    contact_person:   lead.contactPerson   || "",
-    date_added:       lead.dateAdded       || "",
-    market:           lead.market          || "",
-    channel:          lead.channel         || "",
-    main_link:        lead.mainLink        || "",
-    niche:            lead.niche           || "",
-    source:           lead.source          || "",
-    priority:         lead.priority        || "",
-    stage:            lead.stage           || "",
-    last_action_date: lead.lastActionDate  || "",
-    next_action:      lead.nextAction      || "",
-    next_action_date: lead.nextActionDate  || "",
-    reply_status:     lead.replyStatus     || "",
-    notes:            lead.notes           || "",
-    email:            lead.email           || "",
-    whatsapp_number:  lead.whatsappNumber  || "",
-    extra_link:       lead.extraLink       || "",
-    followup_count:   lead.followUpCount   || 0,
-    message_sent:     lead.messageSent     || ""
-  };
+// â”€â”€ Helpers: show/hide upload banner + error panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function showUploadBanner(count) {
+  const banner = document.getElementById("uploadLocalBanner");
+  const btn    = document.getElementById("uploadLocalToCloudBtn");
+  if (banner) banner.style.display = "flex";
+  if (btn)    btn.textContent = `â˜ Upload ${count} Local Leads to Cloud`;
+}
+function hideUploadBanner() {
+  const banner = document.getElementById("uploadLocalBanner");
+  if (banner) banner.style.display = "none";
+}
+function showCloudError(msg) {
+  const errDiv = document.getElementById("supaErrorDisplay");
+  if (errDiv) { errDiv.style.display = "block"; errDiv.innerHTML = msg; }
+}
+function hideCloudError() {
+  const errDiv = document.getElementById("supaErrorDisplay");
+  if (errDiv) { errDiv.style.display = "none"; errDiv.innerHTML = ""; }
 }
 
-// Keep old name as alias so existing calls don't break
-const leadToRow = mapLeadToSupabase;
-
-function mapLeadFromSupabase(row) {
-  return {
-    id:             row.id,
-    name:           row.lead_name         || "",
-    contactPerson:  row.contact_person    || "",
-    dateAdded:      row.date_added        || "",
-    market:         row.market            || "",
-    channel:        row.channel           || "",
-    mainLink:       row.main_link         || "",
-    niche:          row.niche             || "",
-    source:         row.source            || "Other",
-    priority:       row.priority          || "",
-    stage:          row.stage             || "",
-    lastActionDate: row.last_action_date  || "",
-    nextAction:     row.next_action       || "",
-    nextActionDate: row.next_action_date  || "",
-    replyStatus:    row.reply_status      || "",
-    notes:          row.notes             || "",
-    email:          row.email             || "",
-    whatsappNumber: row.whatsapp_number   || "",
-    extraLink:      row.extra_link        || "",
-    followUpCount:  row.followup_count    || 0,
-    messageSent:    row.message_sent      || ""
+// â”€â”€ Core API fetch helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function apiFetch(path, options = {}) {
+  const defaults = {
+    headers: { "Content-Type": "application/json" },
   };
+  const merged = {
+    ...defaults,
+    ...options,
+    headers: { ...defaults.headers, ...(options.headers || {}) }
+  };
+  if (merged.body && typeof merged.body !== "string") {
+    merged.body = JSON.stringify(merged.body);
+  }
+  const res = await fetch(path, merged);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+  return json;
 }
 
-// Keep old name as alias
-const rowToLead = mapLeadFromSupabase;
-
-function scriptToRow(s) {
-  if (!s.id) s.id = generateId();
-  return {
-    id:         s.id,
-    title:      s.title      || "",
-    channel:    s.channel    || "",
-    type:       s.type       || "",
-    body:       s.body       || "",
-    is_default: s.isDefault  || false
-  };
-}
-
-function rowToScript(row) {
-  return {
-    id:        row.id,
-    title:     row.title      || "",
-    channel:   row.channel    || "",
-    type:      row.type       || "",
-    body:      row.body       || "",
-    isDefault: row.is_default || false
-  };
-}
-
-// --- Supabase Sync: Full Replace Strategy ---
-// Every saveData() call syncs ALL current leads to cloud (upsert + delete orphans).
-// This is reliable and requires no per-field change tracking.
-
-async function syncAllLeadsToSupabase() {
-  if (!supabaseReady || !supaClient) return;
+// â”€â”€ Sync all current leads to cloud â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Called by saveData() after every mutation.
+async function syncLeadsToCloud() {
+  if (!cloudReady) return;
   try {
     setSyncStatus("syncing");
-
-    // Ensure every lead has an id before syncing
     leads.forEach(ensureLeadId);
-
-    // Fetch existing IDs from Supabase
-    const { data: existing, error: fetchErr } = await supaClient
-      .from("leads")
-      .select("id");
-    if (fetchErr) throw fetchErr;
-
-    const existingIds = new Set((existing || []).map((r) => r.id));
-    const currentIds  = new Set(leads.map((l) => l.id));
-
-    // Delete leads no longer in local state (handles real deletes)
-    const toDelete = [...existingIds].filter((id) => !currentIds.has(id));
-    if (toDelete.length > 0) {
-      const { error: delErr } = await supaClient.from("leads").delete().in("id", toDelete);
-      if (delErr) console.warn("Supabase delete error:", delErr);
-    }
-
-    // Upsert all current leads (insert new + update changed)
-    if (leads.length > 0) {
-      const rows = leads.map(leadToRow);
-      // Batch in groups of 100 to stay within request limits
-      const batchSize = 100;
-      for (let i = 0; i < rows.length; i += batchSize) {
-        const { error: upsertErr } = await supaClient
-          .from("leads")
-          .upsert(rows.slice(i, i + batchSize));
-        if (upsertErr) throw upsertErr;
-      }
-    }
-
+    await apiFetch("/api/leads", {
+      method: "POST",
+      body: { leads }
+    });
     setSyncStatus("connected");
   } catch (err) {
-    console.error("Supabase leads sync error:", err);
+    console.error("[Cloud] syncLeadsToCloud error:", err.message);
     setSyncStatus("offline");
   }
 }
 
-async function syncAllScriptsToSupabase() {
-  if (!supabaseReady || !supaClient) return;
+// â”€â”€ Sync all current scripts to cloud â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function syncScriptsToCloud() {
+  if (!cloudReady) return;
   try {
-    const { data: existing } = await supaClient.from("scripts").select("id");
-    const existingIds = new Set((existing || []).map((r) => r.id));
-    const currentIds  = new Set(scripts.map((s) => s.id));
-
-    const toDelete = [...existingIds].filter((id) => !currentIds.has(id));
-    if (toDelete.length > 0) {
-      await supaClient.from("scripts").delete().in("id", toDelete);
-    }
-
-    if (scripts.length > 0) {
-      const rows = scripts.map(scriptToRow);
-      await supaClient.from("scripts").upsert(rows);
-    }
+    await apiFetch("/api/scripts", {
+      method: "POST",
+      body: { scripts }
+    });
   } catch (err) {
-    console.error("Supabase scripts sync error:", err);
+    console.error("[Cloud] syncScriptsToCloud error:", err.message);
   }
 }
 
-// --- Upload local localStorage data to Supabase (one-time migration) ---
+// â”€â”€ Upload local localStorage data to cloud (one-time migration) â”€
 async function uploadLocalDataToCloud() {
   const banner = document.getElementById("uploadLocalBanner");
   const btn    = document.getElementById("uploadLocalToCloudBtn");
-
-  if (btn) { btn.disabled = true; btn.textContent = "↻ Uploading…"; }
+  if (btn) { btn.disabled = true; btn.textContent = "â†» Uploadingâ€¦"; }
   setSyncStatus("syncing");
+  hideCloudError();
 
   try {
     const localLeads   = JSON.parse(localStorage.getItem("ali_raza_leads")   || "[]");
@@ -619,243 +503,136 @@ async function uploadLocalDataToCloud() {
 
     // Ensure all have IDs
     localLeads.forEach(ensureLeadId);
-    localScripts.forEach((s) => { if (!s.id) s.id = generateId(); });
-
-    // Persist IDs back to localStorage
+    localScripts.forEach(s => { if (!s.id) s.id = generateId(); });
     localStorage.setItem("ali_raza_leads",   JSON.stringify(localLeads));
     localStorage.setItem("ali_raza_scripts", JSON.stringify(localScripts));
 
-    // Upload leads in batches of 50
-    const batchSize = 50;
-    for (let i = 0; i < localLeads.length; i += batchSize) {
-      const batch = localLeads.slice(i, i + batchSize).map(leadToRow);
-      const { error } = await supaClient.from("leads").upsert(batch);
-      if (error) throw error;
-    }
+    // Upload leads
+    await apiFetch("/api/leads", { method: "POST", body: { leads: localLeads } });
 
     // Upload scripts
     if (localScripts.length > 0) {
-      const { error } = await supaClient.from("scripts").upsert(localScripts.map(scriptToRow));
-      if (error) console.warn("Scripts upload error:", error);
+      await apiFetch("/api/scripts", { method: "POST", body: { scripts: localScripts } }).catch(e =>
+        console.warn("[Cloud] scripts upload warning:", e.message)
+      );
     }
 
     // Reload from cloud to confirm
-    const { data: cloudLeads, error: fetchErr } = await supaClient
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: true });
-    if (fetchErr) throw fetchErr;
-
-    if (cloudLeads && cloudLeads.length > 0) {
-      leads = cloudLeads.map(rowToLead);
+    const data = await apiFetch("/api/leads");
+    if (data.leads && data.leads.length > 0) {
+      leads = data.leads;
       localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
     }
 
-    if (banner) banner.style.display = "none";
+    hideUploadBanner();
+    cloudReady = true;
     setSyncStatus("connected");
     updateDashboard();
     renderLeads();
     renderTodayActions();
-    showToast(`✅ Uploaded ${localLeads.length} leads to Supabase cloud!`, "success");
+    showToast(`âœ… Uploaded ${localLeads.length} leads to cloud!`, "success");
 
   } catch (err) {
-    console.error("Upload to cloud failed:", err);
-    showToast("Upload failed: " + (err.message || err), "error");
+    console.error("[Cloud] uploadLocalDataToCloud failed:", err);
+    showToast("Upload failed: " + err.message, "error");
     setSyncStatus("offline");
-    if (btn) { btn.disabled = false; btn.textContent = "☁ Retry Upload"; }
+    showCloudError("Upload error: " + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = "â˜ Retry Upload"; }
   }
 }
+window.uploadLocalDataToCloud = uploadLocalDataToCloud;
 
-// --- Show / hide the upload banner ---
-function showUploadBanner(count) {
-  const banner = document.getElementById("uploadLocalBanner");
-  const btn    = document.getElementById("uploadLocalToCloudBtn");
-  if (banner) banner.style.display = "flex";
-  if (btn)    btn.textContent = `☁ Upload ${count} Local Leads to Cloud`;
-}
-function hideUploadBanner() {
-  const banner = document.getElementById("uploadLocalBanner");
-  if (banner) banner.style.display = "none";
-}
-
-// --- Test Cloud Connection (called by Test button in header) ---
+// â”€â”€ Test Cloud Connection button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function testCloudConnection() {
   setSyncStatus("syncing");
-  const errDiv = document.getElementById("supaErrorDisplay");
-  if (errDiv) { errDiv.style.display = "none"; errDiv.textContent = ""; }
+  hideCloudError();
+  showToast("Testing cloud connectionâ€¦", "info");
 
-  function showError(msg) {
-    console.error("[Supabase Test]", msg);
-    setSyncStatus("offline");
-    showToast("❌ " + msg, "error");
-    if (errDiv) { errDiv.style.display = "block"; errDiv.innerHTML = msg; }
-  }
-  function showSuccess(msg) {
-    console.log("[Supabase Test] SUCCESS:", msg);
+  try {
+    const data = await apiFetch("/api/test");
+    console.log("[Cloud Test] SUCCESS:", data);
+    cloudReady = true;
     setSyncStatus("connected");
-    showToast("✅ " + msg, "success");
-    if (errDiv) { errDiv.style.display = "none"; }
-  }
+    showToast("âœ… " + (data.message || "Cloud connected!"), "success");
+    hideCloudError();
+  } catch (err) {
+    console.error("[Cloud Test] FAILED:", err);
+    setSyncStatus("offline");
+    cloudReady = false;
 
-  // ── Stage 1: Re-init the client ──────────────────────────────
-  if (!supabaseReady || !supaClient) initSupabase();
+    let msg = err.message || String(err);
 
-  if (!supabaseReady || !supaClient) {
-    showError(
-      "Supabase client failed to initialize.<br>" +
-      "Check browser console for: <b>window.supabase exists</b> and <b>Key exists</b>.<br>" +
-      "Likely cause: CDN blocked or config.js not loaded."
-    );
-    return;
-  }
-
-  // ── Stage 2: Raw fetch — bypasses supabase-js to isolate network ─
-  console.log("[Supabase Test] Stage 2: raw fetch to Supabase REST endpoint…");
-  const testUrl = SUPABASE_URL + "/rest/v1/leads?limit=1";
-  try {
-    const rawRes = await fetch(testUrl, {
-      method: "GET",
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json"
-      }
-    });
-    console.log("[Supabase Test] Raw fetch HTTP status:", rawRes.status);
-
-    if (!rawRes.ok) {
-      const body = await rawRes.text();
-      console.error("[Supabase Test] Raw fetch failed body:", body);
-
-      if (rawRes.status === 401) {
-        showError(
-          "HTTP 401 Unauthorized.<br>" +
-          "<b>Fix:</b> Your anon key is wrong or expired.<br>" +
-          "Go to Supabase → Project Settings → API and copy the <b>anon / public</b> key (starts with <code>eyJ...</code> — NOT a publishable key)."
-        );
-      } else if (rawRes.status === 404) {
-        showError(
-          "HTTP 404 — table <b>leads</b> not found.<br>" +
-          "Check your Supabase table is named exactly <code>leads</code> (lowercase)."
-        );
-      } else if (rawRes.status === 0 || rawRes.status === 403) {
-        showError(
-          "HTTP " + rawRes.status + " — possible CORS block.<br>" +
-          "<b>Fix:</b> Go to Supabase → Project Settings → API → <b>CORS Allowed Origins</b> and add your Vercel domain, e.g. <code>https://ali-raza-outreach-tracker.vercel.app</code>"
-        );
-      } else {
-        showError("HTTP " + rawRes.status + ": " + body.slice(0, 300));
-      }
-      return;
+    // Distinguish network errors vs server errors
+    if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("networkerror")) {
+      msg =
+        "<b>Network error: app cannot reach /api/test</b><br><br>" +
+        "1ï¸âƒ£ Is this deployed on Vercel? API routes only work after deployment.<br>" +
+        "2ï¸âƒ£ Check Vercel dashboard â†’ your project â†’ <b>Environment Variables</b><br>" +
+        "&nbsp;&nbsp;â†’ Add: <code>DATABASE_URL</code> = your Neon connection string<br>" +
+        "3ï¸âƒ£ Redeploy after adding the env var.";
+    } else if (msg.includes("DATABASE_URL")) {
+      msg =
+        "<b>DATABASE_URL not set</b><br>" +
+        "Go to Vercel â†’ Project Settings â†’ Environment Variables<br>" +
+        "Add <code>DATABASE_URL</code> with your Neon connection string.";
     }
 
-    // Raw fetch succeeded — now test via supabase-js client
-    console.log("[Supabase Test] Raw fetch OK. Now testing supabase-js client…");
-
-  } catch (netErr) {
-    // Failed to fetch = network error or CORS preflight blocked
-    console.error("[Supabase Test] Raw fetch exception:", netErr);
-    showError(
-      "<b>TypeError: Failed to fetch</b><br><br>" +
-      "The browser cannot reach Supabase. Check these in order:<br><br>" +
-      "1️⃣ <b>Is your Supabase project paused?</b><br>" +
-      "&nbsp;&nbsp;→ Go to <a href='https://supabase.com/dashboard' target='_blank'>supabase.com/dashboard</a>, open your project. If it says <b>Paused</b>, click <b>Restore project</b>.<br><br>" +
-      "2️⃣ <b>CORS not configured?</b><br>" +
-      "&nbsp;&nbsp;→ Supabase Dashboard → Project Settings → API → CORS Allowed Origins<br>" +
-      "&nbsp;&nbsp;→ Add: <code>https://ali-raza-outreach-tracker.vercel.app</code><br><br>" +
-      "3️⃣ <b>Wrong anon key format?</b><br>" +
-      "&nbsp;&nbsp;→ The key should start with <code>eyJ</code> (JWT format), NOT <code>sb_publishable_</code><br>" +
-      "&nbsp;&nbsp;→ Get it from: Supabase → Project Settings → API → <b>Project API Keys → anon public</b>"
-    );
-    return;
-  }
-
-  // ── Stage 3: supabase-js client test ───────────────────────────
-  try {
-    const { data, error } = await supaClient.from("leads").select("*").limit(1);
-    if (error) {
-      showError(
-        "supabase-js error: <b>" + (error.message || JSON.stringify(error)) + "</b><br>" +
-        "Code: " + (error.code || "none") + "<br>" +
-        "Details: " + (error.details || "none")
-      );
-    } else {
-      const count = data ? data.length : 0;
-      showSuccess("Cloud connected! " + count + " row(s) returned from leads table.");
-    }
-  } catch (e) {
-    showError("supabase-js client exception: " + (e.message || e));
+    showToast("âŒ Cloud test failed: " + err.message, "error");
+    showCloudError(msg);
   }
 }
 window.testCloudConnection = testCloudConnection;
 
-
-// --- On-login async init: fetch from Supabase, fall back to localStorage ---
+// â”€â”€ On-login async init: fetch from cloud, fall back to localStorage â”€
 async function initAppData() {
-  initSupabase();
-
-  if (!supabaseReady) {
-    setSyncStatus("offline");
-    console.warn("[Supabase] initAppData: client not ready — staying offline");
-    return;
-  }
-
   setSyncStatus("syncing");
+  hideCloudError();
 
   try {
-    console.log("[Supabase] Fetching leads from cloud…");
+    // Test connection first
+    await apiFetch("/api/test");
+    cloudReady = true;
 
-    // --- Leads ---
-    const { data: cloudLeads, error: leadsErr } = await supaClient
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: true });
-
-    if (leadsErr) {
-      console.error("[Supabase] leads fetch error:", leadsErr);
-      throw leadsErr;
-    }
-
-    console.log("[Supabase] Cloud leads count:", cloudLeads ? cloudLeads.length : 0);
-
+    // Fetch leads
+    const leadsData = await apiFetch("/api/leads");
     const localLeads = JSON.parse(localStorage.getItem("ali_raza_leads") || "[]");
 
-    if (cloudLeads && cloudLeads.length > 0) {
-      // Cloud has data — use it as source of truth
-      leads = cloudLeads.map(mapLeadFromSupabase);
+    if (leadsData.leads && leadsData.leads.length > 0) {
+      leads = leadsData.leads;
       localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
       hideUploadBanner();
     } else if (localLeads.length > 0) {
-      // Cloud is empty but localStorage has leads — offer migration
       showUploadBanner(localLeads.length);
     }
 
-    // --- Scripts ---
-    const { data: cloudScripts, error: scriptsErr } = await supaClient
-      .from("scripts")
-      .select("*");
-
-    if (scriptsErr) {
-      console.warn("[Supabase] scripts fetch error:", scriptsErr);
-    } else if (cloudScripts && cloudScripts.length > 0) {
-      scripts = cloudScripts.map(rowToScript);
+    // Fetch scripts
+    const scriptsData = await apiFetch("/api/scripts");
+    if (scriptsData.scripts && scriptsData.scripts.length > 0) {
+      scripts = scriptsData.scripts;
       localStorage.setItem("ali_raza_scripts", JSON.stringify(scripts));
     }
 
     setSyncStatus("connected");
 
   } catch (err) {
-    const msg = err.message || JSON.stringify(err);
-    console.error("[Supabase] initAppData failed:", err);
+    console.warn("[Cloud] initAppData failed, using local backup:", err.message);
+    cloudReady = false;
     setSyncStatus("offline");
-    // Show real error — not just generic message
-    showToast("⚠ Cloud error: " + msg, "error");
-    const errDiv = document.getElementById("supaErrorDisplay");
-    if (errDiv) {
-      errDiv.style.display = "block";
-      errDiv.textContent = "Supabase error: " + msg;
+
+    let errMsg = err.message || String(err);
+    if (errMsg.includes("DATABASE_URL")) {
+      errMsg =
+        "<b>DATABASE_URL not configured.</b><br>" +
+        "Go to Vercel â†’ Project Settings â†’ Environment Variables â†’ Add DATABASE_URL.";
+    } else if (errMsg.toLowerCase().includes("failed to fetch")) {
+      errMsg =
+        "<b>API not reachable.</b> Are you running this locally or is Vercel deployed?<br>" +
+        "API routes (/api/*) only work on Vercel or with <code>vercel dev</code> locally.";
+    } else {
+      errMsg = "Cloud error: " + errMsg;
     }
-    return;
+    showCloudError(errMsg);
+    return; // use localStorage data already loaded by loadData()
   }
 
   // Re-render with cloud data
@@ -865,10 +642,8 @@ async function initAppData() {
   renderScripts();
 }
 
-window.uploadLocalDataToCloud = uploadLocalDataToCloud;
-
 // ============================================================
-// END SUPABASE CLOUD SYNC ENGINE
+// END NEON DATABASE SYNC ENGINE
 // ============================================================
 
 // On Page Load
@@ -880,9 +655,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderTodayActions();
   renderScripts();
   checkAuth();
-  initAppData();         // Async: sync with Supabase cloud in background
+  initAppData();         // Async: sync with Neon cloud in background
 });
-
 
 // Authentication Status Toggle
 function checkAuth() {
@@ -939,7 +713,7 @@ function loadData() {
 // Save Leads to LocalStorage + fire-and-forget cloud sync
 function saveData() {
   localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
-  syncAllLeadsToSupabase(); // async, fire-and-forget
+  syncLeadsToCloud(); // async, fire-and-forget
 }
 
 // Calculate and Render Dashboard Metrics
@@ -1172,7 +946,7 @@ function renderLeads() {
       <tr>
         <td colspan="9" style="text-align: center;">
           <div class="empty-state">
-            <span class="empty-state-icon">🔍</span>
+            <span class="empty-state-icon">ðŸ”</span>
             <h3>No leads found</h3>
             <p>Try clearing your search query, adjusting your active filters, or adding a new lead.</p>
           </div>
@@ -1183,7 +957,7 @@ function renderLeads() {
 
     cardsContainer.innerHTML = `
       <div class="empty-state">
-        <span class="empty-state-icon">🔍</span>
+        <span class="empty-state-icon">ðŸ”</span>
         <h3>No leads found</h3>
         <p>Try clearing filters or adding a new lead.</p>
       </div>
@@ -1204,14 +978,14 @@ function renderLeads() {
       contactCellHtml = `<td>
         <div style="font-weight: 600;">${phone || "-"}</div>
         ${phone ? `<a href="${waLink}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: var(--color-teal-green); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
-          Open WhatsApp ↗
+          Open WhatsApp â†—
         </a>` : ''}
       </td>`;
     } else if (activeTab === "Instagram" || activeTab === "LinkedIn") {
       const link = lead.mainLink ? String(lead.mainLink).trim() : "";
       const normalized = normalizeUrl(link);
       const displayText = link ? (link.length > 30 ? link.substring(0, 30) + "..." : link) : "";
-      contactCellHtml = `<td>${link ? `<a href="${normalized}" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: var(--color-royal-blue);">${displayText} ↗</a>` : '-'}</td>`;
+      contactCellHtml = `<td>${link ? `<a href="${normalized}" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: var(--color-royal-blue);">${displayText} â†—</a>` : '-'}</td>`;
     } else {
       contactCellHtml = `<td>${getChannelBadge(lead.channel)}</td>`;
     }
@@ -1223,7 +997,7 @@ function renderLeads() {
       <td>
         <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name || "Unnamed Lead / Company"}</div>
         ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
-          Open Link ↗
+          Open Link â†—
         </a>` : ''}
       </td>
       ${contactCellHtml}
@@ -1261,7 +1035,7 @@ function renderLeads() {
         <input type="checkbox" class="lead-checkbox" data-index="${lead.originalIndex}" onchange="updateSelectedLeadsCount()" style="width: 16px; height: 16px; cursor: pointer; margin-right: 4px;">
         <div class="lead-card-title" style="flex: 1;">
           <h3>${lead.name || "Unnamed Lead / Company"}</h3>
-          <span class="market-lbl">${lead.market || "-"} • ${lead.niche || "-"} • ${lead.source || "Other"}</span>
+          <span class="market-lbl">${lead.market || "-"} â€¢ ${lead.niche || "-"} â€¢ ${lead.source || "Other"}</span>
         </div>
         <div class="lead-card-badges">
           ${getPriorityBadge(lead.priority)}
@@ -1303,7 +1077,7 @@ function renderLeads() {
 
       <div class="lead-card-actions" style="display: flex; align-items: center; gap: 6px;">
         ${getQuickActionsDropdownHtml(lead)}
-        ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link ↗</a>` : ''}
+        ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link â†—</a>` : ''}
         <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
@@ -1390,36 +1164,36 @@ function renderTodayActions() {
       let buttonsHtml = "";
       if (lead.channel === "Email") {
         buttonsHtml = `
-          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized outreach email message">📝 Copy Script</button>
-          <button class="btn btn-primary" onclick="markSentEmail(${lead.originalIndex})" title="Mark email sent & reschedule follow-up">✉️ Mark Sent</button>
-          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open lead's website/link">🌐 Open Link</button>
-          <button class="btn btn-secondary" onclick="setFollowupCalendar(${lead.originalIndex})" title="Reschedule next action date">📅 Reschedule</button>
-          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">🗄️ Archive</button>
+          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized outreach email message">ðŸ“ Copy Script</button>
+          <button class="btn btn-primary" onclick="markSentEmail(${lead.originalIndex})" title="Mark email sent & reschedule follow-up">âœ‰ï¸ Mark Sent</button>
+          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open lead's website/link">ðŸŒ Open Link</button>
+          <button class="btn btn-secondary" onclick="setFollowupCalendar(${lead.originalIndex})" title="Reschedule next action date">ðŸ“… Reschedule</button>
+          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">ðŸ—„ï¸ Archive</button>
         `;
       } else if (lead.channel === "WhatsApp") {
         buttonsHtml = `
-          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized WhatsApp pitch message">📝 Copy Script</button>
-          <button class="btn btn-secondary" onclick="openWhatsAppChat(${lead.originalIndex})" title="Open click-to-chat WhatsApp link">💬 Open WA</button>
-          <button class="btn btn-primary" onclick="markSentWhatsApp(${lead.originalIndex})" title="Mark WhatsApp sent & reschedule follow-up">✔️ Mark Sent</button>
-          <button class="btn btn-secondary" onclick="setFollowupCalendar(${lead.originalIndex})" title="Reschedule next action date">📅 Reschedule</button>
-          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">🗄️ Archive</button>
+          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized WhatsApp pitch message">ðŸ“ Copy Script</button>
+          <button class="btn btn-secondary" onclick="openWhatsAppChat(${lead.originalIndex})" title="Open click-to-chat WhatsApp link">ðŸ’¬ Open WA</button>
+          <button class="btn btn-primary" onclick="markSentWhatsApp(${lead.originalIndex})" title="Mark WhatsApp sent & reschedule follow-up">âœ”ï¸ Mark Sent</button>
+          <button class="btn btn-secondary" onclick="setFollowupCalendar(${lead.originalIndex})" title="Reschedule next action date">ðŸ“… Reschedule</button>
+          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">ðŸ—„ï¸ Archive</button>
         `;
       } else if (lead.channel === "Instagram") {
         buttonsHtml = `
-          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open Instagram profile in new tab">📷 Open IG</button>
-          <button class="btn btn-secondary" onclick="markInstagramCommented(${lead.originalIndex})" title="Log a comment action on lead's post">💬 Commented</button>
-          <button class="btn btn-secondary" onclick="markInstagramFollowed(${lead.originalIndex})" title="Log a followed action on lead's profile">👤 Followed</button>
-          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized Instagram DM script">📝 Copy DM</button>
-          <button class="btn btn-primary" onclick="markSentDM(${lead.originalIndex})" title="Mark Instagram DM sent & reschedule follow-up">✔️ DM Sent</button>
-          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">🗄️ Archive</button>
+          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open Instagram profile in new tab">ðŸ“· Open IG</button>
+          <button class="btn btn-secondary" onclick="markInstagramCommented(${lead.originalIndex})" title="Log a comment action on lead's post">ðŸ’¬ Commented</button>
+          <button class="btn btn-secondary" onclick="markInstagramFollowed(${lead.originalIndex})" title="Log a followed action on lead's profile">ðŸ‘¤ Followed</button>
+          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized Instagram DM script">ðŸ“ Copy DM</button>
+          <button class="btn btn-primary" onclick="markSentDM(${lead.originalIndex})" title="Mark Instagram DM sent & reschedule follow-up">âœ”ï¸ DM Sent</button>
+          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">ðŸ—„ï¸ Archive</button>
         `;
       } else if (lead.channel === "LinkedIn") {
         buttonsHtml = `
-          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open LinkedIn profile in new tab">💼 Open LI</button>
-          <button class="btn btn-secondary" onclick="markLinkedInConnectionSent(${lead.originalIndex})" title="Mark connection request sent & wait 3 days">➕ Conn Sent</button>
-          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized LinkedIn script">📝 Copy Script</button>
-          <button class="btn btn-primary" onclick="markSentLinkedInMessage(${lead.originalIndex})" title="Mark message sent & reschedule follow-up">✔️ Msg Sent</button>
-          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">🗄️ Archive</button>
+          <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open LinkedIn profile in new tab">ðŸ’¼ Open LI</button>
+          <button class="btn btn-secondary" onclick="markLinkedInConnectionSent(${lead.originalIndex})" title="Mark connection request sent & wait 3 days">âž• Conn Sent</button>
+          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized LinkedIn script">ðŸ“ Copy Script</button>
+          <button class="btn btn-primary" onclick="markSentLinkedInMessage(${lead.originalIndex})" title="Mark message sent & reschedule follow-up">âœ”ï¸ Msg Sent</button>
+          <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead">ðŸ—„ï¸ Archive</button>
         `;
       }
 
@@ -1540,7 +1314,7 @@ function showToast(message, type = "success") {
   const toast = document.createElement("div");
   toast.className = `toast ${type}`;
   toast.innerHTML = `
-    <span>${type === 'success' ? '✓' : 'ℹ'}</span>
+    <span>${type === 'success' ? 'âœ“' : 'â„¹'}</span>
     <span>${message}</span>
   `;
   container.appendChild(toast);
@@ -3020,7 +2794,7 @@ window.deleteLead = deleteLead;
 // Save Scripts to LocalStorage + fire-and-forget cloud sync
 function saveScripts() {
   localStorage.setItem("ali_raza_scripts", JSON.stringify(scripts));
-  syncAllScriptsToSupabase(); // async, fire-and-forget
+  syncScriptsToCloud(); // async, fire-and-forget
 }
 
 // Render outreach message scripts dynamically
@@ -3252,15 +3026,15 @@ function generateSearchLinks() {
   container.innerHTML = `
     <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
       <a href="${igUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; text-decoration: none;">
-        <span>📸 Google Instagram Search</span>
+        <span>ðŸ“¸ Google Instagram Search</span>
         <span style="font-size: 11px; color: var(--color-priority-c); font-weight: normal; margin-left: 8px;">site:instagram.com ...</span>
       </a>
       <a href="${liUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; text-decoration: none;">
-        <span>💼 Google LinkedIn Search</span>
+        <span>ðŸ’¼ Google LinkedIn Search</span>
         <span style="font-size: 11px; color: var(--color-priority-c); font-weight: normal; margin-left: 8px;">site:linkedin.com/in/ ...</span>
       </a>
       <a href="${webUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; text-decoration: none;">
-        <span>🌐 Google Web Search</span>
+        <span>ðŸŒ Google Web Search</span>
         <span style="font-size: 11px; color: var(--color-priority-c); font-weight: normal; margin-left: 8px;">"${keyword}" ...</span>
       </a>
     </div>
@@ -3412,65 +3186,65 @@ function getQuickActionsDropdownHtml(lead) {
 
   if (lead.channel === "Email") {
     itemsHtml = `
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Email')">📝 Copy Email Script</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">📝 Copy Follow-up</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Sample Reply')">📝 Copy Sample Reply</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'CV Reply')">📝 Copy CV Reply</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">📝 Copy Price Reply</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Email')">ðŸ“ Copy Email Script</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">ðŸ“ Copy Follow-up</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Sample Reply')">ðŸ“ Copy Sample Reply</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'CV Reply')">ðŸ“ Copy CV Reply</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">ðŸ“ Copy Price Reply</button>
       <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="markSentEmail(${index})">✉️ Mark Email Sent</button>
-      <button class="dropdown-item" onclick="markFollowupSent(${index})">🔄 Mark Follow-up Sent</button>
-      <button class="dropdown-item" onclick="sendSamples(${index})">📦 Send Samples</button>
-      <button class="dropdown-item" onclick="sendCV(${index})">📄 Send CV</button>
+      <button class="dropdown-item" onclick="markSentEmail(${index})">âœ‰ï¸ Mark Email Sent</button>
+      <button class="dropdown-item" onclick="markFollowupSent(${index})">ðŸ”„ Mark Follow-up Sent</button>
+      <button class="dropdown-item" onclick="sendSamples(${index})">ðŸ“¦ Send Samples</button>
+      <button class="dropdown-item" onclick="sendCV(${index})">ðŸ“„ Send CV</button>
       <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="openLeadLink(${index})">🌐 Open Website</button>
-      <button class="dropdown-item" onclick="archiveLead(${index})">🗄️ Archive</button>
+      <button class="dropdown-item" onclick="openLeadLink(${index})">ðŸŒ Open Website</button>
+      <button class="dropdown-item" onclick="archiveLead(${index})">ðŸ—„ï¸ Archive</button>
     `;
   } else if (lead.channel === "WhatsApp") {
     itemsHtml = `
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'WhatsApp')">📝 Copy WhatsApp Script</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">📝 Copy Follow-up</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">📝 Copy Price Reply</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'WhatsApp')">ðŸ“ Copy WhatsApp Script</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">ðŸ“ Copy Follow-up</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">ðŸ“ Copy Price Reply</button>
       <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="openWhatsAppChat(${index})">💬 Open WhatsApp</button>
-      <button class="dropdown-item" onclick="markSentWhatsApp(${index})">✔️ Mark WhatsApp Sent</button>
-      <button class="dropdown-item" onclick="markFollowupSent(${index})">🔄 Mark Follow-up Sent</button>
-      <button class="dropdown-item" onclick="sendSamples(${index})">📦 Send Samples</button>
+      <button class="dropdown-item" onclick="openWhatsAppChat(${index})">ðŸ’¬ Open WhatsApp</button>
+      <button class="dropdown-item" onclick="markSentWhatsApp(${index})">âœ”ï¸ Mark WhatsApp Sent</button>
+      <button class="dropdown-item" onclick="markFollowupSent(${index})">ðŸ”„ Mark Follow-up Sent</button>
+      <button class="dropdown-item" onclick="sendSamples(${index})">ðŸ“¦ Send Samples</button>
       <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="archiveLead(${index})">🗄️ Archive</button>
+      <button class="dropdown-item" onclick="archiveLead(${index})">ðŸ—„ï¸ Archive</button>
     `;
   } else if (lead.channel === "Instagram") {
     itemsHtml = `
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Instagram')">📝 Copy DM Script</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">📝 Copy Follow-up</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Instagram')">ðŸ“ Copy DM Script</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">ðŸ“ Copy Follow-up</button>
       <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="openLeadLink(${index})">📷 Open Profile</button>
-      <button class="dropdown-item" onclick="markInstagramCommented(${index})">💬 Mark Commented</button>
-      <button class="dropdown-item" onclick="markInstagramFollowed(${index})">👤 Mark Followed</button>
-      <button class="dropdown-item" onclick="markSentDM(${index})">✔️ Mark DM Sent</button>
-      <button class="dropdown-item" onclick="markFollowupSent(${index})">🔄 Mark Follow-up Sent</button>
+      <button class="dropdown-item" onclick="openLeadLink(${index})">ðŸ“· Open Profile</button>
+      <button class="dropdown-item" onclick="markInstagramCommented(${index})">ðŸ’¬ Mark Commented</button>
+      <button class="dropdown-item" onclick="markInstagramFollowed(${index})">ðŸ‘¤ Mark Followed</button>
+      <button class="dropdown-item" onclick="markSentDM(${index})">âœ”ï¸ Mark DM Sent</button>
+      <button class="dropdown-item" onclick="markFollowupSent(${index})">ðŸ”„ Mark Follow-up Sent</button>
       <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="archiveLead(${index})">🗄️ Archive</button>
+      <button class="dropdown-item" onclick="archiveLead(${index})">ðŸ—„ï¸ Archive</button>
     `;
   } else if (lead.channel === "LinkedIn") {
     itemsHtml = `
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'LinkedIn')">📝 Copy LinkedIn Script</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">📝 Copy Follow-up</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">📝 Copy Price Reply</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'LinkedIn')">ðŸ“ Copy LinkedIn Script</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')">ðŸ“ Copy Follow-up</button>
+      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')">ðŸ“ Copy Price Reply</button>
       <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="openLeadLink(${index})">💼 Open Profile</button>
-      <button class="dropdown-item" onclick="markLinkedInConnectionSent(${index})">➕ Mark Connection Sent</button>
-      <button class="dropdown-item" onclick="markSentLinkedInMessage(${index})">✔️ Mark Message Sent</button>
-      <button class="dropdown-item" onclick="markFollowupSent(${index})">🔄 Mark Follow-up Sent</button>
+      <button class="dropdown-item" onclick="openLeadLink(${index})">ðŸ’¼ Open Profile</button>
+      <button class="dropdown-item" onclick="markLinkedInConnectionSent(${index})">âž• Mark Connection Sent</button>
+      <button class="dropdown-item" onclick="markSentLinkedInMessage(${index})">âœ”ï¸ Mark Message Sent</button>
+      <button class="dropdown-item" onclick="markFollowupSent(${index})">ðŸ”„ Mark Follow-up Sent</button>
       <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="archiveLead(${index})">🗄️ Archive</button>
+      <button class="dropdown-item" onclick="archiveLead(${index})">ðŸ—„ï¸ Archive</button>
     `;
   }
 
   return `
     <div class="quick-actions-dropdown">
       <button type="button" class="action-btn quick-btn" onclick="toggleDropdown(${index}, event)" title="Quick outreach actions" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: var(--radius-sm); border: var(--border-light); background-color: var(--color-off-white); cursor: pointer; font-size: 13px; color: var(--color-royal-blue);">
-        ⚡
+        âš¡
       </button>
       <div id="dropdown-${index}" class="dropdown-content">
         ${itemsHtml}

@@ -1,0 +1,12 @@
+{
+  "name": "ali-raza-outreach-tracker",
+  "version": "1.0.0",
+  "description": "Private outreach CRM for lead tracking and follow-ups",
+  "private": true,
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
