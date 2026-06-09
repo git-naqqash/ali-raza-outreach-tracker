@@ -76,39 +76,42 @@
     </header>
 
 
-    <!-- Storage & Backup Notice/Reminder -->
-    <div id="storageNoticeContainer" style="margin-top: 16px;">
-      <!-- Local Storage Notice Banner -->
-      <div class="storage-notice-banner">
-        <div class="storage-notice-content">
-          <span class="storage-notice-icon">⚠️</span>
-          <span class="storage-notice-text">
-            <strong>Storage Notice:</strong> Your leads are saved in this browser only. Export Backup JSON regularly. Data does not automatically sync across devices, browsers, or incognito mode.
+    <!-- Storage & Backup Notice — slim dismissible bar -->
+    <div id="storageNoticeContainer" style="margin-top: 12px;">
+
+      <!-- Dismissible notice bar (hidden after user closes it) -->
+      <div id="storageNoticeBanner" class="storage-notice-slim" role="alert" aria-label="Storage notice">
+        <div class="storage-notice-slim-content">
+          <span class="storage-notice-slim-icon">☁</span>
+          <span class="storage-notice-slim-text">
+            <strong>Heads up:</strong> Leads are saved in <em>this browser only</em> — use <b>Export Backup JSON</b> to back up daily. Data does not sync across devices automatically.
           </span>
         </div>
+        <button
+          class="storage-notice-close"
+          onclick="dismissStorageNotice()"
+          title="Dismiss this notice"
+          aria-label="Dismiss notice"
+          type="button"
+        >✕</button>
       </div>
 
-      <!-- Backup Reminder Card -->
-      <div class="backup-reminder-card">
-        <span class="backup-reminder-icon">💡</span>
-        <span class="backup-reminder-text">Recommended: Export backup at the end of each outreach day.</span>
-      </div>
-
-      <!-- Upload Local Data to Cloud (shown only when Supabase is empty but localStorage has leads) -->
-      <div id="uploadLocalBanner" style="display:none; margin-top:12px; background: linear-gradient(135deg,rgba(59,130,246,0.08),rgba(99,102,241,0.08)); border:1px solid rgba(59,130,246,0.25); border-radius:10px; padding:14px 18px; align-items:center; gap:14px; flex-wrap:wrap;">
-        <span style="font-size:22px;">☁</span>
+      <!-- Upload Local Data to Cloud -->
+      <div id="uploadLocalBanner" style="display:none; margin-top:10px; background: linear-gradient(135deg,rgba(59,130,246,0.08),rgba(99,102,241,0.08)); border:1px solid rgba(59,130,246,0.25); border-radius:10px; padding:12px 16px; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span style="font-size:20px;">☁</span>
         <div style="flex:1; min-width:200px;">
-          <strong style="color:#1e40af; font-size:14px;">Cloud is empty — your local data is not in the cloud yet.</strong>
-          <p style="margin:2px 0 0; font-size:12.5px; color:#4b5563;">Click the button to upload your local leads to Supabase so they sync across all browsers and devices.</p>
+          <strong style="color:#1e40af; font-size:13.5px;">Cloud is empty — local data not yet synced.</strong>
+          <p style="margin:2px 0 0; font-size:12px; color:#4b5563;">Upload your local leads to Neon so they sync across all browsers and devices.</p>
         </div>
-        <button id="uploadLocalToCloudBtn" class="btn btn-primary" type="button" onclick="uploadLocalDataToCloud()" style="white-space:nowrap;">
-          ☁ Upload Local Leads to Cloud
+        <button id="uploadLocalToCloudBtn" class="btn btn-primary btn-sm" type="button" onclick="uploadLocalDataToCloud()" style="white-space:nowrap;">
+          ☁ Upload to Cloud
         </button>
       </div>
 
-      <!-- Supabase Error Display (shown when cloud connection fails) -->
-      <div id="supaErrorDisplay" style="display:none; margin-top:10px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:12px 16px; color:#dc2626; font-size:13px; font-family:monospace; word-break:break-all;"></div>
+      <!-- Cloud Error Display -->
+      <div id="supaErrorDisplay" style="display:none; margin-top:8px; background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.25); border-radius:8px; padding:10px 14px; color:#dc2626; font-size:12.5px; font-family:monospace; word-break:break-all; line-height:1.5;"></div>
     </div>
+
 
     <!-- Top Dashboard Grid -->
     <section class="dashboard-grid" aria-label="Dashboard Metrics">

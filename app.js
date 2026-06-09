@@ -650,6 +650,7 @@ async function initAppData() {
 document.addEventListener("DOMContentLoaded", () => {
   loadData();            // Immediately load localStorage (fast, no flicker)
   setupEventListeners();
+  initStorageNotice();   // Hide storage notice if previously dismissed
   updateDashboard();
   renderLeads();
   renderTodayActions();
@@ -657,6 +658,26 @@ document.addEventListener("DOMContentLoaded", () => {
   checkAuth();
   initAppData();         // Async: sync with Neon cloud in background
 });
+
+
+// ── Storage Notice: dismiss with animation, remember in localStorage ──
+function dismissStorageNotice() {
+  const banner = document.getElementById("storageNoticeBanner");
+  if (!banner) return;
+  banner.classList.add("dismissed");
+  // After animation finishes, set display:none so it takes zero space
+  setTimeout(() => { banner.style.display = "none"; }, 320);
+  localStorage.setItem("ali_raza_notice_dismissed", "true");
+}
+
+function initStorageNotice() {
+  const banner = document.getElementById("storageNoticeBanner");
+  if (!banner) return;
+  if (localStorage.getItem("ali_raza_notice_dismissed") === "true") {
+    banner.style.display = "none";
+  }
+}
+window.dismissStorageNotice = dismissStorageNotice;
 
 // Authentication Status Toggle
 function checkAuth() {
@@ -672,6 +693,7 @@ function checkAuth() {
     if (appContainer) appContainer.classList.add("hidden");
   }
 }
+
 
 // Load Leads from LocalStorage or Seed Defaults
 function loadData() {
