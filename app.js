@@ -3755,8 +3755,64 @@ window.clearBulkSelection = function() {
 };
 
 // Bulk action commands implementation
+async function bulkMoveToChannel(targetChannel) {
+  if (!targetChannel) return;
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+
+  const selectedLeads = indexes.map(idx => leads[idx]);
+  const ids = selectedLeads.map(l => l.id).filter(Boolean);
+
+  if (ids.length === 0) {
+    showToast("Error: Selected leads are missing unique IDs.", "error");
+    return;
+  }
+
+  try {
+    if (cloudReady) {
+      setSyncStatus("syncing");
+      await apiFetch("/api/leads", {
+        method: "PATCH",
+        body: { ids, channel: targetChannel }
+      });
+      setSyncStatus("connected");
+    }
+
+    // Update local state
+    indexes.forEach(idx => {
+      if (leads[idx]) {
+        leads[idx].channel = targetChannel;
+      }
+    });
+
+    // Save locally
+    localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+
+    // Refresh UI & dashboard
+    updateDashboard();
+    renderLeads();
+    renderTodayActions();
+
+    showToast(`Successfully moved ${ids.length} leads to ${targetChannel}!`, "success");
+  } catch (err) {
+    console.error("[Bulk Move] failed:", err);
+    setSyncStatus("offline");
+    showToast(`Failed to move leads: ${err.message || err}`, "error");
+  } finally {
+    const channelSelect = document.getElementById("bulkChannelSelect");
+    if (channelSelect) channelSelect.value = "";
+    clearBulkSelection();
+  }
+}
+
 window.applyBulkChange = function(field, value) {
   if (!value) return;
+  
+  if (field === 'channel') {
+    bulkMoveToChannel(value);
+    return;
+  }
+  
   const indexes = getSelectedLeadIndexes();
   if (indexes.length === 0) return;
   
@@ -3769,9 +3825,10 @@ window.applyBulkChange = function(field, value) {
   renderLeads();
   renderTodayActions();
   
-  document.getElementById("bulkStageSelect").value = "";
-  document.getElementById("bulkPrioritySelect").value = "";
-  document.getElementById("bulkReplySelect").value = "";
+  if (document.getElementById("bulkStageSelect")) document.getElementById("bulkStageSelect").value = "";
+  if (document.getElementById("bulkPrioritySelect")) document.getElementById("bulkPrioritySelect").value = "";
+  if (document.getElementById("bulkReplySelect")) document.getElementById("bulkReplySelect").value = "";
+  if (document.getElementById("bulkChannelSelect")) document.getElementById("bulkChannelSelect").value = "";
   
   showToast(`Updated ${field} for ${indexes.length} leads!`, "success");
   clearBulkSelection();

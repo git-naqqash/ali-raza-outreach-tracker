@@ -1276,6 +1276,14 @@
           <option value="D">D - Bad / Archive</option>
         </select>
         
+        <select id="bulkChannelSelect" class="bulk-select" onchange="applyBulkChange('channel', this.value)">
+          <option value="">Move to Channel...</option>
+          <option value="Instagram">Instagram</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Email">Email</option>
+          <option value="WhatsApp">WhatsApp</option>
+        </select>
+        
         <select id="bulkReplySelect" class="bulk-select" onchange="applyBulkChange('replyStatus', this.value)">
           <option value="">Change Reply Status...</option>
           <option value="No reply">No reply</option>

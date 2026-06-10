@@ -9,7 +9,7 @@ const { neon } = require("@neondatabase/serverless");
 // ── CORS headers (same origin on Vercel, but safe to include) ─────
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, PATCH, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
@@ -175,6 +175,28 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: "Body must contain 'lead' or 'leads'" });
     } catch (err) {
       console.error("[api/leads POST]", err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ── PATCH /api/leads ───────────────────────────────────────────
+  if (req.method === "PATCH" || req.method === "PUT") {
+    try {
+      const body = req.body || {};
+      const { ids, channel, updates } = body;
+
+      const targetChannel = channel || (updates && updates.channel);
+      if (!ids || !Array.isArray(ids) || ids.length === 0 || !targetChannel) {
+        return res.status(400).json({ error: "Missing ids or channel/updates.channel" });
+      }
+
+      for (const id of ids) {
+        await sql`UPDATE leads SET channel = ${targetChannel} WHERE id = ${id}`;
+      }
+
+      return res.status(200).json({ ok: true, updated: ids.length });
+    } catch (err) {
+      console.error("[api/leads PATCH/PUT]", err);
       return res.status(500).json({ error: err.message });
     }
   }
