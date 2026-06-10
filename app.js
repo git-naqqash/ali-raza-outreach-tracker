@@ -682,7 +682,7 @@ function applyColumnVisibility() {
   const columns = [
     "col-name", "col-contact", "col-market", "col-niche", "col-source", 
     "col-priority", "col-stage", "col-nextAction", "col-nextActionDate", 
-    "col-replyStatus", "col-actions"
+    "col-replyStatus", "col-notes", "col-actions"
   ];
   
   columns.forEach(colId => {
@@ -1155,7 +1155,7 @@ function renderLeads() {
         </div>
       </div>
 
-      <div class="lead-card-notes">
+      <div class="lead-card-notes" data-col="col-notes">
         <strong>Notes:</strong> ${lead.notes}
       </div>
 
