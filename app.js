@@ -626,6 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadData();            // Immediately load localStorage (fast, no flicker)
   setupEventListeners();
   initStorageNotice();   // Hide storage notice if previously dismissed
+  initColumnVisibility(); // Initialize column visibility from preferences
   updateDashboard();
   renderLeads();
   renderTodayActions();
@@ -650,6 +651,78 @@ function initStorageNotice() {
   }
 }
 window.dismissStorageNotice = dismissStorageNotice;
+
+// ── Column Visibility dropdown and toggling logic ──────────────────────
+function toggleColVisibilityDropdown(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById("colVisibilityMenu");
+  if (!dropdown) return;
+  const wasOpen = dropdown.classList.contains("show");
+  
+  // Close all other dropdowns
+  document.querySelectorAll(".dropdown-content.show").forEach(d => {
+    if (d.id !== "colVisibilityMenu") d.classList.remove("show");
+  });
+  
+  if (wasOpen) {
+    dropdown.classList.remove("show");
+  } else {
+    dropdown.classList.add("show");
+  }
+}
+
+function applyColumnVisibility() {
+  let settings = {};
+  try {
+    settings = JSON.parse(localStorage.getItem("ali_raza_col_visibility")) || {};
+  } catch (e) {
+    settings = {};
+  }
+  
+  const columns = [
+    "col-name", "col-contact", "col-market", "col-niche", "col-source", 
+    "col-priority", "col-stage", "col-nextAction", "col-nextActionDate", 
+    "col-replyStatus", "col-actions"
+  ];
+  
+  columns.forEach(colId => {
+    const isVisible = settings[colId] !== false;
+    const cells = document.querySelectorAll(`[data-col="${colId}"]`);
+    cells.forEach(cell => {
+      cell.style.display = isVisible ? "" : "none";
+    });
+  });
+}
+
+function toggleColumnVisibility(colId, isVisible) {
+  let settings = {};
+  try {
+    settings = JSON.parse(localStorage.getItem("ali_raza_col_visibility")) || {};
+  } catch (e) {
+    settings = {};
+  }
+  settings[colId] = isVisible;
+  localStorage.setItem("ali_raza_col_visibility", JSON.stringify(settings));
+  applyColumnVisibility();
+}
+
+function initColumnVisibility() {
+  let settings = {};
+  try {
+    settings = JSON.parse(localStorage.getItem("ali_raza_col_visibility")) || {};
+  } catch (e) {
+    settings = {};
+  }
+  
+  const colCheckboxes = document.querySelectorAll(".col-toggle-checkbox");
+  colCheckboxes.forEach(cb => {
+    const colId = cb.getAttribute("data-column");
+    const isVisible = settings[colId] !== false;
+    cb.checked = isVisible;
+  });
+  
+  applyColumnVisibility();
+}
 
 // Authentication Status Toggle
 function checkAuth() {
@@ -964,11 +1037,11 @@ function renderLeads() {
     let contactCellHtml = "";
     if (activeTab === "Email") {
       const email = lead.email ? String(lead.email).trim() : "";
-      contactCellHtml = `<td>${email ? `<a href="mailto:${email}" style="font-weight: 600; color: var(--color-royal-blue);">${email}</a>` : '-'}</td>`;
+      contactCellHtml = `<td data-col="col-contact">${email ? `<a href="mailto:${email}" style="font-weight: 600; color: var(--color-royal-blue);">${email}</a>` : '-'}</td>`;
     } else if (activeTab === "WhatsApp") {
       const phone = lead.whatsappNumber ? String(lead.whatsappNumber).trim() : "";
       const waLink = getWhatsAppLink(phone);
-      contactCellHtml = `<td>
+      contactCellHtml = `<td data-col="col-contact">
         <div style="font-weight: 600;">${phone || "-"}</div>
         ${phone ? `<a href="${waLink}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: var(--color-teal-green); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
           Open WhatsApp <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; display: inline-block; vertical-align: middle;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
@@ -978,35 +1051,35 @@ function renderLeads() {
       const link = lead.mainLink ? String(lead.mainLink).trim() : "";
       const normalized = normalizeUrl(link);
       const displayText = link ? (link.length > 30 ? link.substring(0, 30) + "..." : link) : "";
-      contactCellHtml = `<td>${link ? `<a href="${normalized}" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: var(--color-royal-blue);">${displayText} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; display: inline-block; vertical-align: middle;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>` : '-'}</td>`;
+      contactCellHtml = `<td data-col="col-contact">${link ? `<a href="${normalized}" target="_blank" rel="noopener noreferrer" style="font-weight: 600; color: var(--color-royal-blue);">${displayText} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; display: inline-block; vertical-align: middle;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>` : '-'}</td>`;
     } else {
-      contactCellHtml = `<td>${getChannelBadge(lead.channel)}</td>`;
+      contactCellHtml = `<td data-col="col-contact">${getChannelBadge(lead.channel)}</td>`;
     }
 
     // 1. Table Row (Desktop)
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td style="text-align: center;"><input type="checkbox" class="lead-checkbox" data-index="${lead.originalIndex}" onchange="updateSelectedLeadsCount()"></td>
-      <td>
+      <td data-col="col-name">
         <div style="font-weight: 700; color: var(--color-deep-navy);">${lead.name || "Unnamed Lead / Company"}</div>
         ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
           Open Link <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; display: inline-block; vertical-align: middle;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
         </a>` : ''}
       </td>
       ${contactCellHtml}
-      <td><strong>${lead.market}</strong></td>
-      <td>${lead.niche}</td>
-      <td><span style="font-size: 12.5px; font-weight: 600; color: var(--color-priority-c);">${lead.source || "Other"}</span></td>
-      <td>${getPriorityBadge(lead.priority)}</td>
-      <td>${getStageBadge(lead.stage)}</td>
-      <td style="font-weight: 600;">${lead.nextAction}</td>
-      <td style="white-space: nowrap;">
+      <td data-col="col-market"><strong>${lead.market}</strong></td>
+      <td data-col="col-niche">${lead.niche}</td>
+      <td data-col="col-source"><span style="font-size: 12.5px; font-weight: 600; color: var(--color-priority-c);">${lead.source || "Other"}</span></td>
+      <td data-col="col-priority">${getPriorityBadge(lead.priority)}</td>
+      <td data-col="col-stage">${getStageBadge(lead.stage)}</td>
+      <td data-col="col-nextAction" style="font-weight: 600;">${lead.nextAction}</td>
+      <td data-col="col-nextActionDate" style="white-space: nowrap;">
         <span style="font-weight: 600; color: ${lead.nextActionDate && lead.nextActionDate <= getOffsetDateString(0) ? '#ef4444' : 'inherit'}">
           ${lead.nextActionDate || '-'}
         </span>
       </td>
-      <td>${getReplyBadge(lead.replyStatus)}</td>
-      <td>
+      <td data-col="col-replyStatus">${getReplyBadge(lead.replyStatus)}</td>
+      <td data-col="col-actions">
         <div class="action-buttons" style="display: flex; gap: 4px; align-items: center; justify-content: center;">
           ${getQuickActionsDropdownHtml(lead)}
           <button class="action-btn edit-btn" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">
@@ -1084,6 +1157,10 @@ function renderLeads() {
 
   if (isTodayMode) {
     renderTodayActions();
+  }
+  
+  if (typeof applyColumnVisibility === "function") {
+    applyColumnVisibility();
   }
 }
 
@@ -2012,6 +2089,28 @@ function setupEventListeners() {
   }
 
   updateChipsVisibility();
+
+  // --- Column Visibility Dropdown Event Listeners ---
+  const colVisibilityBtn = document.getElementById("colVisibilityBtn");
+  if (colVisibilityBtn) {
+    colVisibilityBtn.addEventListener("click", toggleColVisibilityDropdown);
+  }
+
+  const colVisibilityMenu = document.getElementById("colVisibilityMenu");
+  if (colVisibilityMenu) {
+    colVisibilityMenu.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  const colCheckboxes = document.querySelectorAll(".col-toggle-checkbox");
+  colCheckboxes.forEach(cb => {
+    cb.addEventListener("change", (e) => {
+      const colId = e.target.getAttribute("data-column");
+      const isVisible = e.target.checked;
+      toggleColumnVisibility(colId, isVisible);
+    });
+  });
 }
 
 // Escaping values for CSV
@@ -3867,7 +3966,7 @@ window.bulkExportCSV = function() {
 
 // Dismiss dropdowns when clicking outside
 document.addEventListener("click", (e) => {
-  if (!e.target.closest(".quick-actions-dropdown")) {
+  if (!e.target.closest(".quick-actions-dropdown") && !e.target.closest(".column-visibility-dropdown")) {
     document.querySelectorAll(".dropdown-content.show").forEach(d => {
       d.classList.remove("show");
     });
