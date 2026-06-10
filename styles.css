@@ -1240,6 +1240,9 @@ table.leads-table tr:hover {
   /* Swapping Views: Hide Table, Show Cards */
   .leads-table-container {
     display: block; /* Keep container visible on mobile for header actions */
+    overflow: visible; /* Prevent clipping of absolute-positioned dropdowns */
+    position: relative; /* Establish positioning context on mobile */
+    z-index: 50; /* Ensure dropdown menu sits above mobile lead cards */
   }
 
   .leads-table-scroll {
