@@ -692,6 +692,27 @@ function applyColumnVisibility() {
       cell.style.display = isVisible ? "" : "none";
     });
   });
+
+  // Clean up separators in mobile card headers (.market-lbl) based on neighboring field visibility
+  document.querySelectorAll(".market-lbl").forEach(lbl => {
+    const visibleSpans = Array.from(lbl.children).filter(span => {
+      return !span.classList.contains("col-sep") && span.style.display !== "none";
+    });
+    
+    // Hide all separators initially
+    lbl.querySelectorAll(".col-sep").forEach(sep => {
+      sep.style.display = "none";
+    });
+    
+    // Show separator after each visible span, except the last one
+    for (let i = 0; i < visibleSpans.length - 1; i++) {
+      const currentSpan = visibleSpans[i];
+      const nextSep = currentSpan.nextElementSibling;
+      if (nextSep && nextSep.classList.contains("col-sep")) {
+        nextSep.style.display = "inline";
+      }
+    }
+  });
 }
 
 function toggleColumnVisibility(colId, isVisible) {
@@ -1100,29 +1121,35 @@ function renderLeads() {
       <div class="lead-card-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
         <input type="checkbox" class="lead-checkbox" data-index="${lead.originalIndex}" onchange="updateSelectedLeadsCount()" style="width: 16px; height: 16px; cursor: pointer; margin-right: 4px;">
         <div class="lead-card-title" style="flex: 1;">
-          <h3>${lead.name || "Unnamed Lead / Company"}</h3>
-          <span class="market-lbl">${lead.market || "-"} • ${lead.niche || "-"} • ${lead.source || "Other"}</span>
+          <h3 data-col="col-name">${lead.name || "Unnamed Lead / Company"}</h3>
+          <span class="market-lbl">
+            <span data-col="col-market">${lead.market || "-"}</span>
+            <span class="col-sep" style="margin: 0 4px;">•</span>
+            <span data-col="col-niche">${lead.niche || "-"}</span>
+            <span class="col-sep" style="margin: 0 4px;">•</span>
+            <span data-col="col-source">${lead.source || "Other"}</span>
+          </span>
         </div>
         <div class="lead-card-badges">
-          ${getPriorityBadge(lead.priority)}
-          ${getChannelBadge(lead.channel)}
+          <span data-col="col-priority">${getPriorityBadge(lead.priority)}</span>
+          <span data-col="col-contact">${getChannelBadge(lead.channel)}</span>
         </div>
       </div>
       
       <div class="lead-card-details-grid">
-        <div class="lead-card-detail-item">
+        <div class="lead-card-detail-item" data-col="col-stage">
           <span class="lbl">Stage</span>
           <span class="val">${getStageBadge(lead.stage)}</span>
         </div>
-        <div class="lead-card-detail-item">
+        <div class="lead-card-detail-item" data-col="col-replyStatus">
           <span class="lbl">Reply Status</span>
           <span class="val">${getReplyBadge(lead.replyStatus)}</span>
         </div>
-        <div class="lead-card-detail-item">
+        <div class="lead-card-detail-item" data-col="col-nextAction">
           <span class="lbl">Next Action</span>
           <span class="val" style="font-weight: 700;">${lead.nextAction}</span>
         </div>
-        <div class="lead-card-detail-item">
+        <div class="lead-card-detail-item" data-col="col-nextActionDate">
           <span class="lbl">Action Date</span>
           <span class="val" style="font-weight: 700; color: ${lead.nextActionDate && lead.nextActionDate <= getOffsetDateString(0) ? '#ef4444' : 'inherit'}">${lead.nextActionDate || '-'}</span>
         </div>
@@ -1134,14 +1161,14 @@ function renderLeads() {
 
       ${lead.contactPerson || lead.email || lead.whatsappNumber || lead.dateAdded || lead.lastActionDate ? `
       <div class="lead-card-notes" style="font-size: 11px; background-color: var(--color-off-white); padding: 6px; border-radius: var(--radius-sm);">
-        ${lead.contactPerson ? `<strong>Contact:</strong> ${lead.contactPerson}<br>` : ''}
-        ${lead.email ? `<strong>Email:</strong> ${lead.email}<br>` : ''}
-        ${lead.whatsappNumber ? `<strong>WhatsApp:</strong> ${lead.whatsappNumber}<br>` : ''}
-        ${lead.dateAdded ? `<strong>Added:</strong> ${lead.dateAdded} | ` : ''}
-        ${lead.lastActionDate ? `<strong>Last Action:</strong> ${lead.lastActionDate}` : ''}
+        ${lead.contactPerson ? `<span><strong>Contact:</strong> ${lead.contactPerson}<br></span>` : ''}
+        ${lead.email ? `<span data-col="col-contact"><strong>Email:</strong> ${lead.email}<br></span>` : ''}
+        ${lead.whatsappNumber ? `<span data-col="col-contact"><strong>WhatsApp:</strong> ${lead.whatsappNumber}<br></span>` : ''}
+        ${lead.dateAdded ? `<span><strong>Added:</strong> ${lead.dateAdded} | </span>` : ''}
+        ${lead.lastActionDate ? `<span><strong>Last Action:</strong> ${lead.lastActionDate}</span>` : ''}
       </div>` : ''}
 
-      <div class="lead-card-actions" style="display: flex; align-items: center; gap: 6px;">
+      <div class="lead-card-actions" data-col="col-actions" style="display: flex; align-items: center; gap: 6px;">
         ${getQuickActionsDropdownHtml(lead)}
         ${lead.mainLink ? `<a href="${normalizeUrl(lead.mainLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; margin-right: auto;">Open Link <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; display: inline-block; vertical-align: middle;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></a>` : ''}
         <button class="btn btn-secondary btn-icon-only" onclick="openEditModal(${lead.originalIndex})" title="Edit Lead">

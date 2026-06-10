@@ -1239,11 +1239,16 @@ table.leads-table tr:hover {
 
   /* Swapping Views: Hide Table, Show Cards */
   .leads-table-container {
-    display: none; /* Hide Table container on mobile */
+    display: block; /* Keep container visible on mobile for header actions */
+  }
+
+  .leads-table-scroll {
+    display: none; /* Hide actual table scrolling grid on mobile */
   }
 
   .mobile-cards-grid {
     display: flex; /* Show Mobile Cards */
+    margin-top: 16px; /* Spacing between header block and cards list */
   }
 
   .modal-form {
