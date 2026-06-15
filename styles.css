@@ -105,6 +105,7 @@ button {
 .main-content-section {
   min-width: 0;
   width: 100%;
+  overflow-x: hidden;
 }
 
 /* Header & Logo */
@@ -499,6 +500,7 @@ button {
   overflow: hidden;
   max-width: 100%;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .table-header {
@@ -526,13 +528,12 @@ button {
 }
 
 .leads-table-scroll {
+  display: block;
   overflow-x: auto;
-  max-width: 100%;
-  width: 100%;
+  overflow-y: hidden;
 }
 
 table.leads-table {
-  width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
