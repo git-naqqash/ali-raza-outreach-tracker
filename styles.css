@@ -609,19 +609,25 @@ table.leads-table th.last-visible-th .resizer {
   right: 0;
 }
 
-/* Lock width of first column (checkbox select) and last column (actions) */
-table.leads-table th:first-child,
-table.leads-table td:first-child {
+/* Lock width of first column header (checkbox select) */
+table.leads-table th:first-child {
   width: 50px !important;
   min-width: 50px !important;
   max-width: 50px !important;
 }
 
-table.leads-table th[data-col="col-actions"],
-table.leads-table td[data-col="col-actions"] {
+/* Lock width of last column header (actions) */
+table.leads-table th[data-col="col-actions"] {
   width: 120px !important;
   min-width: 120px !important;
   max-width: 120px !important;
+}
+
+/* Ensure Actions column has normal layout context without sticky, absolute or float positioning */
+table.leads-table th[data-col="col-actions"],
+table.leads-table td[data-col="col-actions"] {
+  position: static !important;
+  float: none !important;
 }
 
 table.leads-table td {
@@ -666,59 +672,49 @@ table.leads-table td.col-notes-cell {
 }
 
 /* Enforce column-specific min-widths to prevent layout collapsing */
-table.leads-table th[data-col="col-name"],
-table.leads-table td[data-col="col-name"] {
+table.leads-table th[data-col="col-name"] {
   min-width: 180px;
 }
 
-table.leads-table th[data-col="col-contact"],
-table.leads-table td[data-col="col-contact"] {
+table.leads-table th[data-col="col-contact"] {
   min-width: 120px;
 }
 
-table.leads-table th[data-col="col-market"],
-table.leads-table td[data-col="col-market"] {
+table.leads-table th[data-col="col-market"] {
   min-width: 90px;
 }
 
-table.leads-table th[data-col="col-niche"],
-table.leads-table td[data-col="col-niche"] {
+table.leads-table th[data-col="col-niche"] {
   min-width: 90px;
 }
 
-table.leads-table th[data-col="col-source"],
-table.leads-table td[data-col="col-source"] {
+table.leads-table th[data-col="col-source"] {
   min-width: 80px;
 }
 
-table.leads-table th[data-col="col-priority"],
-table.leads-table td[data-col="col-priority"] {
+table.leads-table th[data-col="col-priority"] {
   min-width: 80px;
 }
 
-table.leads-table th[data-col="col-stage"],
-table.leads-table td[data-col="col-stage"] {
+table.leads-table th[data-col="col-stage"] {
   min-width: 100px;
 }
 
-table.leads-table th[data-col="col-nextAction"],
-table.leads-table td[data-col="col-nextAction"] {
+table.leads-table th[data-col="col-nextAction"] {
   min-width: 130px;
 }
 
-table.leads-table th[data-col="col-nextActionDate"],
-table.leads-table td[data-col="col-nextActionDate"] {
+table.leads-table th[data-col="col-nextActionDate"] {
   min-width: 110px;
 }
 
-table.leads-table th[data-col="col-replyStatus"],
-table.leads-table td[data-col="col-replyStatus"] {
+table.leads-table th[data-col="col-replyStatus"] {
   min-width: 100px;
 }
 
-table.leads-table th[data-col="col-notes"],
-table.leads-table td[data-col="col-notes"] {
+table.leads-table th[data-col="col-notes"] {
   min-width: 160px;
+  max-width: 250px;
 }
 
 table.leads-table tr:last-child td {

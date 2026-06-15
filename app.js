@@ -780,6 +780,15 @@ function adjustTableWidthToColumns(table) {
       totalWidth += widthVal;
     }
   });
+  
+  const scrollContainer = table.parentElement;
+  if (scrollContainer && scrollContainer.classList.contains("leads-table-scroll")) {
+    const containerWidth = scrollContainer.clientWidth;
+    if (containerWidth && totalWidth < containerWidth) {
+      table.style.width = "100%";
+      return;
+    }
+  }
   table.style.width = totalWidth + "px";
 }
 
