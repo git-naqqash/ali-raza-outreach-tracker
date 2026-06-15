@@ -548,7 +548,7 @@ table.leads-table th {
   background-color: var(--color-off-white);
   color: var(--color-deep-navy);
   font-weight: 700;
-  padding: 14px 18px;
+  padding: 10px 14px;
   border-bottom: var(--border-light);
   white-space: nowrap;
   position: relative;
@@ -631,7 +631,7 @@ table.leads-table td[data-col="col-actions"] {
 }
 
 table.leads-table td {
-  padding: 14px 18px;
+  padding: 10px 14px;
   border-bottom: var(--border-light);
   color: var(--color-dark-gray);
   vertical-align: middle;
@@ -640,29 +640,54 @@ table.leads-table td {
 }
 
 table.leads-table td.col-notes-cell {
-  max-width: 250px;
+  max-width: 280px;
   overflow-wrap: break-word;
   word-break: break-word;
   white-space: normal;
 }
 
-.notes-toggle-btn {
+.notes-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.notes-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+  color: var(--color-dark-gray);
+  line-height: 1.4;
+  word-break: break-word;
+  white-space: normal;
+  width: 100%;
+}
+
+.notes-preview.expanded {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: none;
+}
+
+.notes-toggle-link {
   background: none;
   border: none;
   padding: 0;
-  margin-left: 6px;
   color: var(--color-royal-blue);
   font-weight: 600;
   cursor: pointer;
-  font-size: 11.5px;
+  font-size: 11px;
   text-decoration: none;
   font-family: inherit;
   transition: opacity 0.2s;
-  display: inline-block;
-  vertical-align: middle;
 }
 
-.notes-toggle-btn:hover {
+.notes-toggle-link:hover {
   text-decoration: underline;
   opacity: 0.8;
 }
@@ -673,48 +698,48 @@ table.leads-table td.col-notes-cell {
 
 /* Enforce column-specific min-widths to prevent layout collapsing */
 table.leads-table th[data-col="col-name"] {
-  min-width: 180px;
+  min-width: 200px;
 }
 
 table.leads-table th[data-col="col-contact"] {
-  min-width: 120px;
+  min-width: 150px;
 }
 
 table.leads-table th[data-col="col-market"] {
-  min-width: 90px;
+  min-width: 100px;
 }
 
 table.leads-table th[data-col="col-niche"] {
-  min-width: 90px;
+  min-width: 120px;
 }
 
 table.leads-table th[data-col="col-source"] {
-  min-width: 80px;
+  min-width: 90px;
 }
 
 table.leads-table th[data-col="col-priority"] {
-  min-width: 80px;
+  min-width: 85px;
 }
 
 table.leads-table th[data-col="col-stage"] {
-  min-width: 100px;
-}
-
-table.leads-table th[data-col="col-nextAction"] {
-  min-width: 130px;
-}
-
-table.leads-table th[data-col="col-nextActionDate"] {
   min-width: 110px;
 }
 
+table.leads-table th[data-col="col-nextAction"] {
+  min-width: 150px;
+}
+
+table.leads-table th[data-col="col-nextActionDate"] {
+  min-width: 130px;
+}
+
 table.leads-table th[data-col="col-replyStatus"] {
-  min-width: 100px;
+  min-width: 125px;
 }
 
 table.leads-table th[data-col="col-notes"] {
   min-width: 160px;
-  max-width: 250px;
+  max-width: 280px;
 }
 
 table.leads-table tr:last-child td {

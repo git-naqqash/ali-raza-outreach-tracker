@@ -755,17 +755,17 @@ function getMinColumnWidth(colId) {
 }
 
 function getDefaultColumnWidth(colId) {
-  if (colId === "col-name") return 180;
-  if (colId === "col-contact") return 140;
+  if (colId === "col-name") return 200;
+  if (colId === "col-contact") return 150;
   if (colId === "col-market") return 100;
-  if (colId === "col-niche") return 100;
-  if (colId === "col-source") return 100;
-  if (colId === "col-priority") return 90;
-  if (colId === "col-stage") return 100;
-  if (colId === "col-nextAction") return 140;
-  if (colId === "col-nextActionDate") return 120;
-  if (colId === "col-replyStatus") return 110;
-  if (colId === "col-notes") return 250;
+  if (colId === "col-niche") return 120;
+  if (colId === "col-source") return 90;
+  if (colId === "col-priority") return 85;
+  if (colId === "col-stage") return 110;
+  if (colId === "col-nextAction") return 150;
+  if (colId === "col-nextActionDate") return 130;
+  if (colId === "col-replyStatus") return 125;
+  if (colId === "col-notes") return 280;
   if (colId === "col-actions") return 120;
   return 100;
 }
@@ -1114,15 +1114,12 @@ function renderNotesCellContent(notes, originalIndex) {
   const cleanNotes = notes.trim();
   if (!cleanNotes) return '<span class="notes-empty">-</span>';
   
-  if (cleanNotes.length <= 80) {
-    return `<span class="notes-text">${escapeHtml(cleanNotes)}</span>`;
-  }
-  
-  const shortNotes = cleanNotes.substring(0, 75) + "...";
+  const hasToggle = cleanNotes.length > 60;
   return `
-    <span class="notes-text-short" id="notes-short-${originalIndex}">${escapeHtml(shortNotes)}</span>
-    <span class="notes-text-full" id="notes-full-${originalIndex}" style="white-space: pre-wrap; display: none;">${escapeHtml(cleanNotes)}</span>
-    <button type="button" class="notes-toggle-btn" onclick="toggleNotes(${originalIndex}, event)">View more</button>
+    <div class="notes-wrapper">
+      <div class="notes-preview" id="notes-preview-${originalIndex}">${escapeHtml(cleanNotes)}</div>
+      ${hasToggle ? `<button type="button" class="notes-toggle-link" onclick="toggleNotes(${originalIndex}, event)">Expand</button>` : ''}
+    </div>
   `;
 }
 
@@ -1131,20 +1128,17 @@ window.toggleNotes = function(index, event) {
     event.preventDefault();
     event.stopPropagation();
   }
-  const shortSpan = document.getElementById(`notes-short-${index}`);
-  const fullSpan = document.getElementById(`notes-full-${index}`);
+  const previewDiv = document.getElementById(`notes-preview-${index}`);
   const btn = event.target;
   
-  if (shortSpan && fullSpan && btn) {
-    const isExpanded = shortSpan.style.display === "none";
+  if (previewDiv && btn) {
+    const isExpanded = previewDiv.classList.contains("expanded");
     if (isExpanded) {
-      shortSpan.style.display = "inline";
-      fullSpan.style.display = "none";
-      btn.textContent = "View more";
+      previewDiv.classList.remove("expanded");
+      btn.textContent = "Expand";
     } else {
-      shortSpan.style.display = "none";
-      fullSpan.style.display = "inline";
-      btn.textContent = "View less";
+      previewDiv.classList.add("expanded");
+      btn.textContent = "Collapse";
     }
   }
 };
