@@ -782,8 +782,12 @@ function initTableResizableColumns() {
   ths.forEach((th, idx) => {
     const colId = th.getAttribute("data-col") || `col-idx-${idx}`;
     
-    // Apply saved width or initialize
-    if (savedWidths[colId]) {
+    // Apply saved width or initialize (lock first and last columns)
+    if (idx === 0) {
+      th.style.width = "50px";
+    } else if (idx === ths.length - 1) {
+      th.style.width = "120px";
+    } else if (savedWidths[colId]) {
       th.style.width = savedWidths[colId] + "px";
     } else {
       const initialWidth = th.offsetWidth;
@@ -803,58 +807,58 @@ function initTableResizableColumns() {
         else if (colId === "col-nextActionDate") fallbackWidth = 120;
         else if (colId === "col-replyStatus") fallbackWidth = 110;
         else if (colId === "col-notes") fallbackWidth = 180;
-        else if (colId === "col-actions") fallbackWidth = 120;
-        else fallbackWidth = 40; // checkbox select
         th.style.width = fallbackWidth + "px";
       }
     }
 
-    // Inject resizer handle
-    if (!th.querySelector(".resizer")) {
-      const resizer = document.createElement("div");
-      resizer.className = "resizer";
-      th.appendChild(resizer);
+    // Inject resizer handle (skip first checkbox column and last actions column)
+    if (idx !== 0 && idx !== ths.length - 1) {
+      if (!th.querySelector(".resizer")) {
+        const resizer = document.createElement("div");
+        resizer.className = "resizer";
+        th.appendChild(resizer);
 
-      // Drag event handling
-      resizer.addEventListener("mousedown", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const startX = e.pageX;
-        const startWidth = th.offsetWidth;
-        
-        resizer.classList.add("resizing");
-        document.body.style.cursor = "col-resize";
-        document.body.style.userSelect = "none";
-
-        function onMouseMove(moveEvent) {
-          const dx = moveEvent.pageX - startX;
-          const newWidth = Math.max(40, startWidth + dx); // min width 40px
-          th.style.width = newWidth + "px";
-          adjustTableWidthToColumns(table);
-        }
-
-        function onMouseUp() {
-          resizer.classList.remove("resizing");
-          document.body.style.cursor = "";
-          document.body.style.userSelect = "";
+        // Drag event handling
+        resizer.addEventListener("mousedown", function(e) {
+          e.preventDefault();
+          e.stopPropagation();
           
-          document.removeEventListener("mousemove", onMouseMove);
-          document.removeEventListener("mouseup", onMouseUp);
+          const startX = e.pageX;
+          const startWidth = th.offsetWidth;
           
-          // Save column widths to localStorage
-          try {
-            const currentWidths = JSON.parse(localStorage.getItem(colWidthsKey)) || {};
-            currentWidths[colId] = th.offsetWidth;
-            localStorage.setItem(colWidthsKey, JSON.stringify(currentWidths));
-          } catch (err) {
-            console.error("Failed to save column widths:", err);
+          resizer.classList.add("resizing");
+          document.body.style.cursor = "col-resize";
+          document.body.style.userSelect = "none";
+
+          function onMouseMove(moveEvent) {
+            const dx = moveEvent.pageX - startX;
+            const newWidth = Math.max(40, startWidth + dx); // min width 40px
+            th.style.width = newWidth + "px";
+            adjustTableWidthToColumns(table);
           }
-        }
 
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", onMouseUp);
-      });
+          function onMouseUp() {
+            resizer.classList.remove("resizing");
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+            
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+            
+            // Save column widths to localStorage
+            try {
+              const currentWidths = JSON.parse(localStorage.getItem(colWidthsKey)) || {};
+              currentWidths[colId] = th.offsetWidth;
+              localStorage.setItem(colWidthsKey, JSON.stringify(currentWidths));
+            } catch (err) {
+              console.error("Failed to save column widths:", err);
+            }
+          }
+
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        });
+      }
     }
   });
 

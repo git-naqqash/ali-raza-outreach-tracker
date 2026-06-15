@@ -596,6 +596,21 @@ table.leads-table th.last-visible-th .resizer {
   right: 0;
 }
 
+/* Lock width of first column (checkbox select) and last column (actions) */
+table.leads-table th:first-child,
+table.leads-table td:first-child {
+  width: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+}
+
+table.leads-table th[data-col="col-actions"],
+table.leads-table td[data-col="col-actions"] {
+  width: 120px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
+}
+
 table.leads-table td {
   padding: 14px 18px;
   border-bottom: var(--border-light);
