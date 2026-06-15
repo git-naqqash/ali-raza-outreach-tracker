@@ -1298,6 +1298,16 @@
           <option value="Bad fit">Bad fit</option>
         </select>
         
+        <span style="border-left: 1px solid rgba(11,31,58,0.15); height: 24px; margin: 0 4px;"></span>
+        <select id="bulkDateFieldSelect" class="bulk-select">
+          <option value="">Update Date...</option>
+          <option value="nextActionDate">Next Action Date</option>
+          <option value="lastActionDate">Last Action Date</option>
+          <option value="dateAdded">Date Added</option>
+        </select>
+        <input type="date" id="bulkDateInput" class="bulk-select" style="min-width: 130px; font-family: var(--font-body); color: var(--color-deep-navy);">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="applyBulkDateChange()">Update Date</button>
+        
         <button type="button" class="btn btn-secondary btn-sm" onclick="triggerBulkNextActionPrompt()">📅 Set Next Action</button>
         <button type="button" class="btn btn-primary btn-sm" onclick="bulkMarkFirstMessageSent()">✉️ Mark First Sent</button>
         <button type="button" class="btn btn-primary btn-sm" onclick="bulkMarkFollowupSent()">🔄 Mark Follow-up Sent</button>

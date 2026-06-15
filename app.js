@@ -949,6 +949,7 @@ function getReplyBadge(status) {
 
 // Render Leads Grid (Table and Mobile Cards)
 function renderLeads() {
+  clearBulkSelection();
   const isLeadFinder = activeTab === "LeadFinder";
   const isTodayMode = activeTab === "TodayMode";
   const isStandardView = !isLeadFinder && !isTodayMode;
@@ -3704,11 +3705,11 @@ function sendCV(originalIndex) {
 // Checkbox selections helpers
 function getSelectedLeadIndexes() {
   const checkboxes = document.querySelectorAll(".lead-checkbox:checked");
-  const indexes = [];
+  const indexes = new Set();
   checkboxes.forEach(cb => {
-    indexes.push(parseInt(cb.dataset.index));
+    indexes.add(parseInt(cb.dataset.index));
   });
-  return indexes;
+  return Array.from(indexes);
 }
 
 window.updateSelectedLeadsCount = function() {
@@ -3717,6 +3718,15 @@ window.updateSelectedLeadsCount = function() {
   const toolbar = document.getElementById("bulkActionsToolbar");
   const selectedCountBadge = document.getElementById("bulkSelectedCount");
   
+  // Synchronize checkbox checked states between table view and mobile card view
+  const selectedSet = new Set(indexes);
+  document.querySelectorAll(".lead-checkbox").forEach(cb => {
+    const idx = parseInt(cb.dataset.index);
+    if (!isNaN(idx)) {
+      cb.checked = selectedSet.has(idx);
+    }
+  });
+
   document.querySelectorAll(".leads-table tbody tr").forEach(tr => {
     const cb = tr.querySelector(".lead-checkbox");
     if (cb && cb.checked) {
@@ -3725,22 +3735,48 @@ window.updateSelectedLeadsCount = function() {
       tr.classList.remove("selected-row");
     }
   });
+
+  // Update Select All master checkbox state based on visible checkboxes currently rendered
+  const selectAllCheckbox = document.getElementById("selectAllLeads");
+  if (selectAllCheckbox) {
+    const tableBody = document.getElementById("leadsTableBody");
+    if (tableBody) {
+      const visibleCheckboxes = tableBody.querySelectorAll(".lead-checkbox");
+      if (visibleCheckboxes.length > 0) {
+        const allChecked = Array.from(visibleCheckboxes).every(cb => cb.checked);
+        selectAllCheckbox.checked = allChecked;
+      } else {
+        selectAllCheckbox.checked = false;
+      }
+    } else {
+      selectAllCheckbox.checked = false;
+    }
+  }
   
   if (count > 0) {
     if (toolbar) toolbar.classList.remove("hidden");
     if (selectedCountBadge) selectedCountBadge.textContent = `${count} selected`;
   } else {
     if (toolbar) toolbar.classList.add("hidden");
-    const selectAllCheckbox = document.getElementById("selectAllLeads");
-    if (selectAllCheckbox) selectAllCheckbox.checked = false;
   }
 };
 
 window.toggleSelectAllLeads = function(masterCheckbox) {
-  const checkboxes = document.querySelectorAll(".lead-checkbox");
-  checkboxes.forEach(cb => {
-    cb.checked = masterCheckbox.checked;
-  });
+  const tableBody = document.getElementById("leadsTableBody");
+  const cardsContainer = document.getElementById("leadsCardsContainer");
+  
+  if (tableBody) {
+    const checkboxes = tableBody.querySelectorAll(".lead-checkbox");
+    checkboxes.forEach(cb => {
+      cb.checked = masterCheckbox.checked;
+    });
+  }
+  if (cardsContainer) {
+    const checkboxes = cardsContainer.querySelectorAll(".lead-checkbox");
+    checkboxes.forEach(cb => {
+      cb.checked = masterCheckbox.checked;
+    });
+  }
   updateSelectedLeadsCount();
 };
 
@@ -3751,6 +3787,12 @@ window.clearBulkSelection = function() {
   });
   const selectAllCheckbox = document.getElementById("selectAllLeads");
   if (selectAllCheckbox) selectAllCheckbox.checked = false;
+  
+  const fieldSelect = document.getElementById("bulkDateFieldSelect");
+  const dateInput = document.getElementById("bulkDateInput");
+  if (fieldSelect) fieldSelect.value = "";
+  if (dateInput) dateInput.value = "";
+  
   updateSelectedLeadsCount();
 };
 
@@ -3829,9 +3871,80 @@ window.applyBulkChange = function(field, value) {
   if (document.getElementById("bulkPrioritySelect")) document.getElementById("bulkPrioritySelect").value = "";
   if (document.getElementById("bulkReplySelect")) document.getElementById("bulkReplySelect").value = "";
   if (document.getElementById("bulkChannelSelect")) document.getElementById("bulkChannelSelect").value = "";
+  if (document.getElementById("bulkDateFieldSelect")) document.getElementById("bulkDateFieldSelect").value = "";
+  if (document.getElementById("bulkDateInput")) document.getElementById("bulkDateInput").value = "";
   
   showToast(`Updated ${field} for ${indexes.length} leads!`, "success");
   clearBulkSelection();
+};
+
+window.applyBulkDateChange = async function() {
+  const fieldSelect = document.getElementById("bulkDateFieldSelect");
+  const dateInput = document.getElementById("bulkDateInput");
+  
+  if (!fieldSelect || !dateInput) return;
+  
+  const field = fieldSelect.value;
+  const dateValue = dateInput.value;
+  
+  if (!field) {
+    showToast("Please select a date field to update.", "error");
+    return;
+  }
+  
+  if (!dateValue) {
+    showToast("Please select a valid date.", "error");
+    return;
+  }
+  
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) {
+    showToast("No leads selected.", "error");
+    return;
+  }
+  
+  const selectedLeads = indexes.map(idx => leads[idx]);
+  const ids = selectedLeads.map(l => l.id).filter(Boolean);
+  
+  try {
+    if (cloudReady && ids.length > 0) {
+      setSyncStatus("syncing");
+      await apiFetch("/api/leads", {
+        method: "PATCH",
+        body: { 
+          ids, 
+          updates: { [field]: dateValue }
+        }
+      });
+      setSyncStatus("connected");
+    }
+    
+    // Update local memory
+    indexes.forEach(idx => {
+      if (leads[idx]) {
+        leads[idx][field] = dateValue;
+      }
+    });
+    
+    // Save to localStorage
+    localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+    
+    // Update UI
+    updateDashboard();
+    renderLeads();
+    renderTodayActions();
+    
+    showToast(`Updated date for ${indexes.length} leads!`, "success");
+    
+    // Reset selectors & selection
+    fieldSelect.value = "";
+    dateInput.value = "";
+    clearBulkSelection();
+  } catch (err) {
+    console.error("[Bulk Date Change] failed:", err);
+    setSyncStatus("offline");
+    showToast(`Failed to update dates: ${err.message || err}`, "error");
+  }
 };
 
 window.triggerBulkNextActionPrompt = function() {

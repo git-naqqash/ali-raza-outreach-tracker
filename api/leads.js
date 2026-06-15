@@ -185,13 +185,62 @@ module.exports = async function handler(req, res) {
       const body = req.body || {};
       const { ids, channel, updates } = body;
 
-      const targetChannel = channel || (updates && updates.channel);
-      if (!ids || !Array.isArray(ids) || ids.length === 0 || !targetChannel) {
-        return res.status(400).json({ error: "Missing ids or channel/updates.channel" });
+      const mergedUpdates = { ...updates };
+      if (channel) {
+        mergedUpdates.channel = channel;
+      }
+
+      if (!ids || !Array.isArray(ids) || ids.length === 0 || Object.keys(mergedUpdates).length === 0) {
+        return res.status(400).json({ error: "Missing ids or updates payload" });
+      }
+
+      const DB_FIELD_MAP = {
+        name:             "lead_name",
+        contactPerson:    "contact_person",
+        dateAdded:        "date_added",
+        market:           "market",
+        channel:          "channel",
+        mainLink:         "main_link",
+        niche:            "niche",
+        source:           "source",
+        priority:         "priority",
+        stage:            "stage",
+        lastActionDate:   "last_action_date",
+        nextAction:       "next_action",
+        nextActionDate:   "next_action_date",
+        replyStatus:      "reply_status",
+        notes:            "notes",
+        email:            "email",
+        whatsappNumber:   "whatsapp_number",
+        extraLink:        "extra_link",
+        followUpCount:    "followup_count",
+        messageSent:      "message_sent"
+      };
+
+      const dbUpdates = {};
+      for (const [key, val] of Object.entries(mergedUpdates)) {
+        const dbCol = DB_FIELD_MAP[key] || key;
+        dbUpdates[dbCol] = val;
       }
 
       for (const id of ids) {
-        await sql`UPDATE leads SET channel = ${targetChannel} WHERE id = ${id}`;
+        for (const [col, val] of Object.entries(dbUpdates)) {
+          if (col === "channel") {
+            await sql`UPDATE leads SET channel = ${val} WHERE id = ${id}`;
+          } else if (col === "next_action_date") {
+            await sql`UPDATE leads SET next_action_date = ${val} WHERE id = ${id}`;
+          } else if (col === "last_action_date") {
+            await sql`UPDATE leads SET last_action_date = ${val} WHERE id = ${id}`;
+          } else if (col === "date_added") {
+            await sql`UPDATE leads SET date_added = ${val} WHERE id = ${id}`;
+          } else if (col === "stage") {
+            await sql`UPDATE leads SET stage = ${val} WHERE id = ${id}`;
+          } else if (col === "priority") {
+            await sql`UPDATE leads SET priority = ${val} WHERE id = ${id}`;
+          } else if (col === "reply_status") {
+            await sql`UPDATE leads SET reply_status = ${val} WHERE id = ${id}`;
+          }
+        }
       }
 
       return res.status(200).json({ ok: true, updated: ids.length });
