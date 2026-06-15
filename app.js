@@ -635,6 +635,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadData();            // Immediately load localStorage (fast, no flicker)
   setupEventListeners();
   initStorageNotice();   // Hide storage notice if previously dismissed
+  initTableResizableColumns(); // Initialize resizable columns first
   initColumnVisibility(); // Initialize column visibility from preferences
   updateDashboard();
   renderLeads();
@@ -722,6 +723,117 @@ function applyColumnVisibility() {
       }
     }
   });
+
+  adjustTableWidthToColumns(document.querySelector("table.leads-table"));
+}
+
+function adjustTableWidthToColumns(table) {
+  if (!table) return;
+  const ths = table.querySelectorAll("thead th");
+  let totalWidth = 0;
+  ths.forEach(th => {
+    if (window.getComputedStyle(th).display !== "none") {
+      const widthVal = parseFloat(th.style.width) || th.offsetWidth;
+      totalWidth += widthVal;
+    }
+  });
+  table.style.width = totalWidth + "px";
+}
+
+function initTableResizableColumns() {
+  const table = document.querySelector("table.leads-table");
+  if (!table) return;
+
+  const ths = table.querySelectorAll("thead th");
+  const colWidthsKey = "ali_raza_col_widths";
+  let savedWidths = {};
+  
+  try {
+    savedWidths = JSON.parse(localStorage.getItem(colWidthsKey)) || {};
+  } catch (e) {
+    savedWidths = {};
+  }
+
+  ths.forEach((th, idx) => {
+    const colId = th.getAttribute("data-col") || `col-idx-${idx}`;
+    
+    // Apply saved width or initialize
+    if (savedWidths[colId]) {
+      th.style.width = savedWidths[colId] + "px";
+    } else {
+      const initialWidth = th.offsetWidth;
+      if (initialWidth > 0) {
+        th.style.width = initialWidth + "px";
+      } else {
+        // Fallbacks for initially hidden columns
+        let fallbackWidth = 100;
+        if (colId === "col-name") fallbackWidth = 180;
+        else if (colId === "col-contact") fallbackWidth = 140;
+        else if (colId === "col-market") fallbackWidth = 100;
+        else if (colId === "col-niche") fallbackWidth = 100;
+        else if (colId === "col-source") fallbackWidth = 100;
+        else if (colId === "col-priority") fallbackWidth = 90;
+        else if (colId === "col-stage") fallbackWidth = 100;
+        else if (colId === "col-nextAction") fallbackWidth = 130;
+        else if (colId === "col-nextActionDate") fallbackWidth = 120;
+        else if (colId === "col-replyStatus") fallbackWidth = 110;
+        else if (colId === "col-notes") fallbackWidth = 180;
+        else if (colId === "col-actions") fallbackWidth = 120;
+        else fallbackWidth = 40; // checkbox select
+        th.style.width = fallbackWidth + "px";
+      }
+    }
+
+    // Inject resizer handle
+    if (!th.querySelector(".resizer")) {
+      const resizer = document.createElement("div");
+      resizer.className = "resizer";
+      th.appendChild(resizer);
+
+      // Drag event handling
+      resizer.addEventListener("mousedown", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const startX = e.pageX;
+        const startWidth = th.offsetWidth;
+        
+        resizer.classList.add("resizing");
+        document.body.style.cursor = "col-resize";
+        document.body.style.userSelect = "none";
+
+        function onMouseMove(moveEvent) {
+          const dx = moveEvent.pageX - startX;
+          const newWidth = Math.max(40, startWidth + dx); // min width 40px
+          th.style.width = newWidth + "px";
+          adjustTableWidthToColumns(table);
+        }
+
+        function onMouseUp() {
+          resizer.classList.remove("resizing");
+          document.body.style.cursor = "";
+          document.body.style.userSelect = "";
+          
+          document.removeEventListener("mousemove", onMouseMove);
+          document.removeEventListener("mouseup", onMouseUp);
+          
+          // Save column widths to localStorage
+          try {
+            const currentWidths = JSON.parse(localStorage.getItem(colWidthsKey)) || {};
+            currentWidths[colId] = th.offsetWidth;
+            localStorage.setItem(colWidthsKey, JSON.stringify(currentWidths));
+          } catch (err) {
+            console.error("Failed to save column widths:", err);
+          }
+        }
+
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+      });
+    }
+  });
+
+  adjustTableWidthToColumns(table);
 }
 
 function toggleColumnVisibility(colId, isVisible) {
@@ -1026,14 +1138,15 @@ function renderLeads() {
   // Update table header text dynamically
   const contactHeader = document.getElementById("dynamicContactHeader");
   if (contactHeader) {
+    const textSpan = contactHeader.querySelector(".th-text") || contactHeader;
     if (activeTab === "Email") {
-      contactHeader.textContent = "Email Address";
+      textSpan.textContent = "Email Address";
     } else if (activeTab === "WhatsApp") {
-      contactHeader.textContent = "WhatsApp Number";
+      textSpan.textContent = "WhatsApp Number";
     } else if (activeTab === "Instagram" || activeTab === "LinkedIn") {
-      contactHeader.textContent = "Profile Link";
+      textSpan.textContent = "Profile Link";
     } else {
-      contactHeader.textContent = "Channel";
+      textSpan.textContent = "Channel";
     }
   }
 

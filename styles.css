@@ -525,6 +525,7 @@ button {
 
 table.leads-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
   font-size: 13.5px;
@@ -537,6 +538,25 @@ table.leads-table th {
   padding: 14px 18px;
   border-bottom: var(--border-light);
   white-space: nowrap;
+  position: relative;
+}
+
+.resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+}
+
+.resizer:hover,
+.resizer.resizing {
+  background-color: var(--color-royal-blue);
+  opacity: 0.6;
 }
 
 table.leads-table td {
