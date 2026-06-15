@@ -102,6 +102,11 @@ button {
   gap: 24px;
 }
 
+.main-content-section {
+  min-width: 0;
+  width: 100%;
+}
+
 /* Header & Logo */
 .app-header {
   display: flex;
@@ -626,6 +631,62 @@ table.leads-table td.col-notes-cell {
   overflow-wrap: break-word;
   word-break: break-word;
   white-space: normal;
+}
+
+/* Enforce column-specific min-widths to prevent layout collapsing */
+table.leads-table th[data-col="col-name"],
+table.leads-table td[data-col="col-name"] {
+  min-width: 180px;
+}
+
+table.leads-table th[data-col="col-contact"],
+table.leads-table td[data-col="col-contact"] {
+  min-width: 120px;
+}
+
+table.leads-table th[data-col="col-market"],
+table.leads-table td[data-col="col-market"] {
+  min-width: 90px;
+}
+
+table.leads-table th[data-col="col-niche"],
+table.leads-table td[data-col="col-niche"] {
+  min-width: 90px;
+}
+
+table.leads-table th[data-col="col-source"],
+table.leads-table td[data-col="col-source"] {
+  min-width: 80px;
+}
+
+table.leads-table th[data-col="col-priority"],
+table.leads-table td[data-col="col-priority"] {
+  min-width: 80px;
+}
+
+table.leads-table th[data-col="col-stage"],
+table.leads-table td[data-col="col-stage"] {
+  min-width: 100px;
+}
+
+table.leads-table th[data-col="col-nextAction"],
+table.leads-table td[data-col="col-nextAction"] {
+  min-width: 130px;
+}
+
+table.leads-table th[data-col="col-nextActionDate"],
+table.leads-table td[data-col="col-nextActionDate"] {
+  min-width: 110px;
+}
+
+table.leads-table th[data-col="col-replyStatus"],
+table.leads-table td[data-col="col-replyStatus"] {
+  min-width: 100px;
+}
+
+table.leads-table th[data-col="col-notes"],
+table.leads-table td[data-col="col-notes"] {
+  min-width: 160px;
 }
 
 table.leads-table tr:last-child td {

@@ -752,13 +752,29 @@ function applyColumnVisibility() {
   adjustTableWidthToColumns(table);
 }
 
+function getMinColumnWidth(colId) {
+  if (colId === "col-name") return 180;
+  if (colId === "col-contact") return 120;
+  if (colId === "col-market") return 90;
+  if (colId === "col-niche") return 90;
+  if (colId === "col-source") return 80;
+  if (colId === "col-priority") return 80;
+  if (colId === "col-stage") return 100;
+  if (colId === "col-nextAction") return 130;
+  if (colId === "col-nextActionDate") return 110;
+  if (colId === "col-replyStatus") return 100;
+  if (colId === "col-notes") return 160;
+  if (colId === "col-actions") return 120;
+  return 40; // Checkbox column fallback
+}
+
 function adjustTableWidthToColumns(table) {
   if (!table) return;
   const ths = table.querySelectorAll("thead th");
   let totalWidth = 0;
   ths.forEach(th => {
     if (window.getComputedStyle(th).display !== "none") {
-      const widthVal = parseFloat(th.style.width) || th.offsetWidth;
+      const widthVal = th.offsetWidth || parseFloat(th.style.width) || 0;
       totalWidth += widthVal;
     }
   });
@@ -832,7 +848,8 @@ function initTableResizableColumns() {
 
           function onMouseMove(moveEvent) {
             const dx = moveEvent.pageX - startX;
-            const newWidth = Math.max(40, startWidth + dx); // min width 40px
+            const minWidth = getMinColumnWidth(colId);
+            const newWidth = Math.max(minWidth, startWidth + dx);
             th.style.width = newWidth + "px";
             adjustTableWidthToColumns(table);
           }
