@@ -635,7 +635,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadData();            // Immediately load localStorage (fast, no flicker)
   setupEventListeners();
   initStorageNotice();   // Hide storage notice if previously dismissed
-  initTableResizableColumns(); // Initialize resizable columns first
+  // initTableResizableColumns(); // Column resizing has been disabled in favor of stable CSS widths
   initColumnVisibility(); // Initialize column visibility from preferences
   updateDashboard();
   renderLeads();
@@ -722,41 +722,12 @@ function applyColumnVisibility() {
     }
   });
 
-  // Highlight the last visible th to adjust resizer positioning and avoid scroll container clipping
-  const table = document.querySelector("table.leads-table");
-  if (table) {
-    const ths = table.querySelectorAll("thead th");
-    ths.forEach(th => th.classList.remove("last-visible-th"));
-    const visibleThs = Array.from(ths).filter(th => {
-      return th.style.display !== "none";
-    });
-    if (visibleThs.length > 0) {
-      visibleThs[visibleThs.length - 1].classList.add("last-visible-th");
-    }
-  }
-
-  adjustTableWidthToColumns(table);
+  // Resizer and dynamic table width adjustments have been disabled to let CSS handle layouts.
 }
 
 function getMinColumnWidth(colId) {
-  if (colId === "col-name") return 180;
-  if (colId === "col-contact") return 120;
-  if (colId === "col-market") return 90;
-  if (colId === "col-niche") return 90;
-  if (colId === "col-source") return 80;
-  if (colId === "col-priority") return 80;
-  if (colId === "col-stage") return 100;
-  if (colId === "col-nextAction") return 130;
-  if (colId === "col-nextActionDate") return 110;
-  if (colId === "col-replyStatus") return 100;
-  if (colId === "col-notes") return 160;
-  if (colId === "col-actions") return 120;
-  return 40; // Checkbox column fallback
-}
-
-function getDefaultColumnWidth(colId) {
-  if (colId === "col-name") return 200;
-  if (colId === "col-contact") return 150;
+  if (colId === "col-name") return 260;
+  if (colId === "col-contact") return 140;
   if (colId === "col-market") return 100;
   if (colId === "col-niche") return 120;
   if (colId === "col-source") return 90;
@@ -765,7 +736,23 @@ function getDefaultColumnWidth(colId) {
   if (colId === "col-nextAction") return 150;
   if (colId === "col-nextActionDate") return 130;
   if (colId === "col-replyStatus") return 125;
-  if (colId === "col-notes") return 280;
+  if (colId === "col-notes") return 250;
+  if (colId === "col-actions") return 120;
+  return 50; // Checkbox column fallback
+}
+
+function getDefaultColumnWidth(colId) {
+  if (colId === "col-name") return 260;
+  if (colId === "col-contact") return 140;
+  if (colId === "col-market") return 100;
+  if (colId === "col-niche") return 120;
+  if (colId === "col-source") return 90;
+  if (colId === "col-priority") return 85;
+  if (colId === "col-stage") return 110;
+  if (colId === "col-nextAction") return 150;
+  if (colId === "col-nextActionDate") return 130;
+  if (colId === "col-replyStatus") return 125;
+  if (colId === "col-notes") return 250;
   if (colId === "col-actions") return 120;
   return 100;
 }
@@ -1114,34 +1101,8 @@ function renderNotesCellContent(notes, originalIndex) {
   const cleanNotes = notes.trim();
   if (!cleanNotes) return '<span class="notes-empty">-</span>';
   
-  const hasToggle = cleanNotes.length > 60;
-  return `
-    <div class="notes-wrapper">
-      <div class="notes-preview" id="notes-preview-${originalIndex}">${escapeHtml(cleanNotes)}</div>
-      ${hasToggle ? `<button type="button" class="notes-toggle-link" onclick="toggleNotes(${originalIndex}, event)">Expand</button>` : ''}
-    </div>
-  `;
+  return `<p class="notes-full-text">${escapeHtml(cleanNotes)}</p>`;
 }
-
-window.toggleNotes = function(index, event) {
-  if (event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-  const previewDiv = document.getElementById(`notes-preview-${index}`);
-  const btn = event.target;
-  
-  if (previewDiv && btn) {
-    const isExpanded = previewDiv.classList.contains("expanded");
-    if (isExpanded) {
-      previewDiv.classList.remove("expanded");
-      btn.textContent = "Expand";
-    } else {
-      previewDiv.classList.add("expanded");
-      btn.textContent = "Collapse";
-    }
-  }
-};
 
 // Render Leads Grid (Table and Mobile Cards)
 function renderLeads() {

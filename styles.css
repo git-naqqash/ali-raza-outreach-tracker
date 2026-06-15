@@ -554,70 +554,19 @@ table.leads-table th {
   position: relative;
 }
 
-.resizer {
-  position: absolute;
-  top: 0;
-  right: -6px;
-  width: 12px;
-  height: 100%;
-  cursor: col-resize;
-  user-select: none;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-/* Subtle vertical line matching soft gray theme */
-.resizer::before {
-  content: "";
-  display: block;
-  width: 2px;
-  height: 100%;
-  background-color: rgba(11, 31, 58, 0.08); /* soft gray from --border-light */
-  transition: background-color 0.2s ease, width 0.2s ease;
-}
 
-/* Visual grip indicator centered within the resizer */
-.resizer::after {
-  content: "⋮";
-  color: var(--color-dark-gray);
-  font-size: 12px;
-  font-weight: bold;
-  opacity: 0.35;
-  transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
-  pointer-events: none;
-  position: absolute;
-}
-
-/* Hover state / Active dragging state */
-.resizer:hover::before,
-.resizer.resizing::before {
-  background-color: var(--color-royal-blue);
-  width: 3px;
-}
-
-.resizer:hover::after,
-.resizer.resizing::after {
-  color: var(--color-royal-blue);
-  opacity: 1;
-  transform: scale(1.2);
-}
-
-/* Align the last visible column's resizer flush inside the header to prevent clipping */
-table.leads-table th.last-visible-th .resizer {
-  right: 0;
-}
-
-/* Lock width of first column header (checkbox select) */
-table.leads-table th:first-child {
+/* Lock width of first column (checkbox select) */
+table.leads-table th:first-child,
+table.leads-table td:first-child {
   width: 50px !important;
   min-width: 50px !important;
   max-width: 50px !important;
 }
 
-/* Lock width of last column header (actions) */
-table.leads-table th[data-col="col-actions"] {
+/* Lock width of last column (actions) */
+table.leads-table th[data-col="col-actions"],
+table.leads-table td[data-col="col-actions"] {
   width: 120px !important;
   min-width: 120px !important;
   max-width: 120px !important;
@@ -640,106 +589,97 @@ table.leads-table td {
 }
 
 table.leads-table td.col-notes-cell {
-  max-width: 280px;
-  overflow-wrap: break-word;
-  word-break: break-word;
   white-space: normal;
 }
 
-.notes-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-  width: 100%;
-}
-
-.notes-preview {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 12.5px;
+.notes-full-text {
+  font-size: 13px;
   color: var(--color-dark-gray);
   line-height: 1.4;
+  margin: 0;
+  white-space: pre-wrap;
   word-break: break-word;
-  white-space: normal;
-  width: 100%;
-}
-
-.notes-preview.expanded {
-  display: block;
-  overflow: visible;
-  -webkit-line-clamp: none;
-}
-
-.notes-toggle-link {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--color-royal-blue);
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 11px;
-  text-decoration: none;
-  font-family: inherit;
-  transition: opacity 0.2s;
-}
-
-.notes-toggle-link:hover {
-  text-decoration: underline;
-  opacity: 0.8;
 }
 
 .notes-empty {
   color: var(--color-priority-c);
 }
 
-/* Enforce column-specific min-widths to prevent layout collapsing */
-table.leads-table th[data-col="col-name"] {
-  min-width: 200px;
+/* Enforce column-specific fixed widths to prevent layout collapsing and ensure perfect alignment */
+table.leads-table th[data-col="col-name"],
+table.leads-table td[data-col="col-name"] {
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
 }
 
-table.leads-table th[data-col="col-contact"] {
-  min-width: 150px;
+table.leads-table th[data-col="col-contact"],
+table.leads-table td[data-col="col-contact"] {
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
 }
 
-table.leads-table th[data-col="col-market"] {
-  min-width: 100px;
+table.leads-table th[data-col="col-market"],
+table.leads-table td[data-col="col-market"] {
+  width: 100px !important;
+  min-width: 100px !important;
+  max-width: 100px !important;
 }
 
-table.leads-table th[data-col="col-niche"] {
-  min-width: 120px;
+table.leads-table th[data-col="col-niche"],
+table.leads-table td[data-col="col-niche"] {
+  width: 120px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
 }
 
-table.leads-table th[data-col="col-source"] {
-  min-width: 90px;
+table.leads-table th[data-col="col-source"],
+table.leads-table td[data-col="col-source"] {
+  width: 90px !important;
+  min-width: 90px !important;
+  max-width: 90px !important;
 }
 
-table.leads-table th[data-col="col-priority"] {
-  min-width: 85px;
+table.leads-table th[data-col="col-priority"],
+table.leads-table td[data-col="col-priority"] {
+  width: 85px !important;
+  min-width: 85px !important;
+  max-width: 85px !important;
 }
 
-table.leads-table th[data-col="col-stage"] {
-  min-width: 110px;
+table.leads-table th[data-col="col-stage"],
+table.leads-table td[data-col="col-stage"] {
+  width: 110px !important;
+  min-width: 110px !important;
+  max-width: 110px !important;
 }
 
-table.leads-table th[data-col="col-nextAction"] {
-  min-width: 150px;
+table.leads-table th[data-col="col-nextAction"],
+table.leads-table td[data-col="col-nextAction"] {
+  width: 150px !important;
+  min-width: 150px !important;
+  max-width: 150px !important;
 }
 
-table.leads-table th[data-col="col-nextActionDate"] {
-  min-width: 130px;
+table.leads-table th[data-col="col-nextActionDate"],
+table.leads-table td[data-col="col-nextActionDate"] {
+  width: 130px !important;
+  min-width: 130px !important;
+  max-width: 130px !important;
 }
 
-table.leads-table th[data-col="col-replyStatus"] {
-  min-width: 125px;
+table.leads-table th[data-col="col-replyStatus"],
+table.leads-table td[data-col="col-replyStatus"] {
+  width: 125px !important;
+  min-width: 125px !important;
+  max-width: 125px !important;
 }
 
-table.leads-table th[data-col="col-notes"] {
-  min-width: 160px;
-  max-width: 280px;
+/* Notes is the only flexible column in the table, expanding to fill remaining card space */
+table.leads-table th[data-col="col-notes"],
+table.leads-table td[data-col="col-notes"] {
+  min-width: 250px !important;
 }
 
 table.leads-table tr:last-child td {
