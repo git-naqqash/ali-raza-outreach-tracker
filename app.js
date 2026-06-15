@@ -1100,6 +1100,46 @@ function getReplyBadge(status) {
   return `<span class="reply-status-text ${cssClass}">${status}</span>`;
 }
 
+function renderNotesCellContent(notes, originalIndex) {
+  if (!notes) return '<span class="notes-empty">-</span>';
+  const cleanNotes = notes.trim();
+  if (!cleanNotes) return '<span class="notes-empty">-</span>';
+  
+  if (cleanNotes.length <= 80) {
+    return `<span class="notes-text">${escapeHtml(cleanNotes)}</span>`;
+  }
+  
+  const shortNotes = cleanNotes.substring(0, 75) + "...";
+  return `
+    <span class="notes-text-short" id="notes-short-${originalIndex}">${escapeHtml(shortNotes)}</span>
+    <span class="notes-text-full" id="notes-full-${originalIndex}" style="white-space: pre-wrap; display: none;">${escapeHtml(cleanNotes)}</span>
+    <button type="button" class="notes-toggle-btn" onclick="toggleNotes(${originalIndex}, event)">View more</button>
+  `;
+}
+
+window.toggleNotes = function(index, event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  const shortSpan = document.getElementById(`notes-short-${index}`);
+  const fullSpan = document.getElementById(`notes-full-${index}`);
+  const btn = event.target;
+  
+  if (shortSpan && fullSpan && btn) {
+    const isExpanded = shortSpan.style.display === "none";
+    if (isExpanded) {
+      shortSpan.style.display = "inline";
+      fullSpan.style.display = "none";
+      btn.textContent = "View more";
+    } else {
+      shortSpan.style.display = "none";
+      fullSpan.style.display = "inline";
+      btn.textContent = "View less";
+    }
+  }
+};
+
 // Render Leads Grid (Table and Mobile Cards)
 function renderLeads() {
   clearBulkSelection();
@@ -1255,7 +1295,9 @@ function renderLeads() {
         </span>
       </td>
       <td data-col="col-replyStatus">${getReplyBadge(lead.replyStatus)}</td>
-      <td data-col="col-notes" class="col-notes-cell" title="${escapeHtml(lead.notes || '')}">${escapeHtml(lead.notes || '-')}</td>
+      <td data-col="col-notes" class="col-notes-cell" title="${escapeHtml(lead.notes || '')}">
+        ${renderNotesCellContent(lead.notes, lead.originalIndex)}
+      </td>
       <td data-col="col-actions">
         <div class="action-buttons" style="display: flex; gap: 4px; align-items: center; justify-content: center;">
           ${getQuickActionsDropdownHtml(lead)}

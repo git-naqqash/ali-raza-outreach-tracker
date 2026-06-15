@@ -531,6 +531,9 @@ button {
   display: block;
   overflow-x: auto;
   overflow-y: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 table.leads-table {
@@ -538,6 +541,7 @@ table.leads-table {
   border-collapse: collapse;
   text-align: left;
   font-size: 13.5px;
+  min-width: 100%;
 }
 
 table.leads-table th {
@@ -634,6 +638,31 @@ table.leads-table td.col-notes-cell {
   overflow-wrap: break-word;
   word-break: break-word;
   white-space: normal;
+}
+
+.notes-toggle-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 6px;
+  color: var(--color-royal-blue);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 11.5px;
+  text-decoration: none;
+  font-family: inherit;
+  transition: opacity 0.2s;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.notes-toggle-btn:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+.notes-empty {
+  color: var(--color-priority-c);
 }
 
 /* Enforce column-specific min-widths to prevent layout collapsing */
