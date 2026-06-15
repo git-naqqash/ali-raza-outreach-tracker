@@ -4,11 +4,20 @@
 const LOGIN_USER = "contact.naqqash@gmail.com";
 const LOGIN_PASS = "@@@03314200250";
 
+// Helper to format a Date object as a local YYYY-MM-DD string
+function formatLocalDate(d) {
+  if (!d || !(d instanceof Date) || isNaN(d.getTime())) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 // Helper to format dates relative to today
 function getOffsetDateString(daysOffset) {
   const d = new Date();
   d.setDate(d.getDate() + daysOffset);
-  return d.toISOString().split('T')[0];
+  return formatLocalDate(d);
 }
 
 // Parse dates from excel (handles serial number and text/strings)
@@ -16,7 +25,7 @@ function parseExcelDate(val) {
   if (val === undefined || val === null || val === "") return null;
   
   if (val instanceof Date) {
-    return val.toISOString().split('T')[0];
+    return formatLocalDate(val);
   }
   
   if (typeof val === 'number' || (!isNaN(val) && !isNaN(parseFloat(val)))) {
@@ -25,7 +34,7 @@ function parseExcelDate(val) {
     const utc_value = utc_days * 86400;
     const date_info = new Date(utc_value * 1000);
     const localDate = new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
-    return localDate.toISOString().split('T')[0];
+    return formatLocalDate(localDate);
   }
 
   const str = String(val).trim();
@@ -33,7 +42,7 @@ function parseExcelDate(val) {
 
   const parsedMs = Date.parse(str);
   if (!isNaN(parsedMs)) {
-    return new Date(parsedMs).toISOString().split('T')[0];
+    return formatLocalDate(new Date(parsedMs));
   }
 
   // Handle formats like "25 may 2026" or "13-May-2026"
@@ -49,7 +58,7 @@ function parseExcelDate(val) {
     if (months[monthStr] !== undefined) {
       const d = new Date(year, months[monthStr], day);
       if (!isNaN(d.getTime())) {
-        return d.toISOString().split('T')[0];
+        return formatLocalDate(d);
       }
     }
   }
@@ -60,7 +69,7 @@ function parseExcelDate(val) {
   if (dateMatch) {
     const d = new Date(dateMatch[0]);
     if (!isNaN(d.getTime())) {
-      return d.toISOString().split('T')[0];
+      return formatLocalDate(d);
     }
   }
 
@@ -81,7 +90,7 @@ function addWorkingDays(startDateStr, days) {
       added++;
     }
   }
-  return date.toISOString().split('T')[0];
+  return formatLocalDate(date);
 }
 
 // Add calendar days to a date
@@ -91,7 +100,7 @@ function addDays(startDateStr, days) {
     date = new Date();
   }
   date.setDate(date.getDate() + days);
-  return date.toISOString().split('T')[0];
+  return formatLocalDate(date);
 }
 
 // Check if a SheetJS cell style is colored red (background or fill)
@@ -805,7 +814,7 @@ function saveData() {
 
 // Calculate and Render Dashboard Metrics
 function updateDashboard() {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getOffsetDateString(0);
 
   // Raw counts
   const total = leads.length;
@@ -841,7 +850,7 @@ function updateDashboard() {
 
 // Unified Filter Logic
 function getFilteredLeads() {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getOffsetDateString(0);
   const searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
   
   // Advanced filter values
@@ -1196,7 +1205,7 @@ function renderLeads() {
 
 // Render "Today's Actions" section in the new Today Mode columns
 function renderTodayActions() {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getOffsetDateString(0);
   
   const todayModeCount = document.getElementById("todayModeCount");
   const firstMessagesCount = document.getElementById("firstMessagesCount");
@@ -1376,7 +1385,7 @@ function openAddModal() {
   const form = document.getElementById("leadForm");
   form.reset();
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getOffsetDateString(0);
   document.getElementById("leadDateAdded").value = todayStr;
   document.getElementById("leadLastActionDate").value = todayStr;
   document.getElementById("leadSource").value = "Google";
@@ -2121,7 +2130,7 @@ function setupEventListeners() {
       const notesVal = notesPrefix + document.getElementById("captureNotes").value.trim();
       
       const newLead = {
-        dateAdded: new Date().toISOString().split('T')[0],
+        dateAdded: getOffsetDateString(0),
         name: document.getElementById("captureName").value.trim(),
         market: document.getElementById("captureMarket").value,
         channel: channel,
@@ -2132,7 +2141,7 @@ function setupEventListeners() {
         stage: "Found",
         lastActionDate: "",
         nextAction: nextAction,
-        nextActionDate: new Date().toISOString().split('T')[0],
+        nextActionDate: getOffsetDateString(0),
         replyStatus: "No reply",
         notes: notesVal,
         
@@ -2255,7 +2264,7 @@ function exportToCSV() {
   // Trigger download
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  const dateStr = new Date().toISOString().split("T")[0];
+  const dateStr = getOffsetDateString(0);
   
   link.setAttribute("href", url);
   link.setAttribute("download", `Ali_Raza_Outreach_Leads_${dateStr}.csv`);
@@ -2752,7 +2761,7 @@ function exportBackupJSON() {
   const blob = new Blob([jsonStr], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   
-  const dateStr = new Date().toISOString().split('T')[0];
+  const dateStr = getOffsetDateString(0);
   const filename = `ali-raza-outreach-backup-${dateStr}.json`;
   
   const link = document.createElement("a");
@@ -3491,7 +3500,7 @@ function setFollowupCalendar(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const currentVal = lead.nextActionDate || new Date().toISOString().split('T')[0];
+  const currentVal = lead.nextActionDate || getOffsetDateString(0);
   const input = prompt(`Reschedule next action date for "${lead.name}":\nEnter a date (YYYY-MM-DD) or number of days (e.g. "+3" or "3"):`, currentVal);
   
   if (input === null) return;
@@ -3500,11 +3509,11 @@ function setFollowupCalendar(originalIndex) {
   const cleaned = input.trim();
   if (/^\+?\d+$/.test(cleaned)) {
     const offset = parseInt(cleaned);
-    newDate = addDays(new Date().toISOString().split('T')[0], offset);
+    newDate = addDays(getOffsetDateString(0), offset);
   } else {
     const d = new Date(cleaned);
     if (!isNaN(d.getTime())) {
-      newDate = d.toISOString().split('T')[0];
+      newDate = formatLocalDate(d);
     } else {
       alert("Invalid date format. Please use YYYY-MM-DD or a number of days.");
       return;
@@ -3524,7 +3533,7 @@ function markSentEmail(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   lead.replyStatus = "No reply";
   
@@ -3562,7 +3571,7 @@ function markSentWhatsApp(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   lead.stage = "First Message Sent";
   lead.replyStatus = "No reply";
@@ -3581,7 +3590,7 @@ function markInstagramCommented(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   
   const commentNote = `[${today}] Commented on Instagram post.`;
@@ -3602,7 +3611,7 @@ function markInstagramFollowed(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   
   const followNote = `[${today}] Followed Instagram profile.`;
@@ -3623,7 +3632,7 @@ function markSentDM(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   lead.stage = "First Message Sent";
   lead.replyStatus = "No reply";
@@ -3642,7 +3651,7 @@ function markLinkedInConnectionSent(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   lead.stage = "First Message Sent";
   lead.replyStatus = "No reply";
@@ -3661,7 +3670,7 @@ function markSentLinkedInMessage(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   lead.stage = "First Message Sent";
   lead.replyStatus = "No reply";
@@ -3680,7 +3689,7 @@ function markFollowupSent(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   lead.followUpCount = (lead.followUpCount || 0) + 1;
   lead.replyStatus = "No reply";
@@ -3716,7 +3725,7 @@ function sendSamples(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   lead.stage = "Samples Sent";
   lead.replyStatus = "Samples requested";
@@ -3738,7 +3747,7 @@ function sendCV(originalIndex) {
   const lead = leads[originalIndex];
   if (!lead) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   lead.lastActionDate = today;
   lead.replyStatus = "CV requested";
   lead.nextAction = "Send follow-up";
@@ -4019,11 +4028,11 @@ window.applyBulkNextAction = async function(value) {
   const cleaned = newDate.trim();
   if (/^\+?\d+$/.test(cleaned)) {
     const offset = parseInt(cleaned);
-    parsedDate = addDays(new Date().toISOString().split('T')[0], offset);
+    parsedDate = addDays(getOffsetDateString(0), offset);
   } else {
     const d = new Date(cleaned);
     if (!isNaN(d.getTime())) {
-      parsedDate = d.toISOString().split('T')[0];
+      parsedDate = formatLocalDate(d);
     } else {
       alert("Invalid date format.");
       const nextActionSelect = document.getElementById("bulkNextActionSelect");
@@ -4083,7 +4092,7 @@ window.bulkMarkFirstMessageSent = function() {
   const indexes = getSelectedLeadIndexes();
   if (indexes.length === 0) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   
   indexes.forEach(idx => {
     const lead = leads[idx];
@@ -4118,7 +4127,7 @@ window.bulkMarkFollowupSent = function() {
   const indexes = getSelectedLeadIndexes();
   if (indexes.length === 0) return;
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getOffsetDateString(0);
   let limitWarningTriggered = false;
   
   indexes.forEach(idx => {
@@ -4244,7 +4253,7 @@ window.bulkExportCSV = function() {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `outreach_leads_selected_${new Date().toISOString().split('T')[0]}.csv`);
+  link.setAttribute("download", `outreach_leads_selected_${getOffsetDateString(0)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
