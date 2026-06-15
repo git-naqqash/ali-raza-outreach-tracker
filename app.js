@@ -689,16 +689,28 @@ function applyColumnVisibility() {
     settings = {};
   }
   
-  const columns = [
-    "col-name", "col-contact", "col-market", "col-niche", "col-source", 
-    "col-priority", "col-stage", "col-nextAction", "col-nextActionDate", 
-    "col-replyStatus", "col-notes", "col-actions"
-  ];
-  
-  columns.forEach(colId => {
+  const colCheckboxes = document.querySelectorAll(".col-toggle-checkbox");
+  colCheckboxes.forEach((cb, index) => {
+    const colId = cb.getAttribute("data-column");
     const isVisible = settings[colId] !== false;
-    const cells = document.querySelectorAll(`[data-col="${colId}"]`);
-    cells.forEach(cell => {
+    
+    // Dynamically calculate the 1-based column index in the table (1st column is select checkbox)
+    const colIndex = index + 2;
+    
+    // Toggle header and body cells by column index in the desktop table
+    const tableHeaderCells = document.querySelectorAll(`table.leads-table th:nth-child(${colIndex})`);
+    const tableBodyCells = document.querySelectorAll(`table.leads-table td:nth-child(${colIndex})`);
+    
+    tableHeaderCells.forEach(cell => {
+      cell.style.display = isVisible ? "" : "none";
+    });
+    tableBodyCells.forEach(cell => {
+      cell.style.display = isVisible ? "" : "none";
+    });
+
+    // Toggle elements by data-col selector (covers mobile cards and any other layouts)
+    const dataCells = document.querySelectorAll(`[data-col="${colId}"]`);
+    dataCells.forEach(cell => {
       cell.style.display = isVisible ? "" : "none";
     });
   });
