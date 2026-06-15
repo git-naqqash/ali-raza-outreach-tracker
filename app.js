@@ -724,7 +724,20 @@ function applyColumnVisibility() {
     }
   });
 
-  adjustTableWidthToColumns(document.querySelector("table.leads-table"));
+  // Highlight the last visible th to adjust resizer positioning and avoid scroll container clipping
+  const table = document.querySelector("table.leads-table");
+  if (table) {
+    const ths = table.querySelectorAll("thead th");
+    ths.forEach(th => th.classList.remove("last-visible-th"));
+    const visibleThs = Array.from(ths).filter(th => {
+      return window.getComputedStyle(th).display !== "none";
+    });
+    if (visibleThs.length > 0) {
+      visibleThs[visibleThs.length - 1].classList.add("last-visible-th");
+    }
+  }
+
+  adjustTableWidthToColumns(table);
 }
 
 function adjustTableWidthToColumns(table) {

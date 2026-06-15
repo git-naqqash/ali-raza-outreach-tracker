@@ -591,6 +591,11 @@ table.leads-table th {
   transform: scale(1.2);
 }
 
+/* Align the last visible column's resizer flush inside the header to prevent clipping */
+table.leads-table th.last-visible-th .resizer {
+  right: 0;
+}
+
 table.leads-table td {
   padding: 14px 18px;
   border-bottom: var(--border-light);
