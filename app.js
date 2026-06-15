@@ -776,7 +776,7 @@ function adjustTableWidthToColumns(table) {
   let totalWidth = 0;
   ths.forEach(th => {
     if (th.style.display !== "none") {
-      const widthVal = th.offsetWidth || parseFloat(th.style.width) || 0;
+      const widthVal = parseFloat(th.style.width) || th.offsetWidth || 0;
       totalWidth += widthVal;
     }
   });
