@@ -544,19 +544,51 @@ table.leads-table th {
 .resizer {
   position: absolute;
   top: 0;
-  right: 0;
-  width: 6px;
+  right: -6px;
+  width: 12px;
   height: 100%;
   cursor: col-resize;
   user-select: none;
   z-index: 10;
-  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.resizer:hover,
-.resizer.resizing {
+/* Subtle vertical line matching soft gray theme */
+.resizer::before {
+  content: "";
+  display: block;
+  width: 2px;
+  height: 100%;
+  background-color: rgba(11, 31, 58, 0.08); /* soft gray from --border-light */
+  transition: background-color 0.2s ease, width 0.2s ease;
+}
+
+/* Visual grip indicator centered within the resizer */
+.resizer::after {
+  content: "⋮";
+  color: var(--color-dark-gray);
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0.35;
+  transition: opacity 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Hover state / Active dragging state */
+.resizer:hover::before,
+.resizer.resizing::before {
   background-color: var(--color-royal-blue);
-  opacity: 0.6;
+  width: 3px;
+}
+
+.resizer:hover::after,
+.resizer.resizing::after {
+  color: var(--color-royal-blue);
+  opacity: 1;
+  transform: scale(1.2);
 }
 
 table.leads-table td {
