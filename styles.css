@@ -498,6 +498,7 @@ button {
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   max-width: 100%;
+  width: 100%;
 }
 
 .table-header {
@@ -527,6 +528,7 @@ button {
 .leads-table-scroll {
   overflow-x: auto;
   max-width: 100%;
+  width: 100%;
 }
 
 table.leads-table {

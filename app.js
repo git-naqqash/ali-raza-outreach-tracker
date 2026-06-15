@@ -690,28 +690,14 @@ function applyColumnVisibility() {
   }
   
   const colCheckboxes = document.querySelectorAll(".col-toggle-checkbox");
-  colCheckboxes.forEach((cb, index) => {
+  colCheckboxes.forEach((cb) => {
     const colId = cb.getAttribute("data-column");
     const isVisible = settings[colId] !== false;
     
-    // Dynamically calculate the 1-based column index in the table (1st column is select checkbox)
-    const colIndex = index + 2;
-    
-    // Toggle header and body cells by column index in the desktop table
-    const tableHeaderCells = document.querySelectorAll(`table.leads-table th:nth-child(${colIndex})`);
-    const tableBodyCells = document.querySelectorAll(`table.leads-table td:nth-child(${colIndex})`);
-    
-    tableHeaderCells.forEach(cell => {
-      cell.style.display = isVisible ? "" : "none";
-    });
-    tableBodyCells.forEach(cell => {
-      cell.style.display = isVisible ? "" : "none";
-    });
-
-    // Toggle elements by data-col selector (covers mobile cards and any other layouts)
-    const dataCells = document.querySelectorAll(`[data-col="${colId}"]`);
-    dataCells.forEach(cell => {
-      cell.style.display = isVisible ? "" : "none";
+    // Toggle all elements (headers, cells, mobile card fields) with data-col attribute
+    const elements = document.querySelectorAll(`[data-col="${colId}"]`);
+    elements.forEach(el => {
+      el.style.display = isVisible ? "" : "none";
     });
   });
 
@@ -742,7 +728,7 @@ function applyColumnVisibility() {
     const ths = table.querySelectorAll("thead th");
     ths.forEach(th => th.classList.remove("last-visible-th"));
     const visibleThs = Array.from(ths).filter(th => {
-      return window.getComputedStyle(th).display !== "none";
+      return th.style.display !== "none";
     });
     if (visibleThs.length > 0) {
       visibleThs[visibleThs.length - 1].classList.add("last-visible-th");
@@ -768,12 +754,28 @@ function getMinColumnWidth(colId) {
   return 40; // Checkbox column fallback
 }
 
+function getDefaultColumnWidth(colId) {
+  if (colId === "col-name") return 180;
+  if (colId === "col-contact") return 140;
+  if (colId === "col-market") return 100;
+  if (colId === "col-niche") return 100;
+  if (colId === "col-source") return 100;
+  if (colId === "col-priority") return 90;
+  if (colId === "col-stage") return 100;
+  if (colId === "col-nextAction") return 140;
+  if (colId === "col-nextActionDate") return 120;
+  if (colId === "col-replyStatus") return 110;
+  if (colId === "col-notes") return 250;
+  if (colId === "col-actions") return 120;
+  return 100;
+}
+
 function adjustTableWidthToColumns(table) {
   if (!table) return;
   const ths = table.querySelectorAll("thead th");
   let totalWidth = 0;
   ths.forEach(th => {
-    if (window.getComputedStyle(th).display !== "none") {
+    if (th.style.display !== "none") {
       const widthVal = th.offsetWidth || parseFloat(th.style.width) || 0;
       totalWidth += widthVal;
     }
@@ -798,37 +800,19 @@ function initTableResizableColumns() {
   ths.forEach((th, idx) => {
     const colId = th.getAttribute("data-col") || `col-idx-${idx}`;
     
-    // Apply saved width or initialize (lock first and last columns)
+    // Apply saved width or initialize (lock first and actions columns)
     if (idx === 0) {
       th.style.width = "50px";
-    } else if (idx === ths.length - 1) {
+    } else if (colId === "col-actions") {
       th.style.width = "120px";
     } else if (savedWidths[colId]) {
       th.style.width = savedWidths[colId] + "px";
     } else {
-      const initialWidth = th.offsetWidth;
-      if (initialWidth > 0) {
-        th.style.width = initialWidth + "px";
-      } else {
-        // Fallbacks for initially hidden columns
-        let fallbackWidth = 100;
-        if (colId === "col-name") fallbackWidth = 180;
-        else if (colId === "col-contact") fallbackWidth = 140;
-        else if (colId === "col-market") fallbackWidth = 100;
-        else if (colId === "col-niche") fallbackWidth = 100;
-        else if (colId === "col-source") fallbackWidth = 100;
-        else if (colId === "col-priority") fallbackWidth = 90;
-        else if (colId === "col-stage") fallbackWidth = 100;
-        else if (colId === "col-nextAction") fallbackWidth = 130;
-        else if (colId === "col-nextActionDate") fallbackWidth = 120;
-        else if (colId === "col-replyStatus") fallbackWidth = 110;
-        else if (colId === "col-notes") fallbackWidth = 180;
-        th.style.width = fallbackWidth + "px";
-      }
+      th.style.width = getDefaultColumnWidth(colId) + "px";
     }
 
     // Inject resizer handle (skip first checkbox column and last actions column)
-    if (idx !== 0 && idx !== ths.length - 1) {
+    if (idx !== 0 && colId !== "col-actions") {
       if (!th.querySelector(".resizer")) {
         const resizer = document.createElement("div");
         resizer.className = "resizer";
