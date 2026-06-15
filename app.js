@@ -1202,31 +1202,76 @@ function renderTodayActions() {
   const firstMessagesCount = document.getElementById("firstMessagesCount");
   const followupsCount = document.getElementById("followupsCount");
   const warmCount = document.getElementById("warmCount");
+  const overdueCount = document.getElementById("overdueCount");
   
   const firstList = document.getElementById("firstMessagesList");
   const followupsList = document.getElementById("followupsList");
   const warmList = document.getElementById("warmList");
+  const overdueList = document.getElementById("overdueList");
 
-  if (!firstList || !followupsList || !warmList) return;
+  if (!firstList || !followupsList || !warmList || !overdueList) return;
 
   // Filter criteria: Next Action Date is today or earlier AND Stage is not Archived
-  const todayLeads = leads
+  let todayLeads = leads
     .map((lead, index) => ({ ...lead, originalIndex: index }))
-    .filter(lead => lead.nextActionDate && lead.nextActionDate <= todayStr && lead.stage !== "Archived");
+    .filter(lead => {
+      if (!lead.nextActionDate) return false;
+      if (lead.stage === "Archived") return false;
+      const leadDate = lead.nextActionDate.substring(0, 10);
+      return leadDate <= todayStr;
+    });
+
+  // Apply activeTodayFilter
+  if (activeTodayFilter === "Email") {
+    todayLeads = todayLeads.filter(l => l.channel === "Email");
+  } else if (activeTodayFilter === "WhatsApp") {
+    todayLeads = todayLeads.filter(l => l.channel === "WhatsApp");
+  } else if (activeTodayFilter === "Instagram") {
+    todayLeads = todayLeads.filter(l => l.channel === "Instagram");
+  } else if (activeTodayFilter === "LinkedIn") {
+    todayLeads = todayLeads.filter(l => l.channel === "LinkedIn");
+  } else if (activeTodayFilter === "A") {
+    todayLeads = todayLeads.filter(l => l.priority === "A");
+  } else if (activeTodayFilter === "Warm") {
+    todayLeads = todayLeads.filter(l => l.stage === "Warm Lead");
+  } else if (activeTodayFilter === "Overdue") {
+    todayLeads = todayLeads.filter(l => l.nextActionDate.substring(0, 10) < todayStr);
+  }
 
   if (todayModeCount) todayModeCount.textContent = `${todayLeads.length} active`;
 
+  // Helper to determine first message action type
+  const isFirstAction = (action) => {
+    const act = (action || "").toLowerCase();
+    return act.includes("first") || 
+           act.includes("dm") || 
+           act.includes("connection") || 
+           act.includes("email") || 
+           act.includes("whatsapp") || 
+           act.includes("like") || 
+           (act.includes("follow") && !act.includes("follow-up") && !act.includes("followup"));
+  };
+
   // Partition leads
-  // 1. Send First Messages: Stage is Found or Engaged
-  const firstMessages = todayLeads.filter(l => l.stage === "Found" || l.stage === "Engaged");
-  // 2. Warm Leads: Stage is Warm Lead
-  const warmLeads = todayLeads.filter(l => l.stage === "Warm Lead");
-  // 3. Follow-ups Due: Any other active stage
-  const followups = todayLeads.filter(l => l.stage !== "Found" && l.stage !== "Engaged" && l.stage !== "Warm Lead");
+  // 1. Overdue Actions: dates older than today
+  const overdueActions = todayLeads.filter(l => l.nextActionDate.substring(0, 10) < todayStr);
+  
+  // Leads matching today's date
+  const currentLeads = todayLeads.filter(l => l.nextActionDate.substring(0, 10) === todayStr);
+
+  // 2. Send First Messages: today's date and is first contact action
+  const firstMessages = currentLeads.filter(l => l.stage !== "Warm Lead" && isFirstAction(l.nextAction));
+  
+  // 3. Warm Leads: today's date and Stage is Warm Lead
+  const warmLeads = currentLeads.filter(l => l.stage === "Warm Lead");
+  
+  // 4. Follow-ups Due: today's date and not first contact action
+  const followups = currentLeads.filter(l => l.stage !== "Warm Lead" && !isFirstAction(l.nextAction));
 
   if (firstMessagesCount) firstMessagesCount.textContent = firstMessages.length;
   if (followupsCount) followupsCount.textContent = followups.length;
   if (warmCount) warmCount.textContent = warmLeads.length;
+  if (overdueCount) overdueCount.textContent = overdueActions.length;
 
   // Helper to render workflow cards
   const renderColumnList = (container, listLeads, columnType) => {
@@ -1236,6 +1281,7 @@ function renderTodayActions() {
       if (columnType === "first") emptyMsg = "No new messages to send";
       else if (columnType === "followup") emptyMsg = "No follow-ups due";
       else if (columnType === "warm") emptyMsg = "No warm leads pending";
+      else if (columnType === "overdue") emptyMsg = "No overdue actions pending";
       
       container.innerHTML = `
         <div style="text-align: center; padding: 16px; color: var(--color-priority-c); font-size: 12px; background: rgba(11, 31, 58, 0.02); border-radius: var(--radius-sm); border: 1px dashed rgba(11, 31, 58, 0.06);">
@@ -1322,6 +1368,7 @@ function renderTodayActions() {
   renderColumnList(firstList, firstMessages, "first");
   renderColumnList(followupsList, followups, "followup");
   renderColumnList(warmList, warmLeads, "warm");
+  renderColumnList(overdueList, overdueActions, "overdue");
 }
 
 // Modal open: Add Mode
