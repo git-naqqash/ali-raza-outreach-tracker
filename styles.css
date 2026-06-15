@@ -546,6 +546,13 @@ table.leads-table td {
   vertical-align: middle;
 }
 
+table.leads-table td.col-notes-cell {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 table.leads-table tr:last-child td {
   border-bottom: none;
 }

@@ -1112,6 +1112,7 @@ function renderLeads() {
         </span>
       </td>
       <td data-col="col-replyStatus">${getReplyBadge(lead.replyStatus)}</td>
+      <td data-col="col-notes" class="col-notes-cell" title="${escapeHtml(lead.notes || '')}">${escapeHtml(lead.notes || '-')}</td>
       <td data-col="col-actions">
         <div class="action-buttons" style="display: flex; gap: 4px; align-items: center; justify-content: center;">
           ${getQuickActionsDropdownHtml(lead)}
