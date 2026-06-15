@@ -852,6 +852,7 @@ function getFilteredLeads() {
   const filterStage = document.getElementById("filterStage").value;
   const filterReply = document.getElementById("filterReply").value;
   const filterActionDate = document.getElementById("filterActionDate").value;
+  const filterNextAction = document.getElementById("filterNextAction").value;
 
   return leads.filter((lead, index) => {
     // Keep track of index for operations
@@ -899,6 +900,7 @@ function getFilteredLeads() {
     if (filterPriority !== "All" && lead.priority !== filterPriority) return false;
     if (filterStage !== "All" && lead.stage !== filterStage) return false;
     if (filterReply !== "All" && lead.replyStatus !== filterReply) return false;
+    if (filterNextAction !== "All" && lead.nextAction !== filterNextAction) return false;
     
     // Action Date filter
     if (filterActionDate !== "All") {
@@ -1575,7 +1577,7 @@ function setupEventListeners() {
   });
 
   // Connect remaining advanced filter drop downs
-  ["filterMarket", "filterSource", "filterPriority", "filterStage", "filterReply", "filterActionDate"].forEach(id => {
+  ["filterMarket", "filterSource", "filterPriority", "filterStage", "filterReply", "filterActionDate", "filterNextAction"].forEach(id => {
     document.getElementById(id).addEventListener("change", () => {
       renderLeads();
     });
@@ -3793,6 +3795,9 @@ window.clearBulkSelection = function() {
   if (fieldSelect) fieldSelect.value = "";
   if (dateInput) dateInput.value = "";
   
+  const nextActionSelect = document.getElementById("bulkNextActionSelect");
+  if (nextActionSelect) nextActionSelect.value = "";
+  
   updateSelectedLeadsCount();
 };
 
@@ -3873,6 +3878,7 @@ window.applyBulkChange = function(field, value) {
   if (document.getElementById("bulkChannelSelect")) document.getElementById("bulkChannelSelect").value = "";
   if (document.getElementById("bulkDateFieldSelect")) document.getElementById("bulkDateFieldSelect").value = "";
   if (document.getElementById("bulkDateInput")) document.getElementById("bulkDateInput").value = "";
+  if (document.getElementById("bulkNextActionSelect")) document.getElementById("bulkNextActionSelect").value = "";
   
   showToast(`Updated ${field} for ${indexes.length} leads!`, "success");
   clearBulkSelection();
@@ -3947,15 +3953,20 @@ window.applyBulkDateChange = async function() {
   }
 };
 
-window.triggerBulkNextActionPrompt = function() {
+window.applyBulkNextAction = async function(value) {
+  if (!value) return;
   const indexes = getSelectedLeadIndexes();
-  if (indexes.length === 0) return;
-  
-  const newAction = prompt("Enter next action text:");
-  if (newAction === null) return;
+  if (indexes.length === 0) {
+    showToast("No leads selected.", "error");
+    return;
+  }
   
   const newDate = prompt("Enter next action date (YYYY-MM-DD) or number of days (e.g. +3):");
-  if (newDate === null) return;
+  if (newDate === null) {
+    const nextActionSelect = document.getElementById("bulkNextActionSelect");
+    if (nextActionSelect) nextActionSelect.value = "";
+    return;
+  }
   
   let parsedDate = "";
   const cleaned = newDate.trim();
@@ -3968,23 +3979,57 @@ window.triggerBulkNextActionPrompt = function() {
       parsedDate = d.toISOString().split('T')[0];
     } else {
       alert("Invalid date format.");
+      const nextActionSelect = document.getElementById("bulkNextActionSelect");
+      if (nextActionSelect) nextActionSelect.value = "";
       return;
     }
   }
   
-  indexes.forEach(idx => {
-    if (leads[idx]) {
-      leads[idx].nextAction = newAction.trim();
-      leads[idx].nextActionDate = parsedDate;
-    }
-  });
+  const selectedLeads = indexes.map(idx => leads[idx]);
+  const ids = selectedLeads.map(l => l.id).filter(Boolean);
   
-  saveData();
-  updateDashboard();
-  renderLeads();
-  renderTodayActions();
-  showToast(`Updated next action for ${indexes.length} leads!`, "success");
-  clearBulkSelection();
+  try {
+    if (cloudReady && ids.length > 0) {
+      setSyncStatus("syncing");
+      await apiFetch("/api/leads", {
+        method: "PATCH",
+        body: { 
+          ids, 
+          updates: { 
+            nextAction: value,
+            nextActionDate: parsedDate
+          }
+        }
+      });
+      setSyncStatus("connected");
+    }
+    
+    // Update local memory
+    indexes.forEach(idx => {
+      if (leads[idx]) {
+        leads[idx].nextAction = value;
+        leads[idx].nextActionDate = parsedDate;
+      }
+    });
+    
+    // Save locally
+    localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+    
+    // Update UI
+    updateDashboard();
+    renderLeads();
+    renderTodayActions();
+    
+    showToast(`Updated next action for ${indexes.length} leads!`, "success");
+  } catch (err) {
+    console.error("[Bulk Next Action] failed:", err);
+    setSyncStatus("offline");
+    showToast(`Failed to update next actions: ${err.message || err}`, "error");
+  } finally {
+    const nextActionSelect = document.getElementById("bulkNextActionSelect");
+    if (nextActionSelect) nextActionSelect.value = "";
+    clearBulkSelection();
+  }
 };
 
 window.bulkMarkFirstMessageSent = function() {
@@ -4192,7 +4237,7 @@ window.toggleSelectAllLeads = toggleSelectAllLeads;
 window.updateSelectedLeadsCount = updateSelectedLeadsCount;
 window.clearBulkSelection = clearBulkSelection;
 window.applyBulkChange = applyBulkChange;
-window.triggerBulkNextActionPrompt = triggerBulkNextActionPrompt;
+window.applyBulkNextAction = applyBulkNextAction;
 window.bulkMarkFirstMessageSent = bulkMarkFirstMessageSent;
 window.bulkMarkFollowupSent = bulkMarkFollowupSent;
 window.bulkArchiveSelected = bulkArchiveSelected;

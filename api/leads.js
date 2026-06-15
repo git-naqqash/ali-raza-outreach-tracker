@@ -227,6 +227,8 @@ module.exports = async function handler(req, res) {
         for (const [col, val] of Object.entries(dbUpdates)) {
           if (col === "channel") {
             await sql`UPDATE leads SET channel = ${val} WHERE id = ${id}`;
+          } else if (col === "next_action") {
+            await sql`UPDATE leads SET next_action = ${val} WHERE id = ${id}`;
           } else if (col === "next_action_date") {
             await sql`UPDATE leads SET next_action_date = ${val} WHERE id = ${id}`;
           } else if (col === "last_action_date") {

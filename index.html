@@ -318,6 +318,25 @@
             <option value="NoDate">No Date Scheduled</option>
           </select>
         </div>
+        <div class="filter-group">
+          <label for="filterNextAction">Next Action</label>
+          <select id="filterNextAction">
+            <option value="All">All Actions</option>
+            <option value="Send first message">Send first message</option>
+            <option value="Like/comment">Like/comment</option>
+            <option value="Follow">Follow</option>
+            <option value="Send DM">Send DM</option>
+            <option value="Send connection request">Send connection request</option>
+            <option value="Send email">Send email</option>
+            <option value="Send WhatsApp">Send WhatsApp</option>
+            <option value="Send follow-up">Send follow-up</option>
+            <option value="Send samples">Send samples</option>
+            <option value="Send CV">Send CV</option>
+            <option value="Send quote">Send quote</option>
+            <option value="Wait">Wait</option>
+            <option value="Archive">Archive</option>
+          </select>
+        </div>
       </div>
     </section>
 
@@ -957,6 +976,7 @@
               <option value="Send connection request">Send connection request</option>
               <option value="Send email">Send email</option>
               <option value="Send WhatsApp">Send WhatsApp</option>
+              <option value="Send first message">Send first message</option>
               <option value="Send follow-up">Send follow-up</option>
               <option value="Send samples">Send samples</option>
               <option value="Send CV">Send CV</option>
@@ -1308,7 +1328,22 @@
         <input type="date" id="bulkDateInput" class="bulk-select" style="min-width: 130px; font-family: var(--font-body); color: var(--color-deep-navy);">
         <button type="button" class="btn btn-secondary btn-sm" onclick="applyBulkDateChange()">Update Date</button>
         
-        <button type="button" class="btn btn-secondary btn-sm" onclick="triggerBulkNextActionPrompt()">📅 Set Next Action</button>
+        <select id="bulkNextActionSelect" class="bulk-select" onchange="applyBulkNextAction(this.value)">
+          <option value="">Set Next Action...</option>
+          <option value="Send first message">Send first message</option>
+          <option value="Like/comment">Like/comment</option>
+          <option value="Follow">Follow</option>
+          <option value="Send DM">Send DM</option>
+          <option value="Send connection request">Send connection request</option>
+          <option value="Send email">Send email</option>
+          <option value="Send WhatsApp">Send WhatsApp</option>
+          <option value="Send follow-up">Send follow-up</option>
+          <option value="Send samples">Send samples</option>
+          <option value="Send CV">Send CV</option>
+          <option value="Send quote">Send quote</option>
+          <option value="Wait">Wait</option>
+          <option value="Archive">Archive</option>
+        </select>
         <button type="button" class="btn btn-primary btn-sm" onclick="bulkMarkFirstMessageSent()">✉️ Mark First Sent</button>
         <button type="button" class="btn btn-primary btn-sm" onclick="bulkMarkFollowupSent()">🔄 Mark Follow-up Sent</button>
         <button type="button" class="btn btn-secondary btn-sm" onclick="bulkArchiveSelected()">🗄️ Archive Selected</button>
