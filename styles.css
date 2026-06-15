@@ -492,6 +492,7 @@ button {
   border: var(--border-light);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  max-width: 100%;
 }
 
 .table-header {
@@ -616,13 +617,15 @@ table.leads-table td {
   border-bottom: var(--border-light);
   color: var(--color-dark-gray);
   vertical-align: middle;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 table.leads-table td.col-notes-cell {
   max-width: 250px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
 
 table.leads-table tr:last-child td {
