@@ -20,14 +20,14 @@
   --color-priority-d: #5C6E87; /* Archived Muted Navy */
 
   --color-stage-found: #8E9AA8;
-  --color-stage-engaged: #3b82f6;
-  --color-stage-sent: #0ea5e9;
-  --color-stage-due: #f59e0b;
-  --color-stage-replied: #10b981;
-  --color-stage-samples: #8b5cf6;
-  --color-stage-warm: #ec4899;
-  --color-stage-not-now: #6b7280;
-  --color-stage-archived: #4b5563;
+  --color-stage-engaged: #8B5CF6;       /* Engaged = purple */
+  --color-stage-sent: #1E5BFF;          /* First Message Sent = blue */
+  --color-stage-due: #F59E0B;           /* Follow-up Due = orange */
+  --color-stage-replied: #10B981;       /* Replied = green */
+  --color-stage-samples: #0FAE96;       /* Samples Sent = teal */
+  --color-stage-warm: #D6A84F;          /* Warm Lead = yellow/gold */
+  --color-stage-not-now: #6B7280;       /* Not Now = gray */
+  --color-stage-archived: #4B5563;      /* Archived = dark gray */
 
   /* Shadows */
   --shadow-sm: 0 2px 8px rgba(11, 31, 58, 0.04);
@@ -734,18 +734,29 @@ table.leads-table tr:hover {
 .priority-marker.p-d { background-color: var(--color-priority-d); }
 
 .stage-badge {
-  color: var(--color-white);
   font-size: 10px;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  text-shadow: none;
+  border: none;
+  font-weight: 700;
+  text-transform: uppercase;
 }
-.stage-badge.s-found { background-color: var(--color-stage-found); }
-.stage-badge.s-engaged { background-color: var(--color-stage-engaged); }
-.stage-badge.s-sent { background-color: var(--color-stage-sent); }
-.stage-badge.s-due { background-color: var(--color-stage-due); color: var(--color-deep-navy); }
-.stage-badge.s-replied { background-color: var(--color-stage-replied); }
-.stage-badge.s-samples { background-color: var(--color-stage-samples); }
-.stage-badge.s-warm { background-color: var(--color-stage-warm); }
-.stage-badge.s-not-now { background-color: var(--color-stage-not-now); }
-.stage-badge.s-archived { background-color: var(--color-stage-archived); }
+.stage-badge.s-found { background-color: var(--color-stage-found) !important; color: #FFFFFF !important; }
+.stage-badge.s-engaged { background-color: var(--color-stage-engaged) !important; color: #FFFFFF !important; }
+.stage-badge.s-first-message-sent { background-color: var(--color-stage-sent) !important; color: #FFFFFF !important; }
+.stage-badge.s-follow-up-due { background-color: var(--color-stage-due) !important; color: var(--color-deep-navy) !important; }
+.stage-badge.s-replied { background-color: var(--color-stage-replied) !important; color: #FFFFFF !important; }
+.stage-badge.s-samples-sent { background-color: var(--color-stage-samples) !important; color: #FFFFFF !important; }
+.stage-badge.s-warm-lead { background-color: var(--color-stage-warm) !important; color: var(--color-deep-navy) !important; }
+.stage-badge.s-not-now { background-color: var(--color-stage-not-now) !important; color: #FFFFFF !important; }
+.stage-badge.s-archived { background-color: var(--color-stage-archived) !important; color: #FFFFFF !important; }
+
+/* Keep legacy class names for safety */
+.stage-badge.s-sent { background-color: var(--color-stage-sent) !important; color: #FFFFFF !important; }
+.stage-badge.s-due { background-color: var(--color-stage-due) !important; color: var(--color-deep-navy) !important; }
+.stage-badge.s-samples { background-color: var(--color-stage-samples) !important; color: #FFFFFF !important; }
+.stage-badge.s-warm { background-color: var(--color-stage-warm) !important; color: var(--color-deep-navy) !important; }
 
 .reply-status-text {
   font-size: 12px;
