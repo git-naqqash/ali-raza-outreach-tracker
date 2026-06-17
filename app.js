@@ -1091,6 +1091,25 @@ function getStageBadge(stage) {
   return `<span class="badge stage-badge s-${cssClass}">${stage}</span>`;
 }
 
+function updateStageHint(stage) {
+  const hintEl = document.getElementById("leadStageHint");
+  if (!hintEl) return;
+  
+  const hints = {
+    "Found": "💡 <strong>Found</strong>: Lead collected only. No message sent yet.",
+    "First Message Sent": "💡 <strong>First Message Sent</strong>: First outreach message/email/DM/WhatsApp sent. Waiting for first reply.",
+    "Engaged": "💡 <strong>Engaged</strong>: Client replied or showed basic interest, but no CV, portfolio, samples, or test sent yet. <br><em>Rule: If client asks for CV/portfolio/samples, set stage to Engaged.</em>",
+    "Samples Sent": "💡 <strong>Samples Sent</strong>: CV, portfolio, samples, sample files, or example work sent to client. Waiting for review. <br><em>Rule: After sending CV/portfolio/samples, set stage to Samples Sent.</em>",
+    "Warm Lead": "💡 <strong>Warm Lead</strong>: Client shows real project interest. Use when client asks for pricing, timeline, process, project details, brief, outline, or gives a test project. <br><em>Rule: After test project is submitted, keep stage Warm Lead and set Next Action to 'Wait for feedback'.</em>",
+    "Follow-up Due": "💡 <strong>Follow-up Due</strong>: Client has not replied and follow-up date has arrived. Needs follow-up message.",
+    "Replied": "💡 <strong>Replied</strong>: Client replied after my message, samples, or follow-up. Needs review and next action.",
+    "Not Now": "💡 <strong>Not Now</strong>: Client said not interested now, later, maybe future, or no current need.",
+    "Archived": "💡 <strong>Archived</strong>: Dead, duplicate, irrelevant, wrong fit, bounced email, or permanently closed lead."
+  };
+  
+  hintEl.innerHTML = hints[stage] || "";
+}
+
 function getReplyBadge(status) {
   const cssClass = status.toLowerCase().replace(/ /g, '-');
   return `<span class="reply-status-text ${cssClass}">${status}</span>`;
@@ -1543,6 +1562,7 @@ function openAddModal() {
 
   document.getElementById("leadIndex").value = "";
   document.getElementById("modalTitle").textContent = "Add Outreach Lead";
+  updateStageHint("Found"); // Initialize default stage hint
   document.getElementById("leadModal").classList.add("active");
 }
 
@@ -1579,6 +1599,7 @@ function openEditModal(index) {
   if (details) details.removeAttribute("open");
 
   document.getElementById("modalTitle").textContent = "Edit Outreach Lead";
+  updateStageHint(lead.stage || "Found"); // Load selected stage hint
   document.getElementById("leadModal").classList.add("active");
 }
 
@@ -1688,6 +1709,68 @@ function setupEventListeners() {
   addBtn.addEventListener("click", openAddModal);
   closeBtn.addEventListener("click", closeModal);
   cancelBtn.addEventListener("click", closeModal);
+
+  // Stage tooltips & dynamic auto-transitions
+  const leadStageSelect = document.getElementById("leadStage");
+  const leadReplyStatusSelect = document.getElementById("leadReplyStatus");
+  const leadNextActionSelect = document.getElementById("leadNextAction");
+
+  if (leadStageSelect) {
+    leadStageSelect.addEventListener("change", () => {
+      updateStageHint(leadStageSelect.value);
+    });
+  }
+
+  if (leadReplyStatusSelect && leadStageSelect) {
+    leadReplyStatusSelect.addEventListener("change", () => {
+      const status = leadReplyStatusSelect.value;
+      const currentStage = leadStageSelect.value;
+      
+      // Rule 1: If client only asks for CV/portfolio/samples, stage = Engaged
+      if (status === "CV requested" || status === "Samples requested") {
+        if (currentStage === "Found" || currentStage === "First Message Sent") {
+          leadStageSelect.value = "Engaged";
+          updateStageHint("Engaged");
+        }
+      }
+      
+      // Rule 5: If client asks price, deadline, process, or sends brief/outline, stage = Warm Lead
+      if (status === "Price asked") {
+        if (currentStage !== "Archived") {
+          leadStageSelect.value = "Warm Lead";
+          updateStageHint("Warm Lead");
+        }
+      }
+    });
+  }
+
+  if (leadNextActionSelect && leadStageSelect) {
+    leadNextActionSelect.addEventListener("change", () => {
+      const nextAction = leadNextActionSelect.value;
+      const currentStage = leadStageSelect.value;
+      
+      // Rule 3: If client gives a test project, stage = Warm Lead
+      if (nextAction === "Do test project" || nextAction === "Prepare proposal" || nextAction === "Send proposal") {
+        if (currentStage !== "Archived") {
+          leadStageSelect.value = "Warm Lead";
+          updateStageHint("Warm Lead");
+        }
+      } else if (nextAction === "Submit test project") {
+        // Rule 4: After test project is submitted, keep stage = Warm Lead and set Next Action = Wait for feedback
+        leadNextActionSelect.value = "Wait for feedback";
+        if (currentStage !== "Archived") {
+          leadStageSelect.value = "Warm Lead";
+          updateStageHint("Warm Lead");
+        }
+        showToast("Test project submitted! Action set to 'Wait for feedback'.", "info");
+      } else if (nextAction === "Wait for feedback") {
+        if (currentStage !== "Archived") {
+          leadStageSelect.value = "Warm Lead";
+          updateStageHint("Warm Lead");
+        }
+      }
+    });
+  }
   
   // Close on overlay click
   document.getElementById("leadModal").addEventListener("click", (e) => {
@@ -3899,6 +3982,7 @@ function sendCV(originalIndex) {
   
   const today = getOffsetDateString(0);
   lead.lastActionDate = today;
+  lead.stage = "Samples Sent"; // Rule 2: After sending CV/portfolio/samples, stage = Samples Sent
   lead.replyStatus = "CV requested";
   lead.nextAction = "Send follow-up";
   lead.nextActionDate = addWorkingDays(today, 5);

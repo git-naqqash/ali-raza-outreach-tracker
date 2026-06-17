@@ -953,18 +953,31 @@
 
           <!-- Stage -->
           <div class="form-group">
-            <label for="leadStage">Outreach Stage</label>
+            <label for="leadStage" style="display: flex; align-items: center; gap: 6px;">
+              Outreach Stage
+              <span class="info-tooltip-trigger" title="Stage Guidelines:
+• Found: Lead collected only.
+• First Message Sent: Outreach sent, waiting for reply.
+• Engaged: Replied, basic interest.
+• Samples Sent: CV/portfolio/samples sent.
+• Warm Lead: Pricing asked / test project given.
+• Follow-up Due: Needs follow-up message.
+• Replied: Client replied, needs review.
+• Not Now: Muted/future interest.
+• Archived: Closed/dead lead." style="cursor: help; color: var(--color-royal-blue); font-size: 14px;">ℹ️</span>
+            </label>
             <select id="leadStage">
-              <option value="Found">Found</option>
-              <option value="Engaged">Engaged</option>
-              <option value="First Message Sent">First Message Sent</option>
-              <option value="Follow-up Due">Follow-up Due</option>
-              <option value="Replied">Replied</option>
-              <option value="Samples Sent">Samples Sent</option>
-              <option value="Warm Lead">Warm Lead</option>
-              <option value="Not Now">Not Now</option>
-              <option value="Archived">Archived</option>
+              <option value="Found">Found (Lead collected only)</option>
+              <option value="First Message Sent">First Message Sent (Outreach sent)</option>
+              <option value="Engaged">Engaged (Replied, no samples/test yet)</option>
+              <option value="Samples Sent">Samples Sent (CV/portfolio/samples sent)</option>
+              <option value="Warm Lead">Warm Lead (Real project interest / test project)</option>
+              <option value="Follow-up Due">Follow-up Due (Needs follow-up)</option>
+              <option value="Replied">Replied (Needs review/action)</option>
+              <option value="Not Now">Not Now (Not interested now/future)</option>
+              <option value="Archived">Archived (Dead/wrong fit/closed)</option>
             </select>
+            <p id="leadStageHint" class="form-field-hint"></p>
           </div>
 
           <!-- Next Action -->
@@ -982,6 +995,11 @@
               <option value="Send samples">Send samples</option>
               <option value="Send CV">Send CV</option>
               <option value="Send quote">Send quote</option>
+              <option value="Do test project">Do test project</option>
+              <option value="Submit test project">Submit test project</option>
+              <option value="Wait for feedback">Wait for feedback</option>
+              <option value="Prepare proposal">Prepare proposal</option>
+              <option value="Send proposal">Send proposal</option>
               <option value="Wait">Wait</option>
               <option value="Archive">Archive</option>
             </select>
@@ -1278,15 +1296,15 @@
       <div class="bulk-buttons">
         <select id="bulkStageSelect" class="bulk-select" onchange="applyBulkChange('stage', this.value)">
           <option value="">Change Stage...</option>
-          <option value="Found">Found</option>
-          <option value="Engaged">Engaged</option>
-          <option value="First Message Sent">First Message Sent</option>
-          <option value="Follow-up Due">Follow-up Due</option>
-          <option value="Replied">Replied</option>
-          <option value="Samples Sent">Samples Sent</option>
-          <option value="Warm Lead">Warm Lead</option>
-          <option value="Not Now">Not Now</option>
-          <option value="Archived">Archived</option>
+          <option value="Found">Found (Lead collected only)</option>
+          <option value="Engaged">Engaged (Replied, no samples/test yet)</option>
+          <option value="First Message Sent">First Message Sent (Outreach sent)</option>
+          <option value="Follow-up Due">Follow-up Due (Needs follow-up)</option>
+          <option value="Replied">Replied (Needs review/action)</option>
+          <option value="Samples Sent">Samples Sent (CV/portfolio/samples sent)</option>
+          <option value="Warm Lead">Warm Lead (Real project interest / test project)</option>
+          <option value="Not Now">Not Now (Not interested now/future)</option>
+          <option value="Archived">Archived (Dead/wrong fit/closed)</option>
         </select>
         
         <select id="bulkPrioritySelect" class="bulk-select" onchange="applyBulkChange('priority', this.value)">
