@@ -971,6 +971,8 @@ function updateDashboard() {
   // Follow-ups due: Stage is Follow-up Due OR Next Action is Send follow-up
   const followUps = activeLeads.filter(l => l.stage === 'Follow-up Due' || l.nextAction === 'Send follow-up').length;
 
+  const followupSentCount = activeLeads.filter(l => l.stage === 'Follow-up Sent').length;
+
   const aLeads = activeLeads.filter(l => l.priority === 'A').length;
   const warmLeads = activeLeads.filter(l => l.stage === 'Warm Lead').length;
 
@@ -982,6 +984,9 @@ function updateDashboard() {
   document.querySelector("#metricWhatsapp .metric-value").textContent = whatsapp;
   document.querySelector("#metricToday .metric-value").textContent = todayActions;
   document.querySelector("#metricFollowUps .metric-value").textContent = followUps;
+  if (document.querySelector("#metricFollowupSent .metric-value")) {
+    document.querySelector("#metricFollowupSent .metric-value").textContent = followupSentCount;
+  }
   document.querySelector("#metricALeads .metric-value").textContent = aLeads;
   document.querySelector("#metricWarmLeads .metric-value").textContent = warmLeads;
 }
@@ -1098,6 +1103,7 @@ function updateStageHint(stage) {
   const hints = {
     "Found": "💡 <strong>Found</strong>: Lead collected only. No message sent yet.",
     "First Message Sent": "💡 <strong>First Message Sent</strong>: First outreach message/email/DM/WhatsApp sent. Waiting for first reply.",
+    "Follow-up Sent": "💡 <strong>Follow-up Sent</strong>: Second/follow-up message sent, waiting for reply. <br><em>Rules: Keeps Reply Status = No reply, sets Next Action = Wait, increases Follow-up Count.</em>",
     "Engaged": "💡 <strong>Engaged</strong>: Client replied or showed basic interest, but no CV, portfolio, samples, or test sent yet. <br><em>Rule: If client asks for CV/portfolio/samples, set stage to Engaged.</em>",
     "Samples Sent": "💡 <strong>Samples Sent</strong>: CV, portfolio, samples, sample files, or example work sent to client. Waiting for review. <br><em>Rule: After sending CV/portfolio/samples, set stage to Samples Sent.</em>",
     "Warm Lead": "💡 <strong>Warm Lead</strong>: Client shows real project interest. Use when client asks for pricing, timeline, process, project details, brief, outline, or gives a test project. <br><em>Rule: After test project is submitted, keep stage Warm Lead and set Next Action to 'Wait for feedback'.</em>",
@@ -1717,7 +1723,26 @@ function setupEventListeners() {
 
   if (leadStageSelect) {
     leadStageSelect.addEventListener("change", () => {
-      updateStageHint(leadStageSelect.value);
+      const stageVal = leadStageSelect.value;
+      updateStageHint(stageVal);
+      
+      if (stageVal === "Follow-up Sent") {
+        // Follow-up Sent should keep Reply Status = No reply
+        const replyStatusEl = document.getElementById("leadReplyStatus");
+        if (replyStatusEl) replyStatusEl.value = "No reply";
+        
+        // Follow-up Sent should set Next Action = Wait
+        const nextActionEl = document.getElementById("leadNextAction");
+        if (nextActionEl) nextActionEl.value = "Wait";
+        
+        // Follow-up Sent should increase Follow-up Count by 1 if available
+        const followUpCountEl = document.getElementById("leadFollowUpCount");
+        if (followUpCountEl) {
+          const currentCount = parseInt(followUpCountEl.value) || 0;
+          followUpCountEl.value = currentCount + 1;
+        }
+        showToast("Stage changed to 'Follow-up Sent'. Reply status set to 'No reply', Next Action set to 'Wait', and Follow-up Count incremented.", "info");
+      }
     });
   }
 
@@ -3777,17 +3802,15 @@ function markSentEmail(originalIndex) {
     lead.nextAction = "Send follow-up";
     lead.nextActionDate = addWorkingDays(today, 5);
   } else {
-    lead.stage = "Follow-up Due";
+    lead.stage = "Follow-up Sent";
     lead.followUpCount = (lead.followUpCount || 0) + 1;
+    lead.nextAction = "Wait";
+    lead.nextActionDate = addWorkingDays(today, 7); // Default wait period after follow-up sent
     
     const limit = 2; // email limit
     if (lead.followUpCount >= limit) {
       lead.nextAction = "Archive";
-      lead.stage = "Follow-up Sent";
       alert(`Follow-up limit of ${limit} reached for ${lead.name}. Consider archiving this lead.`);
-    } else {
-      lead.nextAction = "Send follow-up";
-      lead.nextActionDate = addWorkingDays(today, 5);
     }
   }
   
@@ -3926,6 +3949,9 @@ function markFollowupSent(originalIndex) {
   lead.lastActionDate = today;
   lead.followUpCount = (lead.followUpCount || 0) + 1;
   lead.replyStatus = "No reply";
+  lead.stage = "Follow-up Sent";
+  lead.nextAction = "Wait";
+  lead.nextActionDate = addDays(today, 7); // Default wait period in follow-up sent state
   
   let limit = 2;
   if (lead.channel === "WhatsApp") limit = 1;
@@ -3934,17 +3960,7 @@ function markFollowupSent(originalIndex) {
   
   if (lead.followUpCount >= limit) {
     lead.nextAction = "Archive";
-    lead.stage = "Follow-up Sent";
     alert(`Follow-up limit of ${limit} reached for ${lead.name}. Consider archiving this lead.`);
-  } else {
-    lead.nextAction = "Send follow-up";
-    if (lead.channel === "Email") {
-      lead.nextActionDate = addWorkingDays(today, 5);
-    } else if (lead.channel === "LinkedIn") {
-      lead.nextActionDate = addDays(today, 5);
-    } else {
-      lead.nextActionDate = addDays(today, 7);
-    }
   }
   
   saveData();
@@ -4371,6 +4387,9 @@ window.bulkMarkFollowupSent = function() {
     lead.lastActionDate = today;
     lead.followUpCount = (lead.followUpCount || 0) + 1;
     lead.replyStatus = "No reply";
+    lead.stage = "Follow-up Sent";
+    lead.nextAction = "Wait";
+    lead.nextActionDate = addDays(today, 7); // Default wait period in follow-up sent state
     
     let limit = 2;
     if (lead.channel === "WhatsApp") limit = 1;
@@ -4379,17 +4398,7 @@ window.bulkMarkFollowupSent = function() {
     
     if (lead.followUpCount >= limit) {
       lead.nextAction = "Archive";
-      lead.stage = "Follow-up Sent";
       limitWarningTriggered = true;
-    } else {
-      lead.nextAction = "Send follow-up";
-      if (lead.channel === "Email") {
-        lead.nextActionDate = addWorkingDays(today, 5);
-      } else if (lead.channel === "LinkedIn") {
-        lead.nextActionDate = addDays(today, 5);
-      } else {
-        lead.nextActionDate = addDays(today, 7);
-      }
     }
   });
   

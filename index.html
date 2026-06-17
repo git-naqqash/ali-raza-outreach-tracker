@@ -157,6 +157,12 @@
         <span class="metric-value">0</span>
         <div class="metric-icon">⏰</div>
       </div>
+      <!-- Follow-up Sent -->
+      <div class="metric-card followup-sent" id="metricFollowupSent">
+        <span class="metric-title">Follow-up Sent</span>
+        <span class="metric-value">0</span>
+        <div class="metric-icon">📬</div>
+      </div>
       <!-- A Leads -->
       <div class="metric-card a-leads" id="metricALeads">
         <span class="metric-title">A Leads</span>
@@ -281,12 +287,13 @@
           <select id="filterStage">
             <option value="All">All Active Stages</option>
             <option value="Found">Found</option>
-            <option value="Engaged">Engaged</option>
             <option value="First Message Sent">First Message Sent</option>
-            <option value="Follow-up Due">Follow-up Due</option>
-            <option value="Replied">Replied</option>
+            <option value="Follow-up Sent">Follow-up Sent</option>
+            <option value="Engaged">Engaged</option>
             <option value="Samples Sent">Samples Sent</option>
             <option value="Warm Lead">Warm Lead</option>
+            <option value="Follow-up Due">Follow-up Due</option>
+            <option value="Replied">Replied</option>
             <option value="Not Now">Not Now</option>
             <option value="Archived">Archived</option>
           </select>
@@ -958,6 +965,7 @@
               <span class="info-tooltip-trigger" title="Stage Guidelines:
 • Found: Lead collected only.
 • First Message Sent: Outreach sent, waiting for reply.
+• Follow-up Sent: Second/follow-up message sent, waiting for reply.
 • Engaged: Replied, basic interest.
 • Samples Sent: CV/portfolio/samples sent.
 • Warm Lead: Pricing asked / test project given.
@@ -969,6 +977,7 @@
             <select id="leadStage">
               <option value="Found">Found (Lead collected only)</option>
               <option value="First Message Sent">First Message Sent (Outreach sent)</option>
+              <option value="Follow-up Sent">Follow-up Sent (Second/follow-up message sent)</option>
               <option value="Engaged">Engaged (Replied, no samples/test yet)</option>
               <option value="Samples Sent">Samples Sent (CV/portfolio/samples sent)</option>
               <option value="Warm Lead">Warm Lead (Real project interest / test project)</option>
@@ -1297,12 +1306,13 @@
         <select id="bulkStageSelect" class="bulk-select" onchange="applyBulkChange('stage', this.value)">
           <option value="">Change Stage...</option>
           <option value="Found">Found (Lead collected only)</option>
-          <option value="Engaged">Engaged (Replied, no samples/test yet)</option>
           <option value="First Message Sent">First Message Sent (Outreach sent)</option>
-          <option value="Follow-up Due">Follow-up Due (Needs follow-up)</option>
-          <option value="Replied">Replied (Needs review/action)</option>
+          <option value="Follow-up Sent">Follow-up Sent (Second/follow-up message sent)</option>
+          <option value="Engaged">Engaged (Replied, no samples/test yet)</option>
           <option value="Samples Sent">Samples Sent (CV/portfolio/samples sent)</option>
           <option value="Warm Lead">Warm Lead (Real project interest / test project)</option>
+          <option value="Follow-up Due">Follow-up Due (Needs follow-up)</option>
+          <option value="Replied">Replied (Needs review/action)</option>
           <option value="Not Now">Not Now (Not interested now/future)</option>
           <option value="Archived">Archived (Dead/wrong fit/closed)</option>
         </select>
