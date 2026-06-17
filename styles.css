@@ -22,7 +22,9 @@
   --color-stage-found: #8E9AA8;
   --color-stage-engaged: #8B5CF6;       /* Engaged = purple */
   --color-stage-sent: #1E5BFF;          /* First Message Sent = blue */
-  --color-stage-followup-sent: #4F46E5; /* Follow-up Sent = indigo */
+  --color-stage-first-followup: #4F46E5;  /* First Follow-up Sent = indigo */
+  --color-stage-second-followup: #6366F1; /* Second Follow-up Sent = violet-indigo */
+  --color-stage-followup-sent: var(--color-stage-first-followup); /* Keep legacy alias */
   --color-stage-due: #F59E0B;           /* Follow-up Due = orange */
   --color-stage-replied: #10B981;       /* Replied = green */
   --color-stage-samples: #0FAE96;       /* Samples Sent = teal */
@@ -747,6 +749,8 @@ table.leads-table tr:hover {
 .stage-badge.s-found { background-color: var(--color-stage-found) !important; color: #FFFFFF !important; }
 .stage-badge.s-engaged { background-color: var(--color-stage-engaged) !important; color: #FFFFFF !important; }
 .stage-badge.s-first-message-sent { background-color: var(--color-stage-sent) !important; color: #FFFFFF !important; }
+.stage-badge.s-first-follow-up-sent { background-color: var(--color-stage-first-followup) !important; color: #FFFFFF !important; }
+.stage-badge.s-second-follow-up-sent { background-color: var(--color-stage-second-followup) !important; color: #FFFFFF !important; }
 .stage-badge.s-follow-up-sent { background-color: var(--color-stage-followup-sent) !important; color: #FFFFFF !important; }
 .stage-badge.s-follow-up-due { background-color: var(--color-stage-due) !important; color: var(--color-deep-navy) !important; }
 .stage-badge.s-replied { background-color: var(--color-stage-replied) !important; color: #FFFFFF !important; }

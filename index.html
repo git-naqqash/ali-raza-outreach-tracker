@@ -288,7 +288,8 @@
             <option value="All">All Active Stages</option>
             <option value="Found">Found</option>
             <option value="First Message Sent">First Message Sent</option>
-            <option value="Follow-up Sent">Follow-up Sent</option>
+            <option value="First Follow-up Sent">First Follow-up Sent</option>
+            <option value="Second Follow-up Sent">Second Follow-up Sent</option>
             <option value="Engaged">Engaged</option>
             <option value="Samples Sent">Samples Sent</option>
             <option value="Warm Lead">Warm Lead</option>
@@ -771,7 +772,8 @@
             <select id="filterScriptType">
               <option value="All">All Types</option>
               <option value="First Message">First Message</option>
-              <option value="Follow-up">Follow-up</option>
+              <option value="First Follow-up">First Follow-up</option>
+              <option value="Second Follow-up">Second Follow-up</option>
               <option value="Connection Request">Connection Request</option>
               <option value="After Accepting">After Accepting</option>
               <option value="Sample Reply">Sample Reply</option>
@@ -963,21 +965,23 @@
             <label for="leadStage" style="display: flex; align-items: center; gap: 6px;">
               Outreach Stage
               <span class="info-tooltip-trigger" title="Stage Guidelines:
-• Found: Lead collected only.
-• First Message Sent: Outreach sent, waiting for reply.
-• Follow-up Sent: Second/follow-up message sent, waiting for reply.
-• Engaged: Replied, basic interest.
-• Samples Sent: CV/portfolio/samples sent.
-• Warm Lead: Pricing asked / test project given.
-• Follow-up Due: Needs follow-up message.
-• Replied: Client replied, needs review.
-• Not Now: Muted/future interest.
-• Archived: Closed/dead lead." style="cursor: help; color: var(--color-royal-blue); font-size: 14px;">ℹ️</span>
+• Found: Lead collected only. No message sent yet.
+• First Message Sent: First outreach message/email/DM/WhatsApp sent. Waiting for first reply.
+• First Follow-up Sent: First follow-up or clarification message sent after no reply.
+• Second Follow-up Sent: Second and final follow-up sent. After this, wait or archive.
+• Engaged: Client replied or showed basic interest, but no samples/test sent yet.
+• Samples Sent: CV, portfolio, samples, or example work sent. Waiting for review.
+• Warm Lead: Client asks for pricing, timeline, process, brief, outline, or gives a test project.
+• Follow-up Due: Follow-up is needed now.
+• Replied: Client replied and needs review/action.
+• Not Now: Client said not interested now, maybe later, or no current need.
+• Archived: Dead, duplicate, irrelevant, wrong fit, bounced, or closed lead." style="cursor: help; color: var(--color-royal-blue); font-size: 14px;">ℹ️</span>
             </label>
             <select id="leadStage">
               <option value="Found">Found (Lead collected only)</option>
               <option value="First Message Sent">First Message Sent (Outreach sent)</option>
-              <option value="Follow-up Sent">Follow-up Sent (Second/follow-up message sent)</option>
+              <option value="First Follow-up Sent">First Follow-up Sent (First follow-up sent)</option>
+              <option value="Second Follow-up Sent">Second Follow-up Sent (Second follow-up sent)</option>
               <option value="Engaged">Engaged (Replied, no samples/test yet)</option>
               <option value="Samples Sent">Samples Sent (CV/portfolio/samples sent)</option>
               <option value="Warm Lead">Warm Lead (Real project interest / test project)</option>
@@ -1273,7 +1277,8 @@
             <label for="newScriptType" style="font-size: 13px; font-weight: 600; color: var(--color-deep-navy);">Script Type</label>
             <select id="newScriptType" style="padding: 10px 12px; font-size: 14px; border-radius: var(--radius-md); border: var(--border-light); outline: none; background-color: var(--color-white);">
               <option value="First Message">First Message</option>
-              <option value="Follow-up">Follow-up</option>
+              <option value="First Follow-up">First Follow-up</option>
+              <option value="Second Follow-up">Second Follow-up</option>
               <option value="Connection Request">Connection Request</option>
               <option value="After Accepting">After Accepting</option>
               <option value="Sample Reply">Sample Reply</option>
@@ -1307,7 +1312,8 @@
           <option value="">Change Stage...</option>
           <option value="Found">Found (Lead collected only)</option>
           <option value="First Message Sent">First Message Sent (Outreach sent)</option>
-          <option value="Follow-up Sent">Follow-up Sent (Second/follow-up message sent)</option>
+          <option value="First Follow-up Sent">First Follow-up Sent (First follow-up sent)</option>
+          <option value="Second Follow-up Sent">Second Follow-up Sent (Second follow-up sent)</option>
           <option value="Engaged">Engaged (Replied, no samples/test yet)</option>
           <option value="Samples Sent">Samples Sent (CV/portfolio/samples sent)</option>
           <option value="Warm Lead">Warm Lead (Real project interest / test project)</option>
@@ -1374,7 +1380,8 @@
           <option value="Archive">Archive</option>
         </select>
         <button type="button" class="btn btn-primary btn-sm" onclick="bulkMarkFirstMessageSent()">✉️ Mark First Sent</button>
-        <button type="button" class="btn btn-primary btn-sm" onclick="bulkMarkFollowupSent()">🔄 Mark Follow-up Sent</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="bulkMarkFirstFollowupSent()">🔄 Mark First Follow-up</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="bulkMarkSecondFollowupSent()">🔄 Mark Second Follow-up</button>
         <button type="button" class="btn btn-secondary btn-sm" onclick="bulkArchiveSelected()">🗄️ Archive Selected</button>
         <button type="button" class="btn btn-danger btn-sm" onclick="bulkDeleteSelected()">🗑️ Delete Selected</button>
         <button type="button" class="btn btn-success btn-sm" onclick="bulkExportCSV()">📥 Export Selected CSV</button>

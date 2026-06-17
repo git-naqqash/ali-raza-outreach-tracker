@@ -177,11 +177,19 @@ const DEFAULT_SCRIPTS = [
     isDefault: true
   },
   {
-    id: "default-email-follow",
-    title: "Email Follow-up (Polite Nudge)",
+    id: "default-email-follow-1",
+    title: "Email First Follow-up",
     channel: "Email",
-    type: "Follow-up",
+    type: "First Follow-up",
     body: "Subject: Re: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI wanted to quickly bump this in case it got buried in your inbox. I know you're busy growing [Company].\n\nJust to recap: I write and design high-quality white-label ebooks and workbooks so you can deliver premium publishing content to your clients or scale your backend funnel.\n\nIf you have 2 minutes, I'd love to drop a quick link to a sample workbook. Would it be worth checking out?\n\nBest,\nAli Raza",
+    isDefault: true
+  },
+  {
+    id: "default-email-follow-2",
+    title: "Email Second Follow-up",
+    channel: "Email",
+    type: "Second Follow-up",
+    body: "Subject: Re: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI know you're super busy. Since I haven't heard back, I'll assume the timing isn't right for ebook or workbook design support at [Company] right now.\n\nIf anything changes or you need support in the future, feel free to reach out. I wish you and [Company] all the best!\n\nBest regards,\nAli Raza",
     isDefault: true
   },
   {
@@ -193,11 +201,51 @@ const DEFAULT_SCRIPTS = [
     isDefault: true
   },
   {
-    id: "default-wa-follow",
-    title: "WhatsApp Follow-up",
+    id: "default-wa-follow-1",
+    title: "WhatsApp First Follow-up",
     channel: "WhatsApp",
-    type: "Follow-up",
+    type: "First Follow-up",
     body: "Hi [Name], just checking if you had a moment to see my previous message about ebook/workbook support? No pressure at all\u2014happy to share a quick PDF sample if you ever want to expand your digital offerings. Have a great day!",
+    isDefault: true
+  },
+  {
+    id: "default-wa-follow-2",
+    title: "WhatsApp Second Follow-up",
+    channel: "WhatsApp",
+    type: "Second Follow-up",
+    body: "Hi [Name], following up one last time regarding the white-label book/Canva support. If you're not interested or the timing isn't right, no worries at all. Feel free to reach out if things change. All the best!",
+    isDefault: true
+  },
+  {
+    id: "default-ig-follow-1",
+    title: "Instagram First Follow-up",
+    channel: "Instagram",
+    type: "First Follow-up",
+    body: "Hi [Name], just checking if you had a chance to see my message about ebook/workbook Canva design? No pressure at all\u2014hope you're having a great week!",
+    isDefault: true
+  },
+  {
+    id: "default-ig-follow-2",
+    title: "Instagram Second Follow-up",
+    channel: "Instagram",
+    type: "Second Follow-up",
+    body: "Hi [Name], following up one last time. If it's not the right time, no worries. Wish you the best with your content!",
+    isDefault: true
+  },
+  {
+    id: "default-li-follow-1",
+    title: "LinkedIn First Follow-up",
+    channel: "LinkedIn",
+    type: "First Follow-up",
+    body: "Hi [Name], just checking if you had a moment to see my previous message about white-label book writing support for [Company]? Let me know if you'd be open to a quick sample. Thanks!",
+    isDefault: true
+  },
+  {
+    id: "default-li-follow-2",
+    title: "LinkedIn Second Follow-up",
+    channel: "LinkedIn",
+    type: "Second Follow-up",
+    body: "Hi [Name], following up one last time. If now isn't a good time for ebook/workbook writing support, no problem at all. Let's stay connected here. Best of luck!",
     isDefault: true
   },
   {
@@ -942,6 +990,19 @@ function loadData() {
     scripts = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
     saveScripts();
   }
+
+  // Upgrade/migrate default scripts to support First/Second follow-ups
+  migrateScripts();
+}
+
+function migrateScripts() {
+  if (!Array.isArray(scripts)) {
+    scripts = [];
+  }
+  const customScripts = scripts.filter(s => s && !s.isDefault && (!s.id || !s.id.startsWith("default-")));
+  const pristineDefaults = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
+  scripts = [...pristineDefaults, ...customScripts];
+  saveScripts();
 }
 
 // Save Leads to LocalStorage + fire-and-forget cloud sync
@@ -971,7 +1032,7 @@ function updateDashboard() {
   // Follow-ups due: Stage is Follow-up Due OR Next Action is Send follow-up
   const followUps = activeLeads.filter(l => l.stage === 'Follow-up Due' || l.nextAction === 'Send follow-up').length;
 
-  const followupSentCount = activeLeads.filter(l => l.stage === 'Follow-up Sent').length;
+  const followupSentCount = activeLeads.filter(l => l.stage === 'First Follow-up Sent' || l.stage === 'Second Follow-up Sent').length;
 
   const aLeads = activeLeads.filter(l => l.priority === 'A').length;
   const warmLeads = activeLeads.filter(l => l.stage === 'Warm Lead').length;
@@ -1103,14 +1164,15 @@ function updateStageHint(stage) {
   const hints = {
     "Found": "💡 <strong>Found</strong>: Lead collected only. No message sent yet.",
     "First Message Sent": "💡 <strong>First Message Sent</strong>: First outreach message/email/DM/WhatsApp sent. Waiting for first reply.",
-    "Follow-up Sent": "💡 <strong>Follow-up Sent</strong>: Second/follow-up message sent, waiting for reply. <br><em>Rules: Keeps Reply Status = No reply, sets Next Action = Wait, increases Follow-up Count.</em>",
-    "Engaged": "💡 <strong>Engaged</strong>: Client replied or showed basic interest, but no CV, portfolio, samples, or test sent yet. <br><em>Rule: If client asks for CV/portfolio/samples, set stage to Engaged.</em>",
-    "Samples Sent": "💡 <strong>Samples Sent</strong>: CV, portfolio, samples, sample files, or example work sent to client. Waiting for review. <br><em>Rule: After sending CV/portfolio/samples, set stage to Samples Sent.</em>",
-    "Warm Lead": "💡 <strong>Warm Lead</strong>: Client shows real project interest. Use when client asks for pricing, timeline, process, project details, brief, outline, or gives a test project. <br><em>Rule: After test project is submitted, keep stage Warm Lead and set Next Action to 'Wait for feedback'.</em>",
-    "Follow-up Due": "💡 <strong>Follow-up Due</strong>: Client has not replied and follow-up date has arrived. Needs follow-up message.",
-    "Replied": "💡 <strong>Replied</strong>: Client replied after my message, samples, or follow-up. Needs review and next action.",
-    "Not Now": "💡 <strong>Not Now</strong>: Client said not interested now, later, maybe future, or no current need.",
-    "Archived": "💡 <strong>Archived</strong>: Dead, duplicate, irrelevant, wrong fit, bounced email, or permanently closed lead."
+    "First Follow-up Sent": "💡 <strong>First Follow-up Sent</strong>: First follow-up or clarification message sent after no reply.",
+    "Second Follow-up Sent": "💡 <strong>Second Follow-up Sent</strong>: Second and final follow-up sent. After this, wait or archive.",
+    "Engaged": "💡 <strong>Engaged</strong>: Client replied or showed basic interest, but no samples/test sent yet.",
+    "Samples Sent": "💡 <strong>Samples Sent</strong>: CV, portfolio, samples, or example work sent. Waiting for review.",
+    "Warm Lead": "💡 <strong>Warm Lead</strong>: Client asks for pricing, timeline, process, brief, outline, or gives a test project.",
+    "Follow-up Due": "💡 <strong>Follow-up Due</strong>: Follow-up is needed now.",
+    "Replied": "💡 <strong>Replied</strong>: Client replied and needs review/action.",
+    "Not Now": "💡 <strong>Not Now</strong>: Client said not interested now, maybe later, or no current need.",
+    "Archived": "💡 <strong>Archived</strong>: Dead, duplicate, irrelevant, wrong fit, bounced, or closed lead."
   };
   
   hintEl.innerHTML = hints[stage] || "";
@@ -1726,22 +1788,23 @@ function setupEventListeners() {
       const stageVal = leadStageSelect.value;
       updateStageHint(stageVal);
       
-      if (stageVal === "Follow-up Sent") {
-        // Follow-up Sent should keep Reply Status = No reply
+      if (stageVal === "First Message Sent") {
         const replyStatusEl = document.getElementById("leadReplyStatus");
         if (replyStatusEl) replyStatusEl.value = "No reply";
-        
-        // Follow-up Sent should set Next Action = Wait
         const nextActionEl = document.getElementById("leadNextAction");
         if (nextActionEl) nextActionEl.value = "Wait";
-        
-        // Follow-up Sent should increase Follow-up Count by 1 if available
+        showToast("Stage changed to 'First Message Sent'. Reply status set to 'No reply', Next Action set to 'Wait'.", "info");
+      } else if (stageVal === "First Follow-up Sent" || stageVal === "Second Follow-up Sent") {
+        const replyStatusEl = document.getElementById("leadReplyStatus");
+        if (replyStatusEl) replyStatusEl.value = "No reply";
+        const nextActionEl = document.getElementById("leadNextAction");
+        if (nextActionEl) nextActionEl.value = "Wait";
         const followUpCountEl = document.getElementById("leadFollowUpCount");
         if (followUpCountEl) {
           const currentCount = parseInt(followUpCountEl.value) || 0;
           followUpCountEl.value = currentCount + 1;
         }
-        showToast("Stage changed to 'Follow-up Sent'. Reply status set to 'No reply', Next Action set to 'Wait', and Follow-up Count incremented.", "info");
+        showToast(`Stage changed to '${stageVal}'. Reply status set to 'No reply', Next Action set to 'Wait', and Follow-up Count incremented.`, "info");
       }
     });
   }
@@ -1753,7 +1816,7 @@ function setupEventListeners() {
       
       // Rule 1: If client only asks for CV/portfolio/samples, stage = Engaged
       if (status === "CV requested" || status === "Samples requested") {
-        if (currentStage === "Found" || currentStage === "First Message Sent") {
+        if (currentStage === "Found" || currentStage === "First Message Sent" || currentStage === "First Follow-up Sent" || currentStage === "Second Follow-up Sent") {
           leadStageSelect.value = "Engaged";
           updateStageHint("Engaged");
         }
@@ -1764,6 +1827,14 @@ function setupEventListeners() {
         if (currentStage !== "Archived") {
           leadStageSelect.value = "Warm Lead";
           updateStageHint("Warm Lead");
+        }
+      }
+
+      // If client replies, set stage to Engaged or Replied
+      if (status === "Replied" || status === "Interested") {
+        if (currentStage === "Found" || currentStage === "First Message Sent" || currentStage === "First Follow-up Sent" || currentStage === "Second Follow-up Sent") {
+          leadStageSelect.value = (status === "Interested") ? "Engaged" : "Replied";
+          updateStageHint(leadStageSelect.value);
         }
       }
     });
@@ -3627,64 +3698,64 @@ function copyPersonalizedScript(originalIndex, scriptType) {
 // Quick Actions Dropdown Builder
 function getQuickActionsDropdownHtml(lead) {
   const index = lead.originalIndex;
-  let itemsHtml = "";
+  
+  let copySection = "";
+  if (lead.email) {
+    copySection += `<button class="dropdown-item" onclick="copyLeadEmail(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Email</button>`;
+  }
+  if (lead.whatsappNumber) {
+    copySection += `<button class="dropdown-item" onclick="copyLeadWhatsApp(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy WhatsApp</button>`;
+  }
+  if (lead.mainLink || lead.extraLink) {
+    copySection += `<button class="dropdown-item" onclick="copyLeadWebsite(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Website</button>`;
+  }
+  
+  copySection += `
+    <button class="dropdown-item" onclick="copyLeadFirstMessage(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy First Message</button>
+    <button class="dropdown-item" onclick="copyLeadFirstFollowup(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy First Follow-up</button>
+    <button class="dropdown-item" onclick="copyLeadSecondFollowup(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Second Follow-up</button>
+  `;
 
+  let markSection = `
+    <button class="dropdown-item" onclick="markFirstMessageSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Mark First Message Sent</button>
+    <button class="dropdown-item" onclick="markFirstFollowupSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg> Mark First Follow-up Sent</button>
+    <button class="dropdown-item" onclick="markSecondFollowupSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg> Mark Second Follow-up Sent</button>
+  `;
+
+  let channelSection = "";
   if (lead.channel === "Email") {
-    itemsHtml = `
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Email')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Email Script</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Follow-up</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Sample Reply')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Sample Reply</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'CV Reply')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy CV Reply</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Price Reply</button>
-      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="markSentEmail(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Mark Email Sent</button>
-      <button class="dropdown-item" onclick="markFollowupSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg> Mark Follow-up Sent</button>
-      <button class="dropdown-item" onclick="sendSamples(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/></svg> Send Samples</button>
-      <button class="dropdown-item" onclick="sendCV(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> Send CV</button>
-      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="openLeadLink(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Website</button>
-      <button class="dropdown-item" onclick="archiveLead(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/></svg> Archive</button>
+    channelSection = `
+      <button class="dropdown-item" onclick="sendSamples(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/></svg> Send Samples</button>
+      <button class="dropdown-item" onclick="sendCV(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> Send CV</button>
+      <button class="dropdown-item" onclick="openLeadLink(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Website</button>
     `;
   } else if (lead.channel === "WhatsApp") {
-    itemsHtml = `
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'WhatsApp')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy WhatsApp Script</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Follow-up</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Price Reply</button>
-      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="openWhatsAppChat(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> Open WhatsApp</button>
-      <button class="dropdown-item" onclick="markSentWhatsApp(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Mark WhatsApp Sent</button>
-      <button class="dropdown-item" onclick="markFollowupSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg> Mark Follow-up Sent</button>
-      <button class="dropdown-item" onclick="sendSamples(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/></svg> Send Samples</button>
-      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="archiveLead(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/></svg> Archive</button>
+    channelSection = `
+      <button class="dropdown-item" onclick="openWhatsAppChat(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> Open WhatsApp</button>
+      <button class="dropdown-item" onclick="sendSamples(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/></svg> Send Samples</button>
     `;
   } else if (lead.channel === "Instagram") {
-    itemsHtml = `
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Instagram')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy DM Script</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Follow-up</button>
-      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="openLeadLink(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Profile</button>
-      <button class="dropdown-item" onclick="markInstagramCommented(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Mark Commented</button>
-      <button class="dropdown-item" onclick="markInstagramFollowed(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg> Mark Followed</button>
-      <button class="dropdown-item" onclick="markSentDM(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Mark DM Sent</button>
-      <button class="dropdown-item" onclick="markFollowupSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg> Mark Follow-up Sent</button>
-      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="archiveLead(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/></svg> Archive</button>
+    channelSection = `
+      <button class="dropdown-item" onclick="openLeadLink(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Profile</button>
+      <button class="dropdown-item" onclick="markInstagramCommented(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Mark Commented</button>
+      <button class="dropdown-item" onclick="markInstagramFollowed(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg> Mark Followed</button>
     `;
   } else if (lead.channel === "LinkedIn") {
-    itemsHtml = `
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'LinkedIn')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy LinkedIn Script</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Follow-up')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Follow-up</button>
-      <button class="dropdown-item" onclick="copyPersonalizedScript(${index}, 'Price Reply')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Price Reply</button>
-      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="openLeadLink(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Profile</button>
-      <button class="dropdown-item" onclick="markLinkedInConnectionSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg> Mark Connection Sent</button>
-      <button class="dropdown-item" onclick="markSentLinkedInMessage(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Mark Message Sent</button>
-      <button class="dropdown-item" onclick="markFollowupSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M16 3h5v5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></svg> Mark Follow-up Sent</button>
-      <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
-      <button class="dropdown-item" onclick="archiveLead(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/></svg> Archive</button>
+    channelSection = `
+      <button class="dropdown-item" onclick="openLeadLink(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Profile</button>
+      <button class="dropdown-item" onclick="markLinkedInConnectionSent(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg> Mark Connection Sent</button>
     `;
   }
+
+  const itemsHtml = `
+    ${copySection}
+    <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+    ${markSection}
+    <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+    ${channelSection}
+    <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
+    <button class="dropdown-item" onclick="archiveLead(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/></svg> Archive</button>
+  `;
 
   return `
     <div class="quick-actions-dropdown">
@@ -3728,6 +3799,123 @@ window.setTodayFilter = function(filterVal) {
   });
   
   renderTodayActions();
+};
+
+// Clipboard copy and stage marking helpers
+window.copyLeadEmail = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead || !lead.email) return;
+  copyTextToClipboard(lead.email).then(() => {
+    showToast("Copied", "success");
+  }).catch(() => {
+    showToast("Failed to copy email", "error");
+  });
+};
+
+window.copyLeadWhatsApp = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead || !lead.whatsappNumber) return;
+  copyTextToClipboard(lead.whatsappNumber).then(() => {
+    showToast("Copied", "success");
+  }).catch(() => {
+    showToast("Failed to copy WhatsApp number", "error");
+  });
+};
+
+window.copyLeadWebsite = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  const url = lead.mainLink || lead.extraLink || "";
+  if (!url) return;
+  copyTextToClipboard(url).then(() => {
+    showToast("Copied", "success");
+  }).catch(() => {
+    showToast("Failed to copy website", "error");
+  });
+};
+
+window.copyLeadFirstMessage = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  const msg = lead.messageSent || lead.notes || "";
+  if (msg) {
+    copyTextToClipboard(msg).then(() => {
+      showToast("Copied", "success");
+    }).catch(() => {
+      showToast("Failed to copy message", "error");
+    });
+  } else {
+    // If empty, personalize and copy the first message script template
+    copyPersonalizedScript(originalIndex, 'First Message');
+  }
+};
+
+window.copyLeadFirstFollowup = function(originalIndex) {
+  copyPersonalizedScript(originalIndex, 'First Follow-up');
+};
+
+window.copyLeadSecondFollowup = function(originalIndex) {
+  copyPersonalizedScript(originalIndex, 'Second Follow-up');
+};
+
+window.markFirstMessageSent = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  const today = getOffsetDateString(0);
+  lead.stage = "First Message Sent";
+  lead.lastActionDate = today;
+  lead.nextAction = "Wait";
+  lead.replyStatus = "No reply";
+  
+  if (lead.channel === "Email") {
+    lead.nextActionDate = addWorkingDays(today, 5);
+  } else if (lead.channel === "LinkedIn") {
+    lead.nextActionDate = addDays(today, 3);
+  } else {
+    lead.nextActionDate = addDays(today, 7);
+  }
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast("First message sent marked!", "success");
+};
+
+window.markFirstFollowupSent = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  const today = getOffsetDateString(0);
+  lead.stage = "First Follow-up Sent";
+  lead.followUpCount = (lead.followUpCount || 0) + 1;
+  lead.lastActionDate = today;
+  lead.nextAction = "Wait";
+  lead.replyStatus = "No reply";
+  lead.nextActionDate = addDays(today, 7);
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast("First follow-up sent marked!", "success");
+};
+
+window.markSecondFollowupSent = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  const today = getOffsetDateString(0);
+  lead.stage = "Second Follow-up Sent";
+  lead.followUpCount = (lead.followUpCount || 0) + 1;
+  lead.lastActionDate = today;
+  lead.nextAction = "Wait";
+  lead.replyStatus = "No reply";
+  lead.nextActionDate = addDays(today, 7);
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  showToast("Second follow-up sent marked!", "success");
 };
 
 // Open profile or main website URL
@@ -3802,8 +3990,12 @@ function markSentEmail(originalIndex) {
     lead.nextAction = "Send follow-up";
     lead.nextActionDate = addWorkingDays(today, 5);
   } else {
-    lead.stage = "Follow-up Sent";
     lead.followUpCount = (lead.followUpCount || 0) + 1;
+    if (lead.followUpCount === 1) {
+      lead.stage = "First Follow-up Sent";
+    } else {
+      lead.stage = "Second Follow-up Sent";
+    }
     lead.nextAction = "Wait";
     lead.nextActionDate = addWorkingDays(today, 7); // Default wait period after follow-up sent
     
@@ -3949,7 +4141,11 @@ function markFollowupSent(originalIndex) {
   lead.lastActionDate = today;
   lead.followUpCount = (lead.followUpCount || 0) + 1;
   lead.replyStatus = "No reply";
-  lead.stage = "Follow-up Sent";
+  if (lead.followUpCount === 1) {
+    lead.stage = "First Follow-up Sent";
+  } else {
+    lead.stage = "Second Follow-up Sent";
+  }
   lead.nextAction = "Wait";
   lead.nextActionDate = addDays(today, 7); // Default wait period in follow-up sent state
   
@@ -4373,7 +4569,34 @@ window.bulkMarkFirstMessageSent = function() {
   clearBulkSelection();
 };
 
-window.bulkMarkFollowupSent = function() {
+window.bulkMarkFirstFollowupSent = function() {
+  const indexes = getSelectedLeadIndexes();
+  if (indexes.length === 0) return;
+  
+  const today = getOffsetDateString(0);
+  
+  indexes.forEach(idx => {
+    const lead = leads[idx];
+    if (!lead) return;
+    
+    lead.lastActionDate = today;
+    lead.followUpCount = (lead.followUpCount || 0) + 1;
+    lead.replyStatus = "No reply";
+    lead.stage = "First Follow-up Sent";
+    lead.nextAction = "Wait";
+    lead.nextActionDate = addDays(today, 7);
+  });
+  
+  saveData();
+  updateDashboard();
+  renderLeads();
+  renderTodayActions();
+  
+  showToast(`Marked first follow-up sent for ${indexes.length} leads!`, "success");
+  clearBulkSelection();
+};
+
+window.bulkMarkSecondFollowupSent = function() {
   const indexes = getSelectedLeadIndexes();
   if (indexes.length === 0) return;
   
@@ -4387,7 +4610,7 @@ window.bulkMarkFollowupSent = function() {
     lead.lastActionDate = today;
     lead.followUpCount = (lead.followUpCount || 0) + 1;
     lead.replyStatus = "No reply";
-    lead.stage = "Follow-up Sent";
+    lead.stage = "Second Follow-up Sent";
     lead.nextAction = "Wait";
     lead.nextActionDate = addDays(today, 7); // Default wait period in follow-up sent state
     
@@ -4411,7 +4634,7 @@ window.bulkMarkFollowupSent = function() {
     alert("One or more leads reached their follow-up limit. Consider archiving them.");
   }
   
-  showToast(`Marked follow-up sent for ${indexes.length} leads!`, "success");
+  showToast(`Marked second follow-up sent for ${indexes.length} leads!`, "success");
   clearBulkSelection();
 };
 
@@ -4538,7 +4761,8 @@ window.clearBulkSelection = clearBulkSelection;
 window.applyBulkChange = applyBulkChange;
 window.applyBulkNextAction = applyBulkNextAction;
 window.bulkMarkFirstMessageSent = bulkMarkFirstMessageSent;
-window.bulkMarkFollowupSent = bulkMarkFollowupSent;
+window.bulkMarkFirstFollowupSent = bulkMarkFirstFollowupSent;
+window.bulkMarkSecondFollowupSent = bulkMarkSecondFollowupSent;
 window.bulkArchiveSelected = bulkArchiveSelected;
 window.bulkDeleteSelected = bulkDeleteSelected;
 window.bulkExportCSV = bulkExportCSV;
