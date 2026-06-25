@@ -4,6 +4,21 @@
 const LOGIN_USER = "contact.naqqash@gmail.com";
 const LOGIN_PASS = "@@@03314200250";
 
+// Valid outreach stages
+const VALID_STAGES = [
+  "Found (Lead collected only)",
+  "First Message Sent",
+  "First Follow-up Sent",
+  "Second Follow-up Sent",
+  "Engaged",
+  "Samples Sent",
+  "Warm Lead",
+  "Follow-up Due",
+  "Replied",
+  "Not Now",
+  "Archived"
+];
+
 // Helper to format a Date object as a local YYYY-MM-DD string
 function formatLocalDate(d) {
   if (!d || !(d instanceof Date) || isNaN(d.getTime())) return "";
@@ -28,8 +43,9 @@ function parseExcelDate(val) {
     return formatLocalDate(val);
   }
   
-  if (typeof val === 'number' || (!isNaN(val) && !isNaN(parseFloat(val)))) {
-    const serial = parseFloat(val);
+  const numVal = parseFloat(val);
+  if ((typeof val === 'number' && !isNaN(val)) || (typeof val === 'string' && !isNaN(val) && !isNaN(numVal) && numVal > 0 && numVal < 100000)) {
+    const serial = numVal;
     const utc_days = Math.floor(serial - 25569);
     const utc_value = utc_days * 86400;
     const date_info = new Date(utc_value * 1000);
@@ -40,37 +56,41 @@ function parseExcelDate(val) {
   const str = String(val).trim();
   if (!str) return null;
 
-  const parsedMs = Date.parse(str);
-  if (!isNaN(parsedMs)) {
-    return formatLocalDate(new Date(parsedMs));
-  }
-
-  // Handle formats like "25 may 2026" or "13-May-2026"
-  const wordMonthRegex = /^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/i;
-  const match = str.match(wordMonthRegex);
-  if (match) {
-    const day = parseInt(match[1]);
-    const monthStr = match[2].toLowerCase().substring(0, 3);
-    const year = parseInt(match[3]);
-    const months = {
-      jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11
-    };
-    if (months[monthStr] !== undefined) {
-      const d = new Date(year, months[monthStr], day);
+  // Try checking DD/MM/YYYY pattern (e.g., 25/06/2026 or 25-06-2026)
+  const dmyRegex = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/;
+  const dmyMatch = str.match(dmyRegex);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10);
+    const year = parseInt(dmyMatch[3], 10);
+    
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+      const d = new Date(year, month - 1, day);
       if (!isNaN(d.getTime())) {
         return formatLocalDate(d);
       }
     }
   }
 
-  // Handle format with text like "5/13/2026, got replied..."
-  const dateRegex = /(\d{1,2})[\/\-]\d{1,2}[\/\-]\d{4}/;
-  const dateMatch = str.match(dateRegex);
-  if (dateMatch) {
-    const d = new Date(dateMatch[0]);
-    if (!isNaN(d.getTime())) {
-      return formatLocalDate(d);
+  // Try checking YYYY-MM-DD pattern (e.g., 2026-06-25 or 2026/06/25)
+  const ymdRegex = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/;
+  const ymdMatch = str.match(ymdRegex);
+  if (ymdMatch) {
+    const year = parseInt(ymdMatch[1], 10);
+    const month = parseInt(ymdMatch[2], 10);
+    const day = parseInt(ymdMatch[3], 10);
+    
+    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+      const d = new Date(year, month - 1, day);
+      if (!isNaN(d.getTime())) {
+        return formatLocalDate(d);
+      }
     }
+  }
+
+  const parsedMs = Date.parse(str);
+  if (!isNaN(parsedMs)) {
+    return formatLocalDate(new Date(parsedMs));
   }
 
   return null;
@@ -1162,7 +1182,7 @@ function updateStageHint(stage) {
   if (!hintEl) return;
   
   const hints = {
-    "Found": "💡 <strong>Found</strong>: Lead collected only. No message sent yet.",
+    "Found (Lead collected only)": "💡 <strong>Found</strong>: Lead collected only. No message sent yet.",
     "First Message Sent": "💡 <strong>First Message Sent</strong>: First outreach message/email/DM/WhatsApp sent. Waiting for first reply.",
     "First Follow-up Sent": "💡 <strong>First Follow-up Sent</strong>: First follow-up or clarification message sent after no reply.",
     "Second Follow-up Sent": "💡 <strong>Second Follow-up Sent</strong>: Second and final follow-up sent. After this, wait or archive.",
@@ -1630,7 +1650,7 @@ function openAddModal() {
 
   document.getElementById("leadIndex").value = "";
   document.getElementById("modalTitle").textContent = "Add Outreach Lead";
-  updateStageHint("Found"); // Initialize default stage hint
+  updateStageHint("Found (Lead collected only)"); // Initialize default stage hint
   document.getElementById("leadModal").classList.add("active");
 }
 
@@ -1647,7 +1667,7 @@ function openEditModal(index) {
   document.getElementById("leadNiche").value = lead.niche || "";
   document.getElementById("leadSource").value = lead.source || "Other";
   document.getElementById("leadPriority").value = lead.priority || "A";
-  document.getElementById("leadStage").value = lead.stage || "Found";
+  document.getElementById("leadStage").value = lead.stage || "Found (Lead collected only)";
   document.getElementById("leadLastActionDate").value = lead.lastActionDate || "";
   document.getElementById("leadNextAction").value = lead.nextAction || "Send DM";
   document.getElementById("leadNextActionDate").value = lead.nextActionDate || "";
@@ -1667,7 +1687,7 @@ function openEditModal(index) {
   if (details) details.removeAttribute("open");
 
   document.getElementById("modalTitle").textContent = "Edit Outreach Lead";
-  updateStageHint(lead.stage || "Found"); // Load selected stage hint
+  updateStageHint(lead.stage || "Found (Lead collected only)"); // Load selected stage hint
   document.getElementById("leadModal").classList.add("active");
 }
 
@@ -1816,7 +1836,7 @@ function setupEventListeners() {
       
       // Rule 1: If client only asks for CV/portfolio/samples, stage = Engaged
       if (status === "CV requested" || status === "Samples requested") {
-        if (currentStage === "Found" || currentStage === "First Message Sent" || currentStage === "First Follow-up Sent" || currentStage === "Second Follow-up Sent") {
+        if (currentStage === "Found (Lead collected only)" || currentStage === "First Message Sent" || currentStage === "First Follow-up Sent" || currentStage === "Second Follow-up Sent") {
           leadStageSelect.value = "Engaged";
           updateStageHint("Engaged");
         }
@@ -1832,7 +1852,7 @@ function setupEventListeners() {
 
       // If client replies, set stage to Engaged or Replied
       if (status === "Replied" || status === "Interested") {
-        if (currentStage === "Found" || currentStage === "First Message Sent" || currentStage === "First Follow-up Sent" || currentStage === "Second Follow-up Sent") {
+        if (currentStage === "Found (Lead collected only)" || currentStage === "First Message Sent" || currentStage === "First Follow-up Sent" || currentStage === "Second Follow-up Sent") {
           leadStageSelect.value = (status === "Interested") ? "Engaged" : "Replied";
           updateStageHint(leadStageSelect.value);
         }
@@ -2363,15 +2383,7 @@ function setupEventListeners() {
     });
   }
 
-  // Checkbox listeners in import preview modal
-  const chkImportDupAnyway = document.getElementById("chkImportDupAnyway");
-  if (chkImportDupAnyway) {
-    chkImportDupAnyway.addEventListener("change", updateImportPreviewCounts);
-  }
-  const chkUpdateExistingDup = document.getElementById("chkUpdateExistingDup");
-  if (chkUpdateExistingDup) {
-    chkUpdateExistingDup.addEventListener("change", updateImportPreviewCounts);
-  }
+
 
   // --- Lead Finder Event Listeners ---
   const finderMarket = document.getElementById("finderMarket");
@@ -2467,7 +2479,7 @@ function setupEventListeners() {
         niche: document.getElementById("captureNiche").value.trim(),
         source: "Lead Finder",
         priority: document.getElementById("capturePriority").value,
-        stage: "Found",
+        stage: "Found (Lead collected only)",
         lastActionDate: "",
         nextAction: nextAction,
         nextActionDate: getOffsetDateString(0),
@@ -2609,39 +2621,125 @@ function exportToCSV() {
 // --- IMPORT LEADS IMPLEMENTATION ---
 
 const SYNONYMS = {
-  name: ["lead", "company", "company name", "business name", "name", "profile name", "account"],
-  mainLink: ["website", "link", "url", "main link", "profile", "profile link", "website/profile", "instagram", "linkedin", "instagram link", "linkedin link"],
-  contactPerson: ["contact person", "founder", "owner", "person name"],
-  email: ["email", "email address", "contact email", "mail", "e-mail"],
-  whatsappNumber: ["whatsapp", "whatsapp number", "phone", "phone number", "mobile", "contact number", "numero", "telefono"],
+  name: ["leadnamecompany", "leadcompany", "leadname", "company", "businessname", "name", "profilename", "account"],
+  mainLink: ["website", "link", "url", "mainlink", "profile", "profilelink", "websiteprofile", "instagram", "linkedin", "instagramlink", "linkedinlink"],
+  contactPerson: ["contactperson", "founder", "owner", "personname", "contact"],
+  email: ["email", "emailaddress", "contactemail", "mail", "e-mail"],
+  whatsappNumber: ["whatsapp", "whatsappnumber", "phone", "phonenumber", "mobile", "contactnumber", "numero", "telefono"],
   market: ["market", "country", "location"],
-  niche: ["niche", "category", "industry", "lead type", "type"],
-  source: ["source", "lead source"],
+  niche: ["niche", "category", "industry", "leadtype", "type"],
+  source: ["source", "leadsource"],
   priority: ["priority"],
   stage: ["stage", "status"],
-  nextAction: ["next action"],
-  nextActionDate: ["next action date", "follow-up date", "next follow-up date"],
-  replyStatus: ["reply status", "result"],
+  nextAction: ["nextaction"],
+  nextActionDate: ["nextactiondate", "followupdate", "nextfollowupdate"],
+  replyStatus: ["replystatus", "result"],
   notes: ["notes", "remarks", "comments", "context"],
-  messageSent: ["message sent", "personalized first message", "first message", "dm", "email message", "whatsapp message"]
+  messageSent: ["messagesent", "personalizedfirstmessage", "firstmessage", "dm", "emailmessage", "whatsappmessage", "exactmessagesent"],
+  dateAdded: ["dateadded", "date", "created", "createddate", "timecreated", "added"],
+  lastActionDate: ["lastactiondate", "lastaction", "dateoflastaction", "lastcontact", "lastcontactdate"],
+  channel: ["channel", "platform", "outreachchannel", "sourcechannel"]
 };
 
 let pendingValidLeads = [];
-let pendingDuplicateLeads = [];
+let pendingSkippedCount = 0;
+
+function normalizeHeader(str) {
+  if (str === undefined || str === null) return "";
+  return str.toString().toLowerCase().replace(/[\s\-_/\\(),.?!;:'"&`+*@#^%[\]{}|]/g, "");
+}
+
+function normalizeChannel(str) {
+  if (!str) return "";
+  const s = String(str).trim().toLowerCase();
+  if (s === "email") return "Email";
+  if (s === "whatsapp" || s === "whats app") return "WhatsApp";
+  if (s === "linkedin" || s === "linked in") return "LinkedIn";
+  if (s === "instagram" || s === "ig") return "Instagram";
+  return "";
+}
+
+function checkDuplicate(lead, acceptedLeads) {
+  const emailLower = lead.email ? lead.email.trim().toLowerCase() : "";
+  const linkNorm = lead.mainLink ? normalizeUrl(lead.mainLink).trim().toLowerCase() : "";
+  const nameLower = lead.name ? lead.name.trim().toLowerCase() : "";
+  const marketLower = lead.market ? lead.market.trim().toLowerCase() : "";
+
+  // 1) Same email if email exists
+  if (emailLower) {
+    const dupDb = leads.find(l => l.email && l.email.trim().toLowerCase() === emailLower);
+    if (dupDb) return { isDup: true, reason: `Duplicate Email (${lead.email})` };
+    const dupAcc = acceptedLeads.find(l => l.email && l.email.trim().toLowerCase() === emailLower);
+    if (dupAcc) return { isDup: true, reason: `Duplicate Email in CSV (${lead.email})` };
+  }
+
+  // 2) Same profile link if link exists
+  if (linkNorm) {
+    const dupDb = leads.find(l => l.mainLink && normalizeUrl(l.mainLink).trim().toLowerCase() === linkNorm);
+    if (dupDb) return { isDup: true, reason: `Duplicate Profile Link (${lead.mainLink})` };
+    const dupAcc = acceptedLeads.find(l => l.mainLink && normalizeUrl(l.mainLink).trim().toLowerCase() === linkNorm);
+    if (dupAcc) return { isDup: true, reason: `Duplicate Profile Link in CSV (${lead.mainLink})` };
+  }
+
+  // 3) Same name + market when email/link are empty
+  if (!emailLower && !linkNorm) {
+    if (nameLower) {
+      const dupDb = leads.find(l => {
+        const dbEmail = l.email ? l.email.trim().toLowerCase() : "";
+        const dbLink = l.mainLink ? normalizeUrl(l.mainLink).trim().toLowerCase() : "";
+        if (!dbEmail && !dbLink) {
+          return l.name && l.name.trim().toLowerCase() === nameLower &&
+                 l.market && l.market.trim().toLowerCase() === marketLower;
+        }
+        return false;
+      });
+      if (dupDb) return { isDup: true, reason: `Duplicate Name + Market (${lead.name} / ${lead.market})` };
+
+      const dupAcc = acceptedLeads.find(l => {
+        const accEmail = l.email ? l.email.trim().toLowerCase() : "";
+        const accLink = l.mainLink ? normalizeUrl(l.mainLink).trim().toLowerCase() : "";
+        if (!accEmail && !accLink) {
+          return l.name && l.name.trim().toLowerCase() === nameLower &&
+                 l.market && l.market.trim().toLowerCase() === marketLower;
+        }
+        return false;
+      });
+      if (dupAcc) return { isDup: true, reason: `Duplicate Name + Market in CSV (${lead.name} / ${lead.market})` };
+    }
+  }
+
+  return { isDup: false };
+}
 
 function mapHeaders(headers) {
   const mapping = {};
-  headers.forEach((header, idx) => {
-    if (header === undefined || header === null) return;
-    const cleanHeader = header.toString().trim().toLowerCase();
-    for (const [key, synonyms] of Object.entries(SYNONYMS)) {
-      if (synonyms.includes(cleanHeader)) {
-        if (mapping[key] === undefined) {
-          mapping[key] = idx;
-        }
+  const normalizedHeaders = headers.map(h => normalizeHeader(h));
+
+  // Priority mapping for 'name'
+  const namePriority = ["leadnamecompany", "leadcompany", "leadname", "company", "businessname", "name", "profilename", "account"];
+  let nameIdx = -1;
+  for (const p of namePriority) {
+    const idx = normalizedHeaders.indexOf(p);
+    if (idx !== -1) {
+      nameIdx = idx;
+      break;
+    }
+  }
+  if (nameIdx !== -1) {
+    mapping["name"] = nameIdx;
+  }
+
+  // Map other keys using synonyms
+  for (const [key, synonyms] of Object.entries(SYNONYMS)) {
+    if (key === "name") continue; // handled above
+    for (let idx = 0; idx < normalizedHeaders.length; idx++) {
+      const normH = normalizedHeaders[idx];
+      if (normH && synonyms.includes(normH)) {
+        mapping[key] = idx;
+        break; // map to the first match
       }
     }
-  });
+  }
   return mapping;
 }
 
@@ -2668,10 +2766,11 @@ function processImportData(arrayBuffer, filename) {
     const colMapping = mapHeaders(headers);
     
     let totalRows = 0;
-    let missingInfoCount = 0;
+    let missingNameCount = 0;
+    let duplicatesCount = 0;
     
     const validLeads = [];
-    const duplicateLeads = []; // Array of { lead, matchedIndex }
+    const skippedRowsLog = []; // list of strings for details box
     
     rows.forEach((row, rowIdx) => {
       // Skip completely empty rows
@@ -2688,74 +2787,91 @@ function processImportData(arrayBuffer, filename) {
         return val !== undefined && val !== null ? val : "";
       };
       
-      const rowName = getVal("name");
-      const rowMainLink = getVal("mainLink");
-      const rowContactPerson = getVal("contactPerson");
-      const rowEmail = getVal("email");
-      const rowWhatsapp = getVal("whatsappNumber");
-      const rowMarket = getVal("market");
-      const rowNiche = getVal("niche");
-      const rowSource = getVal("source");
-      const rowPriority = getVal("priority");
-      const rowStage = getVal("stage");
-      const rowNextAction = getVal("nextAction");
-      const rowNextActionDate = getVal("nextActionDate");
-      const rowReplyStatus = getVal("replyStatus");
-      const rowNotes = getVal("notes");
-      const rowMessageSent = getVal("messageSent");
+      const rowName = getVal("name") ? String(getVal("name")).trim() : "";
+      const rowEmail = getVal("email") ? String(getVal("email")).trim() : "";
+      const rowMainLink = getVal("mainLink") ? String(getVal("mainLink")).trim() : "";
       
-      // Skip row if it has absolutely no contact details
-      if (!rowName && !rowMainLink && !rowContactPerson && !rowEmail && !rowWhatsapp) {
+      // Validation: at least one of Name, Email, or Profile Link. Skip only if all 3 are empty.
+      if (!rowName && !rowEmail && !rowMainLink) {
+        skippedRowsLog.push(`Row ${rowIdx + 2}: Skipped — missing Name, Email, and Link`);
         return;
       }
       
-      // Check if main link or lead name is missing
-      const isMissingInfo = !rowMainLink || !rowName;
-      if (isMissingInfo) {
-        missingInfoCount++;
+      // Map basic values
+      const rowContactPerson = getVal("contactPerson") ? String(getVal("contactPerson")).trim() : "";
+      const rowWhatsapp = getVal("whatsappNumber") ? String(getVal("whatsappNumber")).trim() : "";
+      const rowMarket = getVal("market") ? String(getVal("market")).trim() : "";
+      const rowNiche = getVal("niche") ? String(getVal("niche")).trim() : "";
+      const rowSource = getVal("source") ? String(getVal("source")).trim() : "";
+      const rowPriority = getVal("priority") ? String(getVal("priority")).trim() : "";
+      const rowStageRaw = getVal("stage") ? String(getVal("stage")).trim() : "";
+      const rowNextAction = getVal("nextAction") ? String(getVal("nextAction")).trim() : "";
+      const rowNextActionDate = getVal("nextActionDate") ? String(getVal("nextActionDate")).trim() : "";
+      const rowLastActionDate = getVal("lastActionDate") ? String(getVal("lastActionDate")).trim() : "";
+      const rowReplyStatus = getVal("replyStatus") ? String(getVal("replyStatus")).trim() : "";
+      const rowNotes = getVal("notes") ? String(getVal("notes")).trim() : "";
+      const rowMessageSent = getVal("messageSent") ? String(getVal("messageSent")).trim() : "";
+      const rowDateAdded = getVal("dateAdded") ? String(getVal("dateAdded")).trim() : "";
+      const rowChannelRaw = getVal("channel") ? String(getVal("channel")).trim() : "";
+      
+      // Determine channel
+      let channel = normalizeChannel(rowChannelRaw);
+      if (!channel) {
+        channel = (activeTab && activeTab !== "All" && activeTab !== "LeadFinder" && activeTab !== "TodayMode") ? activeTab : "Email";
       }
-      
-      // Parse dates from file
-      const parsedDate = parseExcelDate(rowNextActionDate);
-      
-      // Check red row color
-      let isRedRow = false;
-      const colIndices = Object.values(colMapping);
-      for (const colIdx of colIndices) {
-        const cellAddress = XLSX.utils.encode_cell({ r: rowIdx + 1, c: colIdx });
-        const cell = worksheet[cellAddress];
-        if (cell && cell.s) {
-          if (checkRowRedStyle(cell)) {
-            isRedRow = true;
-            break;
-          }
+
+      // Check if lead name is missing (but row is valid)
+      if (!rowName) {
+        missingNameCount++;
+      }
+
+      // Determine stage
+      let stage = "Found (Lead collected only)";
+      if (rowStageRaw) {
+        const matchedStage = VALID_STAGES.find(s => s.toLowerCase() === rowStageRaw.toLowerCase());
+        if (matchedStage) {
+          stage = matchedStage;
         }
       }
-      
+
       // Base lead mapping
       const lead = {
-        dateAdded: getOffsetDateString(0),
-        name: rowName ? String(rowName).trim() : "Unnamed Lead / Company",
-        market: rowMarket ? String(rowMarket).trim() : "Italy",
-        channel: activeTab, // Assigned to current tab
-        mainLink: rowMainLink ? normalizeUrl(String(rowMainLink)) : "",
-        niche: rowNiche ? String(rowNiche).trim() : "",
-        source: rowSource ? String(rowSource).trim() : "Import",
-        priority: rowPriority ? String(rowPriority).trim() : "B",
-        stage: rowStage ? String(rowStage).trim() : "Found",
-        lastActionDate: getOffsetDateString(0),
-        nextAction: rowNextAction ? String(rowNextAction).trim() : "",
-        nextActionDate: parsedDate || "",
-        replyStatus: rowReplyStatus ? String(rowReplyStatus).trim() : "No reply",
-        notes: rowNotes ? String(rowNotes).trim() : "",
-        contactPerson: rowContactPerson ? String(rowContactPerson).trim() : "",
-        email: rowEmail ? String(rowEmail).trim() : "",
-        whatsappNumber: rowWhatsapp ? String(rowWhatsapp).trim() : "",
+        dateAdded: parseExcelDate(rowDateAdded) || getOffsetDateString(0),
+        name: rowName || "Unnamed Lead / Company",
+        market: rowMarket || "Italy",
+        channel: channel,
+        mainLink: rowMainLink ? normalizeUrl(rowMainLink) : "",
+        niche: rowNiche,
+        source: rowSource || "Import",
+        priority: rowPriority || "B",
+        stage: stage,
+        lastActionDate: parseExcelDate(rowLastActionDate) || getOffsetDateString(0),
+        nextAction: rowNextAction,
+        nextActionDate: parseExcelDate(rowNextActionDate),
+        replyStatus: rowReplyStatus || "No reply",
+        notes: rowNotes,
+        contactPerson: rowContactPerson,
+        email: rowEmail,
+        whatsappNumber: rowWhatsapp,
         extraLink: "",
-        messageSent: rowMessageSent ? String(rowMessageSent).trim() : "",
+        messageSent: rowMessageSent,
         followUpCount: 0
       };
-      
+
+      // Set default nextAction if empty based on channel
+      if (!lead.nextAction) {
+        if (lead.channel === "LinkedIn") lead.nextAction = "Send connection request";
+        else if (lead.channel === "Email") lead.nextAction = "Send pitch email";
+        else if (lead.channel === "WhatsApp") lead.nextAction = "Send WhatsApp pitch";
+        else if (lead.channel === "Instagram") lead.nextAction = "Send DM";
+        else lead.nextAction = "Send first message";
+      }
+
+      // Set default nextActionDate if empty
+      if (!lead.nextActionDate) {
+        lead.nextActionDate = getOffsetDateString(0);
+      }
+
       // Process unmapped columns into notes
       const extraNotesList = [];
       headers.forEach((header, idx) => {
@@ -2769,255 +2885,191 @@ function processImportData(arrayBuffer, filename) {
           }
         }
       });
-      
       if (extraNotesList.length > 0) {
         lead.notes = (lead.notes ? lead.notes + "\n" : "") + extraNotesList.join(" | ");
       }
-      
-      // Channel-specific default overrides
-      if (lead.channel === "Email") {
-        const hasDate = (colMapping.date !== undefined && String(row[colMapping.date]).trim() !== "");
-        const hasMsg = (colMapping.messageSent !== undefined && String(row[colMapping.messageSent]).trim() !== "");
-        
-        if (hasDate || hasMsg) {
-          lead.stage = "First Message Sent";
-        } else {
-          lead.stage = rowStage ? String(rowStage).trim() : "Found";
-        }
-        lead.replyStatus = "No reply";
-        lead.nextAction = "Send follow-up";
-        
-        // Date mapping logic
-        if (colMapping.date !== undefined && row[colMapping.date]) {
-          const emailDate = parseExcelDate(row[colMapping.date]);
-          if (emailDate) {
-            lead.lastActionDate = emailDate;
-            lead.dateAdded = emailDate;
-            lead.firstMessageDate = emailDate;
-            if (!lead.nextActionDate) {
-              lead.nextActionDate = addWorkingDays(emailDate, 5);
-            }
-          }
-        }
-      } else if (lead.channel === "WhatsApp") {
-        lead.stage = rowStage ? String(rowStage).trim() : "Ready to WhatsApp";
-        lead.replyStatus = "No reply";
-        lead.nextAction = "Send WhatsApp";
-        if (rowMessageSent) {
-          lead.messageSent = String(rowMessageSent).trim();
-        }
-      } else if (lead.channel === "Instagram") {
-        lead.stage = rowStage ? String(rowStage).trim() : "Found";
-        lead.nextAction = "Like/comment";
-      } else if (lead.channel === "LinkedIn") {
-        lead.stage = rowStage ? String(rowStage).trim() : "Found";
-        lead.nextAction = "Send connection request";
-      }
-      
+
       // Duplicate checks
-      const emailLower = rowEmail ? String(rowEmail).trim().toLowerCase() : "";
-      const phoneLower = rowWhatsapp ? String(rowWhatsapp).trim().toLowerCase() : "";
-      const linkLower = rowMainLink ? String(rowMainLink).trim().toLowerCase() : "";
-      const nameLower = rowName ? String(rowName).trim().toLowerCase() : "";
-      
-      let matchedIndex = -1;
-      
-      // Search in existing leads
-      for (let i = 0; i < leads.length; i++) {
-        const l = leads[i];
-        const dbEmail = l.email ? String(l.email).trim().toLowerCase() : "";
-        const dbPhone = l.whatsappNumber ? String(l.whatsappNumber).trim().toLowerCase() : "";
-        const dbLink = l.mainLink ? String(l.mainLink).trim().toLowerCase() : "";
-        const dbName = l.name ? String(l.name).trim().toLowerCase() : "";
-        
-        if (emailLower && dbEmail === emailLower) {
-          matchedIndex = i;
-          break;
-        } else if (phoneLower && dbPhone === phoneLower) {
-          matchedIndex = i;
-          break;
-        } else if (linkLower && dbLink === linkLower) {
-          matchedIndex = i;
-          break;
-        } else if (!emailLower && !phoneLower && !linkLower) {
-          if (nameLower && dbName === nameLower) {
-            matchedIndex = i;
-            break;
-          }
-        }
-      }
-      
-      // Search in already accumulated valid leads from this file
-      let isDupInSession = false;
-      if (matchedIndex === -1) {
-        for (let i = 0; i < validLeads.length; i++) {
-          const l = validLeads[i];
-          const sessEmail = l.email ? String(l.email).trim().toLowerCase() : "";
-          const sessPhone = l.whatsappNumber ? String(l.whatsappNumber).trim().toLowerCase() : "";
-          const sessLink = l.mainLink ? String(l.mainLink).trim().toLowerCase() : "";
-          const sessName = l.name ? String(l.name).trim().toLowerCase() : "";
-          
-          if (emailLower && sessEmail === emailLower) {
-            isDupInSession = true;
-            break;
-          } else if (phoneLower && sessPhone === phoneLower) {
-            isDupInSession = true;
-            break;
-          } else if (linkLower && sessLink === linkLower) {
-            isDupInSession = true;
-            break;
-          } else if (!emailLower && !phoneLower && !linkLower) {
-            if (nameLower && sessName === nameLower) {
-              isDupInSession = true;
-              break;
-            }
-          }
-        }
-      }
-      
-      if (matchedIndex !== -1 || isDupInSession) {
-        duplicateLeads.push({ lead, matchedIndex });
+      const dupCheck = checkDuplicate(lead, validLeads);
+      if (dupCheck.isDup) {
+        duplicatesCount++;
+        const rowIdText = lead.name && lead.name !== "Unnamed Lead / Company" ? lead.name : (lead.email || lead.mainLink || "Row " + (rowIdx + 2));
+        skippedRowsLog.push(`Row ${rowIdx + 2}: ${rowIdText} - Skipped — possible duplicate`);
       } else {
         validLeads.push(lead);
       }
     });
-    
-    showImportPreview(totalRows, validLeads, duplicateLeads, missingInfoCount);
-    
+
+    const skippedCount = totalRows - validLeads.length;
+    showImportPreview(totalRows, validLeads, skippedCount, duplicatesCount, missingNameCount, skippedRowsLog);
+
   } catch (err) {
     console.error("Error parsing spreadsheet file:", err);
     showToast(`Error reading spreadsheet: ${err.message}`, "error");
   }
 }
 
-function showImportPreview(totalRows, validLeads, duplicateLeads, missingInfo) {
+function showImportPreview(totalRows, validLeads, skippedCount, duplicatesCount, missingNameCount, skippedRowsLog) {
   pendingValidLeads = validLeads;
-  pendingDuplicateLeads = duplicateLeads;
+  pendingSkippedCount = skippedCount;
   
   document.getElementById("prevTotalRows").textContent = totalRows;
   document.getElementById("prevValidLeads").textContent = validLeads.length;
-  document.getElementById("prevDuplicatesFound").textContent = duplicateLeads.length;
-  document.getElementById("prevMissingInfo").textContent = missingInfo;
+  document.getElementById("prevRowsSkipped").textContent = skippedCount;
+  document.getElementById("prevDuplicatesFound").textContent = duplicatesCount;
+  document.getElementById("prevMissingInfo").textContent = missingNameCount;
   
-  // Reset checkboxes to default unchecked
-  document.getElementById("chkImportDupAnyway").checked = false;
-  document.getElementById("chkUpdateExistingDup").checked = false;
-  
-  // Calculate and update counts based on defaults
-  updateImportPreviewCounts();
+  // Render first 5 names
+  const prevNamesUl = document.getElementById("prevFirst5Names");
+  if (prevNamesUl) {
+    prevNamesUl.innerHTML = "";
+    const first5 = validLeads.slice(0, 5);
+    if (first5.length === 0) {
+      prevNamesUl.innerHTML = "<li>No names mapped.</li>";
+    } else {
+      first5.forEach(l => {
+        const li = document.createElement("li");
+        li.textContent = l.name;
+        prevNamesUl.appendChild(li);
+      });
+    }
+  }
+
+  // Render first 5 emails
+  const prevEmailsUl = document.getElementById("prevFirst5Emails");
+  if (prevEmailsUl) {
+    prevEmailsUl.innerHTML = "";
+    const first5 = validLeads.filter(l => l.email).slice(0, 5);
+    if (first5.length === 0) {
+      prevEmailsUl.innerHTML = "<li>No emails mapped.</li>";
+    } else {
+      first5.forEach(l => {
+        const li = document.createElement("li");
+        li.textContent = l.email;
+        prevEmailsUl.appendChild(li);
+      });
+    }
+  }
+
+  // Monospace skipped list
+  const prevSkippedDiv = document.getElementById("prevSkippedRowsList");
+  if (prevSkippedDiv) {
+    if (skippedRowsLog.length === 0) {
+      prevSkippedDiv.innerHTML = "No rows skipped.";
+    } else {
+      prevSkippedDiv.innerHTML = skippedRowsLog.map(log => {
+        return log.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }).join("<br>");
+    }
+  }
   
   const modal = document.getElementById("importPreviewModal");
   if (modal) modal.classList.add("active");
 }
 
-function updateImportPreviewCounts() {
-  const importDupAnyway = document.getElementById("chkImportDupAnyway").checked;
-  const updateExistingDup = document.getElementById("chkUpdateExistingDup").checked;
-  
-  const totalDup = pendingDuplicateLeads.length;
-  
-  let dupSkipped = 0;
-  let dupToImport = 0;
-  let finalImportCount = pendingValidLeads.length;
-  
-  if (updateExistingDup) {
-    // prioritize "Update existing duplicates", do not create duplicate records
-    dupSkipped = 0;
-    dupToImport = 0;
-  } else if (importDupAnyway) {
-    dupSkipped = 0;
-    dupToImport = totalDup;
-    finalImportCount = pendingValidLeads.length + totalDup;
-  } else {
-    dupSkipped = totalDup;
-    dupToImport = 0;
+async function confirmImport() {
+  if (pendingValidLeads.length === 0) {
+    showToast("No leads to import.", "info");
+    closeImportPreview();
+    return;
   }
-  
-  document.getElementById("prevDuplicatesSkipped").textContent = dupSkipped;
-  document.getElementById("prevDuplicatesToImport").textContent = dupToImport;
-  document.getElementById("prevFinalCount").textContent = finalImportCount;
-}
 
-function confirmImport() {
-  const importDupAnyway = document.getElementById("chkImportDupAnyway").checked;
-  const updateExistingDup = document.getElementById("chkUpdateExistingDup").checked;
-  
-  const leadsToPush = [...pendingValidLeads];
-  let updateCount = 0;
-  
-  if (updateExistingDup) {
-    // Update existing duplicates in place
-    pendingDuplicateLeads.forEach(dupItem => {
-      const idx = dupItem.matchedIndex;
-      if (idx !== -1 && idx < leads.length) {
-        const existing = leads[idx];
-        const imported = dupItem.lead;
-        
-        // Update fields of the existing lead with the imported row's values
-        if (imported.name) existing.name = imported.name;
-        if (imported.market) existing.market = imported.market;
-        if (imported.mainLink) existing.mainLink = imported.mainLink;
-        if (imported.niche) existing.niche = imported.niche;
-        if (imported.source) existing.source = imported.source;
-        if (imported.priority) existing.priority = imported.priority;
-        if (imported.stage) existing.stage = imported.stage;
-        if (imported.lastActionDate) existing.lastActionDate = imported.lastActionDate;
-        if (imported.nextAction) existing.nextAction = imported.nextAction;
-        if (imported.nextActionDate) existing.nextActionDate = imported.nextActionDate;
-        if (imported.replyStatus) existing.replyStatus = imported.replyStatus;
-        if (imported.contactPerson) existing.contactPerson = imported.contactPerson;
-        if (imported.email) existing.email = imported.email;
-        if (imported.whatsappNumber) existing.whatsappNumber = imported.whatsappNumber;
-        if (imported.messageSent) existing.messageSent = imported.messageSent;
-        
-        // Append notes: preserve existing, append imported notes
-        const importedNotes = imported.notes ? String(imported.notes).trim() : "";
-        if (importedNotes) {
-          existing.notes = (existing.notes ? existing.notes + "\n" : "") + "Updated from import: " + importedNotes;
-        }
-        
-        updateCount++;
-      } else {
-        // duplicate in file session itself but doesn't exist in DB -> import as new
-        leadsToPush.push(dupItem.lead);
+  const confirmBtn = document.getElementById("confirmImportBtn");
+  const originalBtnText = confirmBtn ? confirmBtn.textContent : "Confirm Import";
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "Saving...";
+  }
+
+  try {
+    // Generate IDs for all valid leads
+    pendingValidLeads.forEach(ensureLeadId);
+    
+    // Add to main memory leads list
+    leads.push(...pendingValidLeads);
+
+    // Save to LocalStorage immediately
+    localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+
+    // Save directly to Neon DB (blocking await)
+    setSyncStatus("syncing");
+    await apiFetch("/api/leads", { method: "POST", body: { leads } });
+    setSyncStatus("connected");
+
+    // Success behavior:
+    // 1. Reset all advanced filters
+    document.getElementById("searchInput").value = "";
+    document.getElementById("filterChannel").value = "All";
+    document.getElementById("filterMarket").value = "All";
+    document.getElementById("filterSource").value = "All";
+    document.getElementById("filterPriority").value = "All";
+    document.getElementById("filterStage").value = "All";
+    document.getElementById("filterReply").value = "All";
+    document.getElementById("filterActionDate").value = "All";
+    document.getElementById("filterNextAction").value = "All";
+
+    // Reset quick filters active class to All
+    const quickFilters = [
+      { id: "qFilterAll", value: "All" },
+      { id: "qFilterToday", value: "Today" },
+      { id: "qFilterFollowUp", value: "FollowUp" },
+      { id: "qFilterA", value: "A" },
+      { id: "qFilterWarm", value: "Warm" },
+      { id: "qFilterArchived", value: "Archived" }
+    ];
+    quickFilters.forEach(x => {
+      const btn = document.getElementById(x.id);
+      if (btn) {
+        if (x.value === "All") btn.classList.add("active");
+        else btn.classList.remove("active");
       }
     });
-  } else if (importDupAnyway) {
-    // Import duplicates as separate records
-    pendingDuplicateLeads.forEach(dupItem => {
-      const dupLead = { ...dupItem.lead };
-      // Add note
-      dupLead.notes = (dupLead.notes ? dupLead.notes + "\n" : "") + "Imported as duplicate by user choice.";
-      leadsToPush.push(dupLead);
+    activeQuickFilter = "All";
+
+    // 2. Switch to the Email Leads tab
+    activeTab = "Email";
+    const tabBtns = document.querySelectorAll(".tab-btn");
+    tabBtns.forEach(btn => {
+      btn.classList.remove("active");
+      if (btn.getAttribute("data-channel") === "Email") {
+        btn.classList.add("active");
+      }
     });
-  }
-  
-  if (leadsToPush.length > 0 || updateCount > 0) {
-    if (leadsToPush.length > 0) {
-      leads.push(...leadsToPush);
-    }
-    saveData();
+    const filterChanSelect = document.getElementById("filterChannel");
+    if (filterChanSelect) filterChanSelect.value = "Email";
+
+    // 3. Refresh dashboard, tables, list views
     updateDashboard();
     renderLeads();
     renderTodayActions();
-    
-    let msg = `Successfully imported ${leadsToPush.length} new leads`;
-    if (updateCount > 0) {
-      msg += ` and updated ${updateCount} existing leads`;
+
+    // 4. Show success toast
+    const x = pendingValidLeads.length;
+    const y = pendingSkippedCount;
+    if (y > 0) {
+      showToast(`${x} leads imported successfully. ${y} rows skipped. Review the import summary for details.`, "success");
+    } else {
+      showToast(`${x} leads imported successfully. Stage set to Found (Lead collected only).`, "success");
     }
-    showToast(msg + "!", "success");
-  } else {
-    showToast("No leads imported or updated.", "info");
+
+  } catch (err) {
+    console.error("Error saving imported leads to cloud:", err);
+    showToast(`Failed to sync imported leads to database: ${err.message}`, "error");
+    setSyncStatus("offline");
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = originalBtnText;
+    }
+    closeImportPreview();
   }
-  
-  closeImportPreview();
 }
 
 function closeImportPreview() {
   const modal = document.getElementById("importPreviewModal");
   if (modal) modal.classList.remove("active");
   pendingValidLeads = [];
-  pendingDuplicateLeads = [];
+  pendingSkippedCount = 0;
   const fileInput = document.getElementById("importFileInput");
   if (fileInput) fileInput.value = "";
 }
@@ -3642,7 +3694,7 @@ function copyPersonalizedScript(originalIndex, scriptType) {
     typeKey = "First Message";
     channelKey = "Instagram";
   } else if (scriptType === "LinkedIn") {
-    if (lead.stage === "Found" || lead.stage === "Engaged") {
+    if (lead.stage === "Found (Lead collected only)" || lead.stage === "Engaged") {
       scriptTitle = "LinkedIn Connection Request";
       typeKey = "Connection Request";
     } else {
@@ -3983,7 +4035,7 @@ function markSentEmail(originalIndex) {
   lead.lastActionDate = today;
   lead.replyStatus = "No reply";
   
-  const isFirstEmail = (lead.stage === "Found" || lead.stage === "Engaged");
+  const isFirstEmail = (lead.stage === "Found (Lead collected only)" || lead.stage === "Engaged");
   if (isFirstEmail) {
     lead.stage = "First Message Sent";
     lead.followUpCount = 0;
