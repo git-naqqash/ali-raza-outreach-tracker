@@ -1121,58 +1121,104 @@
 
   <!-- Import Preview Modal -->
   <div class="modal-overlay" id="importPreviewModal">
-    <div class="modal-content" style="max-width: 550px; width: 90%;">
+    <div class="modal-content" style="max-width: 800px; width: 95%;">
       <div class="modal-header">
-        <h2>Import Preview Summary</h2>
+        <h2>Import Preview & Conflict Resolution</h2>
         <button class="modal-close" id="closeImportModalBtn" aria-label="Close modal">&times;</button>
       </div>
-      <div class="modal-form-scroll" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
-          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
-            <td style="padding: 8px 0; font-weight: 600; color: var(--color-deep-navy);">Total Rows Detected:</td>
-            <td style="padding: 8px 0; text-align: right; font-weight: 700;" id="prevTotalRows">0</td>
-          </tr>
-          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
-            <td style="padding: 8px 0; font-weight: 600; color: var(--color-teal-green);">Valid Rows Ready to Import:</td>
-            <td style="padding: 8px 0; text-align: right; font-weight: 700; color: var(--color-teal-green);" id="prevValidLeads">0</td>
-          </tr>
-          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
-            <td style="padding: 8px 0; font-weight: 600; color: #ef4444;">Rows Skipped:</td>
-            <td style="padding: 8px 0; text-align: right; font-weight: 700; color: #ef4444;" id="prevRowsSkipped">0</td>
-          </tr>
-          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
-            <td style="padding: 8px 0; font-weight: 600; color: var(--color-priority-c);">Possible Duplicate Rows:</td>
-            <td style="padding: 8px 0; text-align: right; font-weight: 700; color: var(--color-priority-c);" id="prevDuplicatesFound">0</td>
-          </tr>
-          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
-            <td style="padding: 8px 0; font-weight: 600; color: var(--color-soft-gold);">Number of Rows Missing a Lead Name:</td>
-            <td style="padding: 8px 0; text-align: right; font-weight: 700; color: var(--color-soft-gold);" id="prevMissingInfo">0</td>
-          </tr>
-        </table>
+      <div class="modal-form-scroll" style="padding: 20px; max-height: 75vh; overflow-y: auto;">
         
-        <!-- First 5 Mapped Names -->
-        <div style="margin-bottom: 15px;">
-          <h4 style="margin: 0 0 5px 0; font-size: 13.5px; color: var(--color-deep-navy);">First 5 Mapped Lead Names:</h4>
-          <ul id="prevFirst5Names" style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--color-priority-c); line-height: 1.4;"></ul>
+        <!-- Summary Stats Table -->
+        <div style="background-color: var(--color-off-white); border: var(--border-light); border-radius: var(--radius-md); padding: 15px; margin-bottom: 20px;">
+          <h3 style="margin: 0 0 10px 0; font-size: 15px; color: var(--color-deep-navy);">Import Summary</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+              <td style="padding: 6px 0; font-weight: 600; color: var(--color-deep-navy);">Total Rows Detected:</td>
+              <td style="padding: 6px 0; text-align: right; font-weight: 700;" id="prevTotalRows">0</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+              <td style="padding: 6px 0; font-weight: 600; color: var(--color-teal-green);">New Leads to Create:</td>
+              <td style="padding: 6px 0; text-align: right; font-weight: 700; color: var(--color-teal-green);" id="summaryNewCount">0</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+              <td style="padding: 6px 0; font-weight: 600; color: #4f46e5;">Existing Leads to Update:</td>
+              <td style="padding: 6px 0; text-align: right; font-weight: 700; color: #4f46e5;" id="summaryUpdateCount">0</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+              <td style="padding: 6px 0; font-weight: 600; color: var(--color-priority-c);">Duplicates to Skip:</td>
+              <td style="padding: 6px 0; text-align: right; font-weight: 700; color: var(--color-priority-c);" id="summarySkipCount">0</td>
+            </tr>
+            <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
+              <td style="padding: 6px 0; font-weight: 600; color: #ef4444;">Invalid Rows Skipped:</td>
+              <td style="padding: 6px 0; text-align: right; font-weight: 700; color: #ef4444;" id="summaryInvalidCount">0</td>
+            </tr>
+          </table>
         </div>
 
-        <!-- First 5 Mapped Emails -->
-        <div style="margin-bottom: 15px;">
-          <h4 style="margin: 0 0 5px 0; font-size: 13.5px; color: var(--color-deep-navy);">First 5 Mapped Email Addresses:</h4>
-          <ul id="prevFirst5Emails" style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--color-priority-c); line-height: 1.4;"></ul>
-        </div>
-
-        <!-- List of Skipped/Duplicate Rows with reasons -->
-        <div>
-          <h4 style="margin: 0 0 5px 0; font-size: 13.5px; color: var(--color-deep-navy);">Skipped Rows Summary:</h4>
-          <div id="prevSkippedRowsList" style="background-color: var(--color-off-white); border: var(--border-light); border-radius: var(--radius-md); padding: 10px; font-size: 12px; max-height: 120px; overflow-y: auto; color: var(--color-priority-c); line-height: 1.4; font-family: monospace;">
-            No rows skipped.
+        <!-- Section A: New Leads Ready to Import -->
+        <div style="margin-bottom: 20px; border-bottom: 1px solid rgba(11, 31, 58, 0.08); padding-bottom: 15px;">
+          <h3 style="margin: 0 0 8px 0; font-size: 14.5px; color: var(--color-teal-green); display: flex; align-items: center; gap: 6px;">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--color-teal-green);"></span>
+            Section A: New Leads (No Matches Detected)
+          </h3>
+          <div style="font-size: 13px; color: var(--color-priority-c); margin-bottom: 8px;">
+            The following new records will be created. Default action: <strong>Create New Lead</strong>.
+          </div>
+          <div style="padding-left: 10px;">
+            <h4 style="margin: 0 0 5px 0; font-size: 13px; color: var(--color-deep-navy);">First 5 Lead Names:</h4>
+            <ul id="prevFirst5Names" style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--color-priority-c); line-height: 1.4;"></ul>
           </div>
         </div>
+
+        <!-- Section B: Possible Duplicates -->
+        <div style="margin-bottom: 20px; border-bottom: 1px solid rgba(11, 31, 58, 0.08); padding-bottom: 15px;">
+          <h3 style="margin: 0 0 10px 0; font-size: 14.5px; color: #d97706; display: flex; align-items: center; gap: 6px; justify-content: space-between;">
+            <span style="display: flex; align-items: center; gap: 6px;">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#d97706;"></span>
+              Section B: Possible Duplicates Resolving
+            </span>
+            <span style="font-size: 12px; font-weight: normal; color: var(--color-priority-c);" id="duplicatesCountBadge">(0 found)</span>
+          </h3>
+          
+          <!-- Bulk resolution controls -->
+          <div class="bulk-duplicate-controls" style="display: flex; gap: 8px; margin-bottom: 12px; background: rgba(217, 119, 6, 0.05); padding: 8px; border-radius: var(--radius-md); border: 1px dashed rgba(217, 119, 6, 0.2);">
+            <span style="font-size: 12.5px; font-weight: 600; color: #b45309; align-self: center; margin-right: 4px;">Bulk Action:</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="bulkSkipBtn" style="padding: 4px 8px; font-size: 12px;">Skip All Duplicates</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="bulkUpdateBtn" style="padding: 4px 8px; font-size: 12px;">Update All Duplicates</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="bulkCreateBtn" style="padding: 4px 8px; font-size: 12px;">Create All as New Leads</button>
+          </div>
+
+          <!-- Scrollable duplicates list -->
+          <div id="duplicatesListContainer" style="max-height: 250px; overflow-y: auto; border: var(--border-light); border-radius: var(--radius-md); background: #ffffff;">
+            <!-- Rendered dynamically via JS -->
+            <div style="padding: 20px; text-align: center; color: var(--color-priority-c); font-size: 13px;">No duplicates detected in this file.</div>
+          </div>
+
+          <!-- First 5 leads to update -->
+          <div id="leadsToUpdateSection" style="margin-top: 15px; display: none;">
+            <h4 style="margin: 0 0 5px 0; font-size: 13px; color: var(--color-deep-navy);">First 5 Leads to Update:</h4>
+            <ul id="prevFirst5Updates" style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--color-priority-c); line-height: 1.4;"></ul>
+          </div>
+        </div>
+
+        <!-- Section C: Invalid / Skipped Rows -->
+        <div>
+          <h3 style="margin: 0 0 8px 0; font-size: 14.5px; color: #ef4444; display: flex; align-items: center; gap: 6px;">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
+            Section C: Invalid / Skipped Rows (Cannot be imported)
+          </h3>
+          <div style="font-size: 13px; color: var(--color-priority-c); margin-bottom: 8px;">
+            Rows missing all identity fields (Lead Name, Email, and Main Profile Link):
+          </div>
+          <div id="prevSkippedRowsList" style="background-color: var(--color-off-white); border: var(--border-light); border-radius: var(--radius-md); padding: 10px; font-size: 12px; max-height: 100px; overflow-y: auto; color: var(--color-priority-c); line-height: 1.4; font-family: monospace;">
+            No invalid rows found.
+          </div>
+        </div>
+
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="cancelImportBtn">Cancel Import</button>
-        <button type="button" class="btn btn-success" id="confirmImportBtn">Confirm Import</button>
+        <button type="button" class="btn btn-success" id="confirmImportBtn" style="font-weight: 600;">Confirm Import</button>
       </div>
     </div>
   </div>

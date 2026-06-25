@@ -2642,6 +2642,8 @@ const SYNONYMS = {
 };
 
 let pendingValidLeads = [];
+let pendingDuplicateLeads = [];
+let pendingInvalidLeads = [];
 let pendingSkippedCount = 0;
 
 function normalizeHeader(str) {
@@ -2659,52 +2661,64 @@ function normalizeChannel(str) {
   return "";
 }
 
-function checkDuplicate(lead, acceptedLeads) {
-  const emailLower = lead.email ? lead.email.trim().toLowerCase() : "";
-  const linkNorm = lead.mainLink ? normalizeUrl(lead.mainLink).trim().toLowerCase() : "";
-  const nameLower = lead.name ? lead.name.trim().toLowerCase() : "";
-  const marketLower = lead.market ? lead.market.trim().toLowerCase() : "";
+function normalizeUrlForComparison(url) {
+  if (!url) return "";
+  let clean = url.toString().trim().toLowerCase();
+  clean = clean.replace(/^(https?:\/\/)?(www\.)?/, "");
+  clean = clean.replace(/\/$/, "");
+  return clean;
+}
 
-  // 1) Same email if email exists
-  if (emailLower) {
-    const dupDb = leads.find(l => l.email && l.email.trim().toLowerCase() === emailLower);
-    if (dupDb) return { isDup: true, reason: `Duplicate Email (${lead.email})` };
-    const dupAcc = acceptedLeads.find(l => l.email && l.email.trim().toLowerCase() === emailLower);
-    if (dupAcc) return { isDup: true, reason: `Duplicate Email in CSV (${lead.email})` };
+function normalizeNameForComparison(name) {
+  if (!name) return "";
+  let clean = name.toString().toLowerCase().trim();
+  clean = clean.replace(/[\.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+  clean = clean.replace(/\s+/g, " ");
+  return clean.trim();
+}
+
+function normalizeEmailForComparison(email) {
+  if (!email) return "";
+  return email.toString().trim().toLowerCase();
+}
+
+function checkDuplicateForImport(lead) {
+  const emailNorm = normalizeEmailForComparison(lead.email);
+  let matchedLead = null;
+  let reason = "";
+
+  // Priority 1: Email Address matches existing lead email
+  if (emailNorm) {
+    matchedLead = leads.find(l => normalizeEmailForComparison(l.email) === emailNorm);
+    if (matchedLead) {
+      reason = `Email Address matches existing lead email address: "${lead.email}"`;
+      return { isDup: true, matchedLead, reason };
+    }
   }
 
-  // 2) Same profile link if link exists
+  // Priority 2: Main Profile Link matches existing lead main link
+  const linkNorm = normalizeUrlForComparison(lead.mainLink);
   if (linkNorm) {
-    const dupDb = leads.find(l => l.mainLink && normalizeUrl(l.mainLink).trim().toLowerCase() === linkNorm);
-    if (dupDb) return { isDup: true, reason: `Duplicate Profile Link (${lead.mainLink})` };
-    const dupAcc = acceptedLeads.find(l => l.mainLink && normalizeUrl(l.mainLink).trim().toLowerCase() === linkNorm);
-    if (dupAcc) return { isDup: true, reason: `Duplicate Profile Link in CSV (${lead.mainLink})` };
+    matchedLead = leads.find(l => normalizeUrlForComparison(l.mainLink) === linkNorm);
+    if (matchedLead) {
+      reason = `Main Profile Link matches existing lead profile link: "${lead.mainLink}"`;
+      return { isDup: true, matchedLead, reason };
+    }
   }
 
-  // 3) Same name + market when email/link are empty
-  if (!emailLower && !linkNorm) {
-    if (nameLower) {
-      const dupDb = leads.find(l => {
-        const dbEmail = l.email ? l.email.trim().toLowerCase() : "";
-        const dbLink = l.mainLink ? normalizeUrl(l.mainLink).trim().toLowerCase() : "";
-        if (!dbEmail && !dbLink) {
-          return l.name && l.name.trim().toLowerCase() === nameLower &&
-                 l.market && l.market.trim().toLowerCase() === marketLower;
-        }
-        return false;
+  // Priority 3: When email and main profile link are both empty, name + market match
+  if (!emailNorm && !linkNorm) {
+    const nameNorm = normalizeNameForComparison(lead.name);
+    const marketNorm = lead.market ? lead.market.trim().toLowerCase() : "";
+    if (nameNorm) {
+      matchedLead = leads.find(l => {
+        return normalizeNameForComparison(l.name) === nameNorm &&
+               (l.market ? l.market.trim().toLowerCase() : "") === marketNorm;
       });
-      if (dupDb) return { isDup: true, reason: `Duplicate Name + Market (${lead.name} / ${lead.market})` };
-
-      const dupAcc = acceptedLeads.find(l => {
-        const accEmail = l.email ? l.email.trim().toLowerCase() : "";
-        const accLink = l.mainLink ? normalizeUrl(l.mainLink).trim().toLowerCase() : "";
-        if (!accEmail && !accLink) {
-          return l.name && l.name.trim().toLowerCase() === nameLower &&
-                 l.market && l.market.trim().toLowerCase() === marketLower;
-        }
-        return false;
-      });
-      if (dupAcc) return { isDup: true, reason: `Duplicate Name + Market in CSV (${lead.name} / ${lead.market})` };
+      if (matchedLead) {
+        reason = `Lead Name/Company and Market match existing lead: "${lead.name}" in Market "${lead.market}"`;
+        return { isDup: true, matchedLead, reason };
+      }
     }
   }
 
@@ -2765,12 +2779,12 @@ function processImportData(arrayBuffer, filename) {
     // Map headers to column indices
     const colMapping = mapHeaders(headers);
     
-    let totalRows = 0;
-    let missingNameCount = 0;
-    let duplicatesCount = 0;
+    pendingValidLeads = [];
+    pendingDuplicateLeads = [];
+    pendingInvalidLeads = [];
+    pendingSkippedCount = 0;
     
-    const validLeads = [];
-    const skippedRowsLog = []; // list of strings for details box
+    let totalRows = 0;
     
     rows.forEach((row, rowIdx) => {
       // Skip completely empty rows
@@ -2793,7 +2807,10 @@ function processImportData(arrayBuffer, filename) {
       
       // Validation: at least one of Name, Email, or Profile Link. Skip only if all 3 are empty.
       if (!rowName && !rowEmail && !rowMainLink) {
-        skippedRowsLog.push(`Row ${rowIdx + 2}: Skipped — missing Name, Email, and Link`);
+        pendingInvalidLeads.push({
+          rowNum: rowIdx + 2,
+          reason: "Missing Name, Email, and Link"
+        });
         return;
       }
       
@@ -2818,11 +2835,6 @@ function processImportData(arrayBuffer, filename) {
       let channel = normalizeChannel(rowChannelRaw);
       if (!channel) {
         channel = (activeTab && activeTab !== "All" && activeTab !== "LeadFinder" && activeTab !== "TodayMode") ? activeTab : "Email";
-      }
-
-      // Check if lead name is missing (but row is valid)
-      if (!rowName) {
-        missingNameCount++;
       }
 
       // Determine stage
@@ -2890,18 +2902,22 @@ function processImportData(arrayBuffer, filename) {
       }
 
       // Duplicate checks
-      const dupCheck = checkDuplicate(lead, validLeads);
+      const dupCheck = checkDuplicateForImport(lead);
       if (dupCheck.isDup) {
-        duplicatesCount++;
-        const rowIdText = lead.name && lead.name !== "Unnamed Lead / Company" ? lead.name : (lead.email || lead.mainLink || "Row " + (rowIdx + 2));
-        skippedRowsLog.push(`Row ${rowIdx + 2}: ${rowIdText} - Skipped — possible duplicate`);
+        pendingDuplicateLeads.push({
+          lead: lead,
+          matchedLead: dupCheck.matchedLead,
+          reason: dupCheck.reason,
+          resolution: "skip", // Default choice must be 'skip'
+          rowIdx: rowIdx + 2
+        });
       } else {
-        validLeads.push(lead);
+        pendingValidLeads.push(lead);
       }
     });
 
-    const skippedCount = totalRows - validLeads.length;
-    showImportPreview(totalRows, validLeads, skippedCount, duplicatesCount, missingNameCount, skippedRowsLog);
+    pendingSkippedCount = pendingInvalidLeads.length;
+    showImportPreview(totalRows);
 
   } catch (err) {
     console.error("Error parsing spreadsheet file:", err);
@@ -2909,71 +2925,276 @@ function processImportData(arrayBuffer, filename) {
   }
 }
 
-function showImportPreview(totalRows, validLeads, skippedCount, duplicatesCount, missingNameCount, skippedRowsLog) {
-  pendingValidLeads = validLeads;
-  pendingSkippedCount = skippedCount;
-  
+function escapeHtml(str) {
+  if (!str) return "";
+  return str.toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function showImportPreview(totalRows) {
+  // Update Total detected count
   document.getElementById("prevTotalRows").textContent = totalRows;
-  document.getElementById("prevValidLeads").textContent = validLeads.length;
-  document.getElementById("prevRowsSkipped").textContent = skippedCount;
-  document.getElementById("prevDuplicatesFound").textContent = duplicatesCount;
-  document.getElementById("prevMissingInfo").textContent = missingNameCount;
   
-  // Render first 5 names
-  const prevNamesUl = document.getElementById("prevFirst5Names");
-  if (prevNamesUl) {
-    prevNamesUl.innerHTML = "";
-    const first5 = validLeads.slice(0, 5);
-    if (first5.length === 0) {
-      prevNamesUl.innerHTML = "<li>No names mapped.</li>";
-    } else {
-      first5.forEach(l => {
-        const li = document.createElement("li");
-        li.textContent = l.name;
-        prevNamesUl.appendChild(li);
-      });
-    }
-  }
-
-  // Render first 5 emails
-  const prevEmailsUl = document.getElementById("prevFirst5Emails");
-  if (prevEmailsUl) {
-    prevEmailsUl.innerHTML = "";
-    const first5 = validLeads.filter(l => l.email).slice(0, 5);
-    if (first5.length === 0) {
-      prevEmailsUl.innerHTML = "<li>No emails mapped.</li>";
-    } else {
-      first5.forEach(l => {
-        const li = document.createElement("li");
-        li.textContent = l.email;
-        prevEmailsUl.appendChild(li);
-      });
-    }
-  }
-
-  // Monospace skipped list
+  // Render Section C (invalid rows)
   const prevSkippedDiv = document.getElementById("prevSkippedRowsList");
   if (prevSkippedDiv) {
-    if (skippedRowsLog.length === 0) {
-      prevSkippedDiv.innerHTML = "No rows skipped.";
+    if (pendingInvalidLeads.length === 0) {
+      prevSkippedDiv.innerHTML = "No invalid rows found.";
     } else {
-      prevSkippedDiv.innerHTML = skippedRowsLog.map(log => {
-        return log.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      prevSkippedDiv.innerHTML = pendingInvalidLeads.map(item => {
+        return `Row ${item.rowNum}: Skipped — ${escapeHtml(item.reason)}`;
       }).join("<br>");
     }
   }
+
+  // Render duplicates count badge
+  const countBadge = document.getElementById("duplicatesCountBadge");
+  if (countBadge) {
+    countBadge.textContent = `(${pendingDuplicateLeads.length} found)`;
+  }
+
+  // Render Duplicates Resolution table in Section B
+  const dupContainer = document.getElementById("duplicatesListContainer");
+  if (dupContainer) {
+    if (pendingDuplicateLeads.length === 0) {
+      dupContainer.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--color-priority-c); font-size: 13px;">No duplicates detected in this file.</div>`;
+    } else {
+      let tableHtml = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 2px solid rgba(11, 31, 58, 0.1); background-color: rgba(11, 31, 58, 0.02);">
+              <th style="padding: 8px; width: 50px;">Row</th>
+              <th style="padding: 8px;">Imported Lead Info</th>
+              <th style="padding: 8px;">Matched Existing Lead</th>
+              <th style="padding: 8px; width: 200px;">Conflict Action</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      pendingDuplicateLeads.forEach((dup, idx) => {
+        tableHtml += `
+          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05); vertical-align: top;">
+            <td style="padding: 8px; font-weight: bold;">${dup.rowIdx}</td>
+            <td style="padding: 8px;">
+              <div style="font-weight: 600; color: var(--color-deep-navy);">${escapeHtml(dup.lead.name)}</div>
+              <div style="font-size: 11px; color: var(--color-priority-c);">${escapeHtml(dup.lead.email || dup.lead.mainLink || 'No email/link')}</div>
+            </td>
+            <td style="padding: 8px;">
+              <div style="font-weight: 600; color: var(--color-deep-navy);">${escapeHtml(dup.matchedLead.name)}</div>
+              <div style="font-size: 11px; color: var(--color-priority-c);">${escapeHtml(dup.matchedLead.email || 'No email')}</div>
+              <div style="font-size: 11px; color: #b45309; font-style: italic; margin-top: 4px;">Reason: ${escapeHtml(dup.reason)}</div>
+            </td>
+            <td style="padding: 8px;">
+              <select class="dup-resolution-select" data-index="${idx}" style="padding: 4px 8px; border-radius: var(--radius-sm); border: var(--border-light); font-size: 12px; background: #fff; width: 100%;">
+                <option value="skip" ${dup.resolution === 'skip' ? 'selected' : ''}>Skip Duplicate</option>
+                <option value="update" ${dup.resolution === 'update' ? 'selected' : ''}>Update Existing Lead</option>
+                <option value="create" ${dup.resolution === 'create' ? 'selected' : ''}>Create New Lead Anyway</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+      tableHtml += `</tbody></table>`;
+      dupContainer.innerHTML = tableHtml;
+
+      // Add change event listeners to individual selects
+      const selects = dupContainer.querySelectorAll(".dup-resolution-select");
+      selects.forEach(select => {
+        select.addEventListener("change", (e) => {
+          const idx = parseInt(e.target.getAttribute("data-index"));
+          const val = e.target.value;
+          pendingDuplicateLeads[idx].resolution = val;
+          updateImportSummary(totalRows);
+        });
+      });
+    }
+  }
+
+  // Clone and bind bulk resolution buttons
+  const oldSkip = document.getElementById("bulkSkipBtn");
+  if (oldSkip) {
+    const newSkip = oldSkip.cloneNode(true);
+    oldSkip.parentNode.replaceChild(newSkip, oldSkip);
+    newSkip.addEventListener("click", () => {
+      pendingDuplicateLeads.forEach(dup => dup.resolution = "skip");
+      document.querySelectorAll(".dup-resolution-select").forEach(sel => sel.value = "skip");
+      updateImportSummary(totalRows);
+    });
+  }
+  
+  const oldUpdate = document.getElementById("bulkUpdateBtn");
+  if (oldUpdate) {
+    const newUpdate = oldUpdate.cloneNode(true);
+    oldUpdate.parentNode.replaceChild(newUpdate, oldUpdate);
+    newUpdate.addEventListener("click", () => {
+      pendingDuplicateLeads.forEach(dup => dup.resolution = "update");
+      document.querySelectorAll(".dup-resolution-select").forEach(sel => sel.value = "update");
+      updateImportSummary(totalRows);
+    });
+  }
+  
+  const oldCreate = document.getElementById("bulkCreateBtn");
+  if (oldCreate) {
+    const newCreate = oldCreate.cloneNode(true);
+    oldCreate.parentNode.replaceChild(newCreate, oldCreate);
+    newCreate.addEventListener("click", () => {
+      pendingDuplicateLeads.forEach(dup => dup.resolution = "create");
+      document.querySelectorAll(".dup-resolution-select").forEach(sel => sel.value = "create");
+      updateImportSummary(totalRows);
+    });
+  }
+
+  // Initialize summary counts and dynamic fields
+  updateImportSummary(totalRows);
   
   const modal = document.getElementById("importPreviewModal");
   if (modal) modal.classList.add("active");
 }
 
-async function confirmImport() {
-  if (pendingValidLeads.length === 0) {
-    showToast("No leads to import.", "info");
-    closeImportPreview();
-    return;
+function updateImportSummary(totalRows) {
+  let newLeadsCount = pendingValidLeads.length;
+  let updateLeadsCount = 0;
+  let skippedLeadsCount = 0;
+
+  pendingDuplicateLeads.forEach(dup => {
+    if (dup.resolution === "create") {
+      newLeadsCount++;
+    } else if (dup.resolution === "update") {
+      updateLeadsCount++;
+    } else {
+      skippedLeadsCount++;
+    }
+  });
+
+  const invalidRowsCount = pendingSkippedCount;
+
+  // Update Summary Stats Table
+  document.getElementById("summaryNewCount").textContent = newLeadsCount;
+  document.getElementById("summaryUpdateCount").textContent = updateLeadsCount;
+  document.getElementById("summarySkipCount").textContent = skippedLeadsCount;
+  document.getElementById("summaryInvalidCount").textContent = invalidRowsCount;
+
+  // Render First 5 Mapped New Names
+  const newNames = [];
+  pendingValidLeads.forEach(l => newNames.push(l.name));
+  pendingDuplicateLeads.forEach(dup => {
+    if (dup.resolution === "create") {
+      newNames.push(dup.lead.name);
+    }
+  });
+  const first5New = newNames.slice(0, 5);
+  const prevNamesUl = document.getElementById("prevFirst5Names");
+  if (prevNamesUl) {
+    prevNamesUl.innerHTML = first5New.map(name => `<li>${escapeHtml(name)}</li>`).join("");
+    if (first5New.length === 0) {
+      prevNamesUl.innerHTML = "<li>No new leads will be created.</li>";
+    }
   }
 
+  // Render First 5 Leads to Update
+  const updateNames = [];
+  pendingDuplicateLeads.forEach(dup => {
+    if (dup.resolution === "update") {
+      updateNames.push(`${dup.matchedLead.name} (Matched by Row ${dup.rowIdx})`);
+    }
+  });
+  const first5Updates = updateNames.slice(0, 5);
+  const prevUpdatesUl = document.getElementById("prevFirst5Updates");
+  const updatesSection = document.getElementById("leadsToUpdateSection");
+  if (prevUpdatesUl && updatesSection) {
+    if (first5Updates.length > 0) {
+      updatesSection.style.display = "block";
+      prevUpdatesUl.innerHTML = first5Updates.map(name => `<li>${escapeHtml(name)}</li>`).join("");
+    } else {
+      updatesSection.style.display = "none";
+      prevUpdatesUl.innerHTML = "";
+    }
+  }
+
+  // Dynamic Confirm Button text and state
+  const confirmBtn = document.getElementById("confirmImportBtn");
+  if (confirmBtn) {
+    const totalActions = newLeadsCount + updateLeadsCount;
+    if (totalActions === 0) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "No Valid Leads to Import";
+    } else {
+      confirmBtn.disabled = false;
+      if (updateLeadsCount > 0) {
+        confirmBtn.textContent = `Import ${newLeadsCount} New Leads and Update ${updateLeadsCount} Leads`;
+      } else {
+        confirmBtn.textContent = `Import ${newLeadsCount} New Leads`;
+      }
+    }
+  }
+}
+
+function prepareDuplicateAsNew(imported) {
+  const newLead = { ...imported };
+  delete newLead.id; // clear any existing ID reference just in case
+  
+  // Add note automatically
+  const todayStr = getOffsetDateString(0);
+  const dupNote = `Possible duplicate imported manually on ${todayStr}.`;
+  newLead.notes = (newLead.notes ? newLead.notes + "\n\n" : "") + dupNote;
+  
+  return newLead;
+}
+
+function updateExistingLeadObj(existing, imported) {
+  // Update fields if present in imported cell
+  if (imported.name) existing.name = imported.name;
+  if (imported.contactPerson) existing.contactPerson = imported.contactPerson;
+  if (imported.market) existing.market = imported.market;
+  if (imported.channel) existing.channel = imported.channel;
+  if (imported.mainLink) existing.mainLink = imported.mainLink;
+  if (imported.extraLink) existing.extraLink = imported.extraLink;
+  if (imported.niche) existing.niche = imported.niche;
+  if (imported.source) existing.source = imported.source;
+  if (imported.priority) existing.priority = imported.priority;
+  
+  // For Outreach Stage: Keep the existing stage unless the CSV contains a valid stage value
+  if (imported.stage) {
+    const isValid = VALID_STAGES.includes(imported.stage);
+    if (isValid) {
+      existing.stage = imported.stage;
+    }
+  }
+
+  if (imported.lastActionDate) existing.lastActionDate = imported.lastActionDate;
+  if (imported.nextAction) existing.nextAction = imported.nextAction;
+  if (imported.nextActionDate) existing.nextActionDate = imported.nextActionDate;
+  if (imported.replyStatus) existing.replyStatus = imported.replyStatus;
+  if (imported.email) existing.email = imported.email;
+  if (imported.whatsappNumber) existing.whatsappNumber = imported.whatsappNumber;
+  
+  // Follow-up count
+  if (imported.followUpCount !== undefined && imported.followUpCount !== null && imported.followUpCount !== "") {
+    const countVal = parseInt(imported.followUpCount);
+    if (!isNaN(countVal)) {
+      existing.followUpCount = countVal;
+    }
+  }
+
+  if (imported.messageSent) existing.messageSent = imported.messageSent;
+
+  // Notes handling: append under Imported update header
+  const importedNote = imported.notes ? imported.notes.trim() : "";
+  if (importedNote) {
+    const existingNotesStr = existing.notes ? existing.notes.toString() : "";
+    if (!existingNotesStr.includes(importedNote)) {
+      const todayStr = getOffsetDateString(0);
+      const appendStr = `Imported update — ${todayStr}:\n${importedNote}`;
+      existing.notes = (existingNotesStr ? existingNotesStr + "\n\n" : "") + appendStr;
+    }
+  }
+}
+
+async function confirmImport() {
   const confirmBtn = document.getElementById("confirmImportBtn");
   const originalBtnText = confirmBtn ? confirmBtn.textContent : "Confirm Import";
   if (confirmBtn) {
@@ -2981,23 +3202,57 @@ async function confirmImport() {
     confirmBtn.textContent = "Saving...";
   }
 
+  // Transaction: save a deep copy of original leads list
+  const originalLeads = JSON.parse(JSON.stringify(leads));
+
   try {
-    // Generate IDs for all valid leads
-    pendingValidLeads.forEach(ensureLeadId);
-    
-    // Add to main memory leads list
-    leads.push(...pendingValidLeads);
+    let newLeadsCount = 0;
+    let updatedLeadsCount = 0;
+    let skippedLeadsCount = 0;
 
-    // Save to LocalStorage immediately
-    localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+    // 1. Process Section A (new leads)
+    const newLeadsToCreate = [];
+    pendingValidLeads.forEach(l => {
+      const copy = { ...l };
+      ensureLeadId(copy);
+      newLeadsToCreate.push(copy);
+      newLeadsCount++;
+    });
 
-    // Save directly to Neon DB (blocking await)
+    // 2. Process Section B (duplicates based on conflict action)
+    pendingDuplicateLeads.forEach(dup => {
+      if (dup.resolution === "create") {
+        const copy = prepareDuplicateAsNew(dup.lead);
+        ensureLeadId(copy);
+        newLeadsToCreate.push(copy);
+        newLeadsCount++;
+      } else if (dup.resolution === "update") {
+        // Find existing lead by ID
+        const existingId = dup.matchedLead.id;
+        const existing = leads.find(l => l.id === existingId);
+        if (existing) {
+          updateExistingLeadObj(existing, dup.lead);
+          updatedLeadsCount++;
+        }
+      } else {
+        // resolution is 'skip'
+        skippedLeadsCount++;
+      }
+    });
+
+    // Add new leads to local array
+    leads.push(...newLeadsToCreate);
+
+    // 3. Attempt direct sync with online database
     setSyncStatus("syncing");
     await apiFetch("/api/leads", { method: "POST", body: { leads } });
     setSyncStatus("connected");
 
+    // Sync succeeded: save to LocalStorage
+    localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+
     // Success behavior:
-    // 1. Reset all advanced filters
+    // Reset all advanced filters
     document.getElementById("searchInput").value = "";
     document.getElementById("filterChannel").value = "All";
     document.getElementById("filterMarket").value = "All";
@@ -3026,7 +3281,7 @@ async function confirmImport() {
     });
     activeQuickFilter = "All";
 
-    // 2. Switch to the Email Leads tab
+    // Switch to the Email Leads tab
     activeTab = "Email";
     const tabBtns = document.querySelectorAll(".tab-btn");
     tabBtns.forEach(btn => {
@@ -3038,24 +3293,21 @@ async function confirmImport() {
     const filterChanSelect = document.getElementById("filterChannel");
     if (filterChanSelect) filterChanSelect.value = "Email";
 
-    // 3. Refresh dashboard, tables, list views
+    // Refresh views
     updateDashboard();
     renderLeads();
     renderTodayActions();
 
-    // 4. Show success toast
-    const x = pendingValidLeads.length;
-    const y = pendingSkippedCount;
-    if (y > 0) {
-      showToast(`${x} leads imported successfully. ${y} rows skipped. Review the import summary for details.`, "success");
-    } else {
-      showToast(`${x} leads imported successfully. Stage set to Found (Lead collected only).`, "success");
-    }
+    // Success toast alert:
+    showToast(`${newLeadsCount} new leads imported, ${updatedLeadsCount} existing leads updated, and ${skippedLeadsCount + pendingSkippedCount} duplicate rows skipped successfully.`, "success");
 
   } catch (err) {
     console.error("Error saving imported leads to cloud:", err);
-    showToast(`Failed to sync imported leads to database: ${err.message}`, "error");
+    // Rollback local memory leads list on error
+    leads.length = 0;
+    leads.push(...originalLeads);
     setSyncStatus("offline");
+    showToast(`Failed to sync imported leads to database: ${err.message}`, "error");
   } finally {
     if (confirmBtn) {
       confirmBtn.disabled = false;
