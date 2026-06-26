@@ -2803,17 +2803,7 @@ let pendingValidLeads = [];
 let pendingDuplicateLeads = [];
 let pendingInvalidLeads = [];
 let pendingSkippedCount = 0;
-let importMarketStats = {
-  withVal: 0,
-  blank: 0,
-  first5: [],
-  US: 0,
-  UK: 0,
-  Italy: 0,
-  Germany: 0,
-  Austria: 0,
-  Other: 0
-};
+let importMarketStats = {};
 
 function normalizeHeader(str) {
   if (str === undefined || str === null) return "";
@@ -2830,26 +2820,41 @@ function normalizeChannel(str) {
   return "";
 }
 
+const VALID_MARKETS = [
+  "US", "UK", "Canada", "Australia", "Ireland", "New Zealand", "Singapore",
+  "Netherlands", "Germany", "Austria", "Switzerland", "Belgium", "Denmark",
+  "Sweden", "Norway", "Finland", "Italy", "Portugal", "UAE", "South Africa",
+  "Malaysia", "Philippines", "Hong Kong", "Saudi Arabia", "Other"
+];
+
+const lowerToExactMarket = {};
+VALID_MARKETS.forEach(m => {
+  lowerToExactMarket[m.toLowerCase()] = m;
+});
+
 function normalizeMarket(val) {
   if (val === undefined || val === null) return "";
   const clean = val.toString().trim();
   if (clean === "") return "";
   const lower = clean.toLowerCase();
-  if (lower === "usa" || lower === "united states" || lower === "u.s.a." || lower === "us") {
+  
+  if (lower === "usa" || lower === "united states" || lower === "u.s.a.") {
     return "US";
   }
-  if (lower === "united kingdom" || lower === "u.k." || lower === "uk") {
+  if (lower === "united kingdom" || lower === "u.k.") {
     return "UK";
   }
-  if (lower === "italy") {
-    return "Italy";
+  if (lower === "united arab emirates") {
+    return "UAE";
   }
-  if (lower === "germany") {
-    return "Germany";
+  if (lower === "ksa") {
+    return "Saudi Arabia";
   }
-  if (lower === "austria") {
-    return "Austria";
+  
+  if (lowerToExactMarket[lower]) {
+    return lowerToExactMarket[lower];
   }
+  
   return "Other";
 }
 
@@ -2979,14 +2984,11 @@ function processImportData(arrayBuffer, filename) {
     importMarketStats = {
       withVal: 0,
       blank: 0,
-      first5: [],
-      US: 0,
-      UK: 0,
-      Italy: 0,
-      Germany: 0,
-      Austria: 0,
-      Other: 0
+      first5: []
     };
+    VALID_MARKETS.forEach(m => {
+      importMarketStats[m] = 0;
+    });
     
     let totalRows = 0;
     
@@ -3027,12 +3029,11 @@ function processImportData(arrayBuffer, filename) {
       // Calculate market preview statistics
       if (rowMarket) {
         importMarketStats.withVal++;
-        if (rowMarket === "US") importMarketStats.US++;
-        else if (rowMarket === "UK") importMarketStats.UK++;
-        else if (rowMarket === "Italy") importMarketStats.Italy++;
-        else if (rowMarket === "Germany") importMarketStats.Germany++;
-        else if (rowMarket === "Austria") importMarketStats.Austria++;
-        else importMarketStats.Other++;
+        if (importMarketStats[rowMarket] !== undefined) {
+          importMarketStats[rowMarket]++;
+        } else {
+          importMarketStats.Other++;
+        }
       } else {
         importMarketStats.blank++;
       }
@@ -3173,23 +3174,11 @@ function showImportPreview(totalRows) {
     prevFirst5Markets.textContent = importMarketStats.first5.length > 0 ? importMarketStats.first5.join(", ") : "None";
   }
   
-  const distUS = document.getElementById("distUS");
-  if (distUS) distUS.textContent = importMarketStats.US;
-  
-  const distUK = document.getElementById("distUK");
-  if (distUK) distUK.textContent = importMarketStats.UK;
-  
-  const distItaly = document.getElementById("distItaly");
-  if (distItaly) distItaly.textContent = importMarketStats.Italy;
-  
-  const distGermany = document.getElementById("distGermany");
-  if (distGermany) distGermany.textContent = importMarketStats.Germany;
-  
-  const distAustria = document.getElementById("distAustria");
-  if (distAustria) distAustria.textContent = importMarketStats.Austria;
-  
-  const distOther = document.getElementById("distOther");
-  if (distOther) distOther.textContent = importMarketStats.Other;
+  VALID_MARKETS.forEach(m => {
+    const id = "dist" + m.replace(/\s+/g, "");
+    const el = document.getElementById(id);
+    if (el) el.textContent = importMarketStats[m] || 0;
+  });
   
   // Render Section C (invalid rows)
   const prevSkippedDiv = document.getElementById("prevSkippedRowsList");

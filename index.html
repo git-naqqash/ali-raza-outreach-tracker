@@ -250,11 +250,30 @@
           <label for="filterMarket">Market</label>
           <select id="filterMarket">
             <option value="All">All Markets</option>
-            <option value="Italy">Italy</option>
             <option value="US">US</option>
             <option value="UK">UK</option>
-            <option value="Austria">Austria</option>
+            <option value="Canada">Canada</option>
+            <option value="Australia">Australia</option>
+            <option value="Ireland">Ireland</option>
+            <option value="New Zealand">New Zealand</option>
+            <option value="Singapore">Singapore</option>
+            <option value="Netherlands">Netherlands</option>
             <option value="Germany">Germany</option>
+            <option value="Austria">Austria</option>
+            <option value="Switzerland">Switzerland</option>
+            <option value="Belgium">Belgium</option>
+            <option value="Denmark">Denmark</option>
+            <option value="Sweden">Sweden</option>
+            <option value="Norway">Norway</option>
+            <option value="Finland">Finland</option>
+            <option value="Italy">Italy</option>
+            <option value="Portugal">Portugal</option>
+            <option value="UAE">UAE</option>
+            <option value="South Africa">South Africa</option>
+            <option value="Malaysia">Malaysia</option>
+            <option value="Philippines">Philippines</option>
+            <option value="Hong Kong">Hong Kong</option>
+            <option value="Saudi Arabia">Saudi Arabia</option>
             <option value="Other">Other</option>
           </select>
         </div>
@@ -484,11 +503,30 @@
             <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
               <label style="font-size: 12px; font-weight: 700; color: var(--color-deep-navy);">Market</label>
               <select id="finderMarket" style="padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none;">
-                <option value="Italy">Italy</option>
                 <option value="US">US</option>
                 <option value="UK">UK</option>
-                <option value="Austria">Austria</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="Ireland">Ireland</option>
+                <option value="New Zealand">New Zealand</option>
+                <option value="Singapore">Singapore</option>
+                <option value="Netherlands">Netherlands</option>
                 <option value="Germany">Germany</option>
+                <option value="Austria">Austria</option>
+                <option value="Switzerland">Switzerland</option>
+                <option value="Belgium">Belgium</option>
+                <option value="Denmark">Denmark</option>
+                <option value="Sweden">Sweden</option>
+                <option value="Norway">Norway</option>
+                <option value="Finland">Finland</option>
+                <option value="Italy">Italy</option>
+                <option value="Portugal">Portugal</option>
+                <option value="UAE">UAE</option>
+                <option value="South Africa">South Africa</option>
+                <option value="Malaysia">Malaysia</option>
+                <option value="Philippines">Philippines</option>
+                <option value="Hong Kong">Hong Kong</option>
+                <option value="Saudi Arabia">Saudi Arabia</option>
                 <option value="Other">Other</option>
               </select>
             </div>
@@ -911,11 +949,30 @@
             <label for="leadMarket">Market</label>
             <select id="leadMarket">
               <option value="">(Blank)</option>
-              <option value="Italy">Italy</option>
               <option value="US">US</option>
               <option value="UK">UK</option>
-              <option value="Austria">Austria</option>
+              <option value="Canada">Canada</option>
+              <option value="Australia">Australia</option>
+              <option value="Ireland">Ireland</option>
+              <option value="New Zealand">New Zealand</option>
+              <option value="Singapore">Singapore</option>
+              <option value="Netherlands">Netherlands</option>
               <option value="Germany">Germany</option>
+              <option value="Austria">Austria</option>
+              <option value="Switzerland">Switzerland</option>
+              <option value="Belgium">Belgium</option>
+              <option value="Denmark">Denmark</option>
+              <option value="Sweden">Sweden</option>
+              <option value="Norway">Norway</option>
+              <option value="Finland">Finland</option>
+              <option value="Italy">Italy</option>
+              <option value="Portugal">Portugal</option>
+              <option value="UAE">UAE</option>
+              <option value="South Africa">South Africa</option>
+              <option value="Malaysia">Malaysia</option>
+              <option value="Philippines">Philippines</option>
+              <option value="Hong Kong">Hong Kong</option>
+              <option value="Saudi Arabia">Saudi Arabia</option>
               <option value="Other">Other</option>
             </select>
           </div>
@@ -1181,23 +1238,80 @@
           <div id="prevFirst5Markets" style="font-size: 13px; color: var(--color-priority-c); margin-bottom: 12px; line-height: 1.4;">None</div>
           
           <h4 style="margin: 0 0 6px 0; font-size: 13px; color: var(--color-deep-navy);">Market Distribution:</h4>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 12px;">
-            <div style="background: rgba(11, 31, 58, 0.03); padding: 6px; border-radius: 4px; text-align: center;">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 11px;">
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
               <strong>US:</strong> <span id="distUS" style="font-weight: 700;">0</span>
             </div>
-            <div style="background: rgba(11, 31, 58, 0.03); padding: 6px; border-radius: 4px; text-align: center;">
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
               <strong>UK:</strong> <span id="distUK" style="font-weight: 700;">0</span>
             </div>
-            <div style="background: rgba(11, 31, 58, 0.03); padding: 6px; border-radius: 4px; text-align: center;">
-              <strong>Italy:</strong> <span id="distItaly" style="font-weight: 700;">0</span>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Canada:</strong> <span id="distCanada" style="font-weight: 700;">0</span>
             </div>
-            <div style="background: rgba(11, 31, 58, 0.03); padding: 6px; border-radius: 4px; text-align: center;">
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Australia:</strong> <span id="distAustralia" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Ireland:</strong> <span id="distIreland" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>NZ:</strong> <span id="distNewZealand" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Singapore:</strong> <span id="distSingapore" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>NL:</strong> <span id="distNetherlands" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
               <strong>Germany:</strong> <span id="distGermany" style="font-weight: 700;">0</span>
             </div>
-            <div style="background: rgba(11, 31, 58, 0.03); padding: 6px; border-radius: 4px; text-align: center;">
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
               <strong>Austria:</strong> <span id="distAustria" style="font-weight: 700;">0</span>
             </div>
-            <div style="background: rgba(11, 31, 58, 0.03); padding: 6px; border-radius: 4px; text-align: center;">
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>CH:</strong> <span id="distSwitzerland" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Belgium:</strong> <span id="distBelgium" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Denmark:</strong> <span id="distDenmark" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Sweden:</strong> <span id="distSweden" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Norway:</strong> <span id="distNorway" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Finland:</strong> <span id="distFinland" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Italy:</strong> <span id="distItaly" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Portugal:</strong> <span id="distPortugal" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>UAE:</strong> <span id="distUAE" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>SA:</strong> <span id="distSouthAfrica" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Malaysia:</strong> <span id="distMalaysia" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>PH:</strong> <span id="distPhilippines" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>HK:</strong> <span id="distHongKong" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
+              <strong>Saudi:</strong> <span id="distSaudiArabia" style="font-weight: 700;">0</span>
+            </div>
+            <div style="background: rgba(11, 31, 58, 0.03); padding: 4px; border-radius: 4px; text-align: center;">
               <strong>Other:</strong> <span id="distOther" style="font-weight: 700;">0</span>
             </div>
           </div>
