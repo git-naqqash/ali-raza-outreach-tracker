@@ -1225,12 +1225,16 @@ function renderLeads() {
     if (activeTab === "All" || isLeadFinder || isTodayMode) {
       tabActions.style.display = "none";
     } else {
-      tabActions.style.display = "block";
+      tabActions.style.display = "inline-flex";
       btnText.textContent = `Import ${activeTab} Leads`;
     }
   }
 
   const filtered = getFilteredLeads();
+  const exportFilteredBtn = document.getElementById("exportFilteredLeadsBtn");
+  if (exportFilteredBtn) {
+    exportFilteredBtn.disabled = (filtered.length === 0);
+  }
   const tableBody = document.getElementById("leadsTableBody");
   const cardsContainer = document.getElementById("leadsCardsContainer");
   const countBadge = document.getElementById("leadsCount");
@@ -1661,7 +1665,7 @@ function openEditModal(index) {
   document.getElementById("leadIndex").value = index;
   document.getElementById("leadDateAdded").value = lead.dateAdded || "";
   document.getElementById("leadName").value = lead.name || "";
-  document.getElementById("leadMarket").value = lead.market || "Italy";
+  document.getElementById("leadMarket").value = lead.market || "";
   document.getElementById("leadChannel").value = lead.channel || "Instagram";
   document.getElementById("leadMainLink").value = lead.mainLink || "";
   document.getElementById("leadNiche").value = lead.niche || "";
@@ -2275,6 +2279,16 @@ function setupEventListeners() {
   // CSV Export trigger
   exportBtn.addEventListener("click", exportToCSV);
 
+  const exportFilteredLeadsBtn = document.getElementById("exportFilteredLeadsBtn");
+  if (exportFilteredLeadsBtn) {
+    exportFilteredLeadsBtn.addEventListener("click", exportFilteredLeads);
+  }
+
+  const exportAllLeadsBtn = document.getElementById("exportAllLeadsBtn");
+  if (exportAllLeadsBtn) {
+    exportAllLeadsBtn.addEventListener("click", exportAllLeads);
+  }
+
   // --- Backup JSON System Event Listeners (wired directly to the visible header buttons) ---
   const exportBackupJsonBtn = document.getElementById("exportBackupJsonBtn");
   if (exportBackupJsonBtn) {
@@ -2618,6 +2632,150 @@ function exportToCSV() {
   showToast("CSV Exported successfully!", "success");
 }
 
+async function fetchLatestLeads() {
+  try {
+    const data = await apiFetch("/api/leads");
+    if (data && data.leads) {
+      leads = data.leads;
+      localStorage.setItem("ali_raza_leads", JSON.stringify(leads));
+      return true;
+    }
+  } catch (err) {
+    console.error("Failed to fetch fresh leads from Neon database:", err);
+  }
+  return false;
+}
+
+function downloadCSVFile(leadsList, filename) {
+  const headers = [
+    "Date Added", "Lead Name/Company", "Contact Person", "Market", 
+    "Channel", "Main Link", "Extra Link", "Niche", "Source", "Priority", 
+    "Stage", "Last Action Date", "Next Action", "Next Action Date", 
+    "Reply Status", "Email", "WhatsApp Number", "Follow-up Count", 
+    "Exact Message Sent", "Notes"
+  ];
+  
+  const csvRows = [headers.join(",")];
+  
+  leadsList.forEach(lead => {
+    const row = [
+      escapeCsvValue(lead.dateAdded || ""),
+      escapeCsvValue(lead.name || "Unnamed Lead / Company"),
+      escapeCsvValue(lead.contactPerson || ""),
+      escapeCsvValue(lead.market || ""),
+      escapeCsvValue(lead.channel || ""),
+      escapeCsvValue(lead.mainLink || ""),
+      escapeCsvValue(lead.extraLink || ""),
+      escapeCsvValue(lead.niche || ""),
+      escapeCsvValue(lead.source || "Other"),
+      escapeCsvValue(lead.priority || "B"),
+      escapeCsvValue(lead.stage || "Found (Lead collected only)"),
+      escapeCsvValue(lead.lastActionDate || ""),
+      escapeCsvValue(lead.nextAction || ""),
+      escapeCsvValue(lead.nextActionDate || ""),
+      escapeCsvValue(lead.replyStatus || "No reply"),
+      escapeCsvValue(lead.email || ""),
+      escapeCsvValue(lead.whatsappNumber || ""),
+      escapeCsvValue(lead.followUpCount !== undefined && lead.followUpCount !== null ? lead.followUpCount : 0),
+      escapeCsvValue(lead.messageSent || ""),
+      escapeCsvValue(lead.notes || "")
+    ];
+    csvRows.push(row.join(","));
+  });
+
+  const csvContent = "\uFEFF" + csvRows.join("\n"); // add BOM for correct Excel encoding
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = "hidden";
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+async function exportFilteredLeads() {
+  const exportBtn = document.getElementById("exportFilteredLeadsBtn");
+  const originalBtnText = exportBtn ? exportBtn.innerHTML : "Export Filtered Leads";
+  
+  if (exportBtn) {
+    exportBtn.disabled = true;
+    exportBtn.textContent = "Syncing...";
+  }
+
+  // Use the online database as the source of truth
+  const success = await fetchLatestLeads();
+  if (!success) {
+    showToast("Could not sync with online database before export. Using local data.", "warning");
+  }
+
+  const filtered = getFilteredLeads();
+  if (filtered.length === 0) {
+    showToast("No leads match the current filters. Adjust filters before exporting.", "error");
+    if (exportBtn) {
+      exportBtn.disabled = true;
+      exportBtn.innerHTML = originalBtnText;
+    }
+    return;
+  }
+
+  // Before download, show a short confirmation message
+  showToast(`Exporting ${filtered.length} filtered leads to CSV.`, "info");
+  
+  const dateStr = getOffsetDateString(0);
+  const filename = `Ali_Raza_Filtered_Leads_${dateStr}.csv`;
+  
+  downloadCSVFile(filtered, filename);
+
+  if (exportBtn) {
+    exportBtn.disabled = (filtered.length === 0);
+    exportBtn.innerHTML = originalBtnText;
+  }
+}
+
+async function exportAllLeads() {
+  const exportBtn = document.getElementById("exportAllLeadsBtn");
+  const originalBtnText = exportBtn ? exportBtn.innerHTML : "Export All Leads";
+
+  if (exportBtn) {
+    exportBtn.disabled = true;
+    exportBtn.textContent = "Syncing...";
+  }
+
+  // Use the online database as the source of truth
+  const success = await fetchLatestLeads();
+  if (!success) {
+    showToast("Could not sync with online database before export. Using local data.", "warning");
+  }
+
+  if (leads.length === 0) {
+    showToast("No leads to export.", "error");
+    if (exportBtn) {
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = originalBtnText;
+    }
+    return;
+  }
+
+  // Show confirmation message
+  showToast(`Exporting ${leads.length} leads to CSV.`, "info");
+
+  const dateStr = getOffsetDateString(0);
+  const filename = `Ali_Raza_Filtered_Leads_${dateStr}.csv`;
+
+  downloadCSVFile(leads, filename);
+
+  if (exportBtn) {
+    exportBtn.disabled = false;
+    exportBtn.innerHTML = originalBtnText;
+  }
+}
+
 // --- IMPORT LEADS IMPLEMENTATION ---
 
 const SYNONYMS = {
@@ -2626,7 +2784,7 @@ const SYNONYMS = {
   contactPerson: ["contactperson", "founder", "owner", "personname", "contact"],
   email: ["email", "emailaddress", "contactemail", "mail", "e-mail"],
   whatsappNumber: ["whatsapp", "whatsappnumber", "phone", "phonenumber", "mobile", "contactnumber", "numero", "telefono"],
-  market: ["market", "country", "location"],
+  market: ["market"],
   niche: ["niche", "category", "industry", "leadtype", "type"],
   source: ["source", "leadsource"],
   priority: ["priority"],
@@ -2645,6 +2803,17 @@ let pendingValidLeads = [];
 let pendingDuplicateLeads = [];
 let pendingInvalidLeads = [];
 let pendingSkippedCount = 0;
+let importMarketStats = {
+  withVal: 0,
+  blank: 0,
+  first5: [],
+  US: 0,
+  UK: 0,
+  Italy: 0,
+  Germany: 0,
+  Austria: 0,
+  Other: 0
+};
 
 function normalizeHeader(str) {
   if (str === undefined || str === null) return "";
@@ -2659,6 +2828,29 @@ function normalizeChannel(str) {
   if (s === "linkedin" || s === "linked in") return "LinkedIn";
   if (s === "instagram" || s === "ig") return "Instagram";
   return "";
+}
+
+function normalizeMarket(val) {
+  if (val === undefined || val === null) return "";
+  const clean = val.toString().trim();
+  if (clean === "") return "";
+  const lower = clean.toLowerCase();
+  if (lower === "usa" || lower === "united states" || lower === "u.s.a." || lower === "us") {
+    return "US";
+  }
+  if (lower === "united kingdom" || lower === "u.k." || lower === "uk") {
+    return "UK";
+  }
+  if (lower === "italy") {
+    return "Italy";
+  }
+  if (lower === "germany") {
+    return "Germany";
+  }
+  if (lower === "austria") {
+    return "Austria";
+  }
+  return "Other";
 }
 
 function normalizeUrlForComparison(url) {
@@ -2784,6 +2976,18 @@ function processImportData(arrayBuffer, filename) {
     pendingInvalidLeads = [];
     pendingSkippedCount = 0;
     
+    importMarketStats = {
+      withVal: 0,
+      blank: 0,
+      first5: [],
+      US: 0,
+      UK: 0,
+      Italy: 0,
+      Germany: 0,
+      Austria: 0,
+      Other: 0
+    };
+    
     let totalRows = 0;
     
     rows.forEach((row, rowIdx) => {
@@ -2817,7 +3021,25 @@ function processImportData(arrayBuffer, filename) {
       // Map basic values
       const rowContactPerson = getVal("contactPerson") ? String(getVal("contactPerson")).trim() : "";
       const rowWhatsapp = getVal("whatsappNumber") ? String(getVal("whatsappNumber")).trim() : "";
-      const rowMarket = getVal("market") ? String(getVal("market")).trim() : "";
+      const rawMarket = getVal("market") ? String(getVal("market")).trim() : "";
+      const rowMarket = normalizeMarket(rawMarket);
+      
+      // Calculate market preview statistics
+      if (rowMarket) {
+        importMarketStats.withVal++;
+        if (rowMarket === "US") importMarketStats.US++;
+        else if (rowMarket === "UK") importMarketStats.UK++;
+        else if (rowMarket === "Italy") importMarketStats.Italy++;
+        else if (rowMarket === "Germany") importMarketStats.Germany++;
+        else if (rowMarket === "Austria") importMarketStats.Austria++;
+        else importMarketStats.Other++;
+      } else {
+        importMarketStats.blank++;
+      }
+      if (importMarketStats.first5.length < 5) {
+        importMarketStats.first5.push(rowMarket || "(blank)");
+      }
+      
       const rowNiche = getVal("niche") ? String(getVal("niche")).trim() : "";
       const rowSource = getVal("source") ? String(getVal("source")).trim() : "";
       const rowPriority = getVal("priority") ? String(getVal("priority")).trim() : "";
@@ -2836,7 +3058,7 @@ function processImportData(arrayBuffer, filename) {
       if (!channel) {
         channel = (activeTab && activeTab !== "All" && activeTab !== "LeadFinder" && activeTab !== "TodayMode") ? activeTab : "Email";
       }
-
+ 
       // Determine stage
       let stage = "Found (Lead collected only)";
       if (rowStageRaw) {
@@ -2845,12 +3067,12 @@ function processImportData(arrayBuffer, filename) {
           stage = matchedStage;
         }
       }
-
+ 
       // Base lead mapping
       const lead = {
         dateAdded: parseExcelDate(rowDateAdded) || getOffsetDateString(0),
         name: rowName || "Unnamed Lead / Company",
-        market: rowMarket || "Italy",
+        market: rowMarket,
         channel: channel,
         mainLink: rowMainLink ? normalizeUrl(rowMainLink) : "",
         niche: rowNiche,
@@ -2869,7 +3091,7 @@ function processImportData(arrayBuffer, filename) {
         messageSent: rowMessageSent,
         followUpCount: 0
       };
-
+ 
       // Set default nextAction if empty based on channel
       if (!lead.nextAction) {
         if (lead.channel === "LinkedIn") lead.nextAction = "Send connection request";
@@ -2878,12 +3100,12 @@ function processImportData(arrayBuffer, filename) {
         else if (lead.channel === "Instagram") lead.nextAction = "Send DM";
         else lead.nextAction = "Send first message";
       }
-
+ 
       // Set default nextActionDate if empty
       if (!lead.nextActionDate) {
         lead.nextActionDate = getOffsetDateString(0);
       }
-
+ 
       // Process unmapped columns into notes
       const extraNotesList = [];
       headers.forEach((header, idx) => {
@@ -2900,7 +3122,7 @@ function processImportData(arrayBuffer, filename) {
       if (extraNotesList.length > 0) {
         lead.notes = (lead.notes ? lead.notes + "\n" : "") + extraNotesList.join(" | ");
       }
-
+ 
       // Duplicate checks
       const dupCheck = checkDuplicateForImport(lead);
       if (dupCheck.isDup) {
@@ -2915,10 +3137,10 @@ function processImportData(arrayBuffer, filename) {
         pendingValidLeads.push(lead);
       }
     });
-
+ 
     pendingSkippedCount = pendingInvalidLeads.length;
     showImportPreview(totalRows);
-
+ 
   } catch (err) {
     console.error("Error parsing spreadsheet file:", err);
     showToast(`Error reading spreadsheet: ${err.message}`, "error");
@@ -2938,6 +3160,36 @@ function escapeHtml(str) {
 function showImportPreview(totalRows) {
   // Update Total detected count
   document.getElementById("prevTotalRows").textContent = totalRows;
+
+  // Update Market Details
+  const prevMarketWithVal = document.getElementById("prevMarketWithVal");
+  if (prevMarketWithVal) prevMarketWithVal.textContent = importMarketStats.withVal;
+  
+  const prevMarketBlank = document.getElementById("prevMarketBlank");
+  if (prevMarketBlank) prevMarketBlank.textContent = importMarketStats.blank;
+  
+  const prevFirst5Markets = document.getElementById("prevFirst5Markets");
+  if (prevFirst5Markets) {
+    prevFirst5Markets.textContent = importMarketStats.first5.length > 0 ? importMarketStats.first5.join(", ") : "None";
+  }
+  
+  const distUS = document.getElementById("distUS");
+  if (distUS) distUS.textContent = importMarketStats.US;
+  
+  const distUK = document.getElementById("distUK");
+  if (distUK) distUK.textContent = importMarketStats.UK;
+  
+  const distItaly = document.getElementById("distItaly");
+  if (distItaly) distItaly.textContent = importMarketStats.Italy;
+  
+  const distGermany = document.getElementById("distGermany");
+  if (distGermany) distGermany.textContent = importMarketStats.Germany;
+  
+  const distAustria = document.getElementById("distAustria");
+  if (distAustria) distAustria.textContent = importMarketStats.Austria;
+  
+  const distOther = document.getElementById("distOther");
+  if (distOther) distOther.textContent = importMarketStats.Other;
   
   // Render Section C (invalid rows)
   const prevSkippedDiv = document.getElementById("prevSkippedRowsList");
