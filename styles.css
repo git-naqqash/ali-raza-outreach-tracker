@@ -1829,3 +1829,20 @@ tr.selected-row {
   color: var(--color-royal-blue);
   font-weight: 500;
 }
+
+/* Actions Dropdown Portal Overlay styling */
+.dropdown-content-portal {
+  display: none;
+  position: absolute; /* positioned dynamically relative to document body */
+  z-index: 9999;
+  min-width: 190px;
+  background-color: var(--color-white);
+  border: var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  padding: 6px 0;
+}
+
+.dropdown-content-portal.show {
+  display: block;
+}

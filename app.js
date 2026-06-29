@@ -3571,7 +3571,19 @@ function copyTextToClipboard(text) {
   }
 }
 // Quick Actions Dropdown Builder
+// Quick Actions Dropdown Builder
 function getQuickActionsDropdownHtml(lead) {
+  const index = lead.originalIndex;
+  return `
+    <div class="quick-actions-dropdown">
+      <button type="button" class="action-btn quick-btn" onclick="toggleDropdownPortal(${index}, event)" title="Quick outreach actions" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: var(--radius-sm); border: var(--border-light); background-color: var(--color-off-white); cursor: pointer; font-size: 13px; color: var(--color-royal-blue);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="fill: currentColor;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </button>
+    </div>
+  `;
+}
+
+function getQuickActionsDropdownItemsHtml(lead) {
   const index = lead.originalIndex;
   
   let copySection = "";
@@ -3587,6 +3599,8 @@ function getQuickActionsDropdownHtml(lead) {
   
   copySection += `
     <button class="dropdown-item" onclick="copyLeadFirstMessage(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy First Message</button>
+    <button class="dropdown-item" onclick="copyLeadFirstFollowup(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy First Follow-up</button>
+    <button class="dropdown-item" onclick="copyLeadSecondFollowup(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Second Follow-up</button>
   `;
 
   let markSection = `
@@ -3620,7 +3634,7 @@ function getQuickActionsDropdownHtml(lead) {
     `;
   }
 
-  const itemsHtml = `
+  return `
     ${copySection}
     <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
     ${markSection}
@@ -3629,34 +3643,73 @@ function getQuickActionsDropdownHtml(lead) {
     <div style="border-top: 1px dashed rgba(11,31,58,0.08); margin: 4px 0;"></div>
     <button class="dropdown-item" onclick="archiveLead(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/></svg> Archive</button>
   `;
-
-  return `
-    <div class="quick-actions-dropdown">
-      <button type="button" class="action-btn quick-btn" onclick="toggleDropdown(${index}, event)" title="Quick outreach actions" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: var(--radius-sm); border: var(--border-light); background-color: var(--color-off-white); cursor: pointer; font-size: 13px; color: var(--color-royal-blue);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="fill: currentColor;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      </button>
-      <div id="dropdown-${index}" class="dropdown-content">
-        ${itemsHtml}
-      </div>
-    </div>
-  `;
 }
 
-// Toggle Quick Actions dropdown view
-window.toggleDropdown = function(index, event) {
+// Toggle Quick Actions dropdown view via Body portal
+function toggleDropdownPortal(index, event) {
   event.stopPropagation();
-  const dropdown = document.getElementById(`dropdown-${index}`);
-  if (!dropdown) return;
-  const wasOpen = dropdown.classList.contains("show");
   
-  document.querySelectorAll(".dropdown-content.show").forEach(d => {
-    d.classList.remove("show");
-  });
-  
-  if (!wasOpen) {
-    dropdown.classList.add("show");
+  let portal = document.getElementById("actions-dropdown-portal");
+  if (!portal) {
+    portal = document.createElement("div");
+    portal.id = "actions-dropdown-portal";
+    portal.className = "dropdown-content-portal";
+    
+    // Close on option click
+    portal.addEventListener("click", (e) => {
+      if (e.target.closest(".dropdown-item")) {
+        portal.classList.remove("show");
+        delete portal.dataset.index;
+      }
+    });
+    
+    document.body.appendChild(portal);
   }
-};
+
+  const isAlreadyOpen = portal.classList.contains("show") && portal.dataset.index === String(index);
+  
+  portal.classList.remove("show");
+  delete portal.dataset.index;
+
+  if (isAlreadyOpen) {
+    return;
+  }
+
+  const lead = leads[index];
+  if (!lead) return;
+
+  portal.innerHTML = getQuickActionsDropdownItemsHtml(lead);
+  portal.dataset.index = String(index);
+  portal.classList.add("show");
+
+  // Position relative to target button
+  const rect = event.currentTarget.getBoundingClientRect();
+  const dropdownWidth = 190;
+  const dropdownHeight = portal.offsetHeight || 300;
+
+  // Vertical position
+  const viewportHeight = window.innerHeight;
+  const spaceBelow = viewportHeight - rect.bottom;
+  const spaceAbove = rect.top;
+
+  let top = 0;
+  if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+    top = rect.bottom + window.scrollY;
+  } else {
+    top = rect.top - dropdownHeight + window.scrollY;
+  }
+
+  // Horizontal position
+  let left = rect.right - dropdownWidth + window.scrollX;
+  if (left < 10) {
+    left = 10;
+  } else if (left + dropdownWidth > window.innerWidth - 10) {
+    left = window.innerWidth - dropdownWidth - 10;
+  }
+
+  portal.style.top = `${top}px`;
+  portal.style.left = `${left}px`;
+}
 
 // Set Active Quick Filter inside Today Mode
 window.setTodayFilter = function(filterVal) {
@@ -3720,6 +3773,61 @@ window.copyLeadFirstMessage = function(originalIndex) {
   } else {
     showToast("No message sent yet.", "warning");
   }
+};
+
+function getStaticFollowupText(lead, typeKey) {
+  const nameVal = lead.contactPerson ? lead.contactPerson : (lead.name || "there");
+  const companyVal = lead.name || "";
+  
+  let text = "";
+  if (typeKey === "First Follow-up") {
+    if (lead.channel === "Email") {
+      text = `Subject: Re: Ebook writing & Canva workbook support for ${companyVal}\n\nHi ${nameVal},\n\nI wanted to quickly bump this in case it got buried in your inbox. I know you're busy growing ${companyVal}.\n\nJust to recap: I write and design high-quality white-label ebooks and workbooks so you can deliver premium publishing content to your clients or scale your backend funnel.\n\nIf you have 2 minutes, I'd love to drop a quick link to a sample workbook. Would it be worth checking out?\n\nBest,\nAli Raza`;
+    } else if (lead.channel === "WhatsApp") {
+      text = `Hi ${nameVal}, just checking if you had a moment to see my previous message about ebook/workbook support? No pressure at all—happy to share a quick PDF sample if you ever want to expand your digital offerings. Have a great day!`;
+    } else if (lead.channel === "Instagram") {
+      text = `Hi ${nameVal}, just checking if you had a chance to see my message about ebook/workbook Canva design? No pressure at all—hope you're having a great week!`;
+    } else if (lead.channel === "LinkedIn") {
+      text = `Hi ${nameVal}, just checking if you had a moment to see my previous message about white-label book writing support for ${companyVal}? Let me know if you'd be open to a quick sample. Thanks!`;
+    } else {
+      text = `Hi ${nameVal}, just checking if you had a moment to see my previous message? Thanks!`;
+    }
+  } else if (typeKey === "Second Follow-up") {
+    if (lead.channel === "Email") {
+      text = `Subject: Re: Ebook writing & Canva workbook support for ${companyVal}\n\nHi ${nameVal},\n\nI know you're super busy. Since I haven't heard back, I'll assume the timing isn't right for ebook or workbook design support at ${companyVal} right now.\n\nIf anything changes or you need support in the future, feel free to reach out. I wish you and ${companyVal} all the best!\n\nBest regards,\nAli Raza`;
+    } else if (lead.channel === "WhatsApp") {
+      text = `Hi ${nameVal}, following up one last time regarding the white-label book/Canva support. If you're not interested or the timing isn't right, no worries at all. Feel free to reach out if things change. All the best!`;
+    } else if (lead.channel === "Instagram") {
+      text = `Hi ${nameVal}, following up one last time. If it's not the right time, no worries. Wish you the best with your content!`;
+    } else if (lead.channel === "LinkedIn") {
+      text = `Hi ${nameVal}, following up one last time. If now isn't a good time for ebook/workbook writing support, no problem at all. Let's stay connected here. Best of luck!`;
+    } else {
+      text = `Hi ${nameVal}, following up one last time. Wish you all the best!`;
+    }
+  }
+  return text;
+}
+
+window.copyLeadFirstFollowup = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  const msg = getStaticFollowupText(lead, "First Follow-up");
+  copyTextToClipboard(msg).then(() => {
+    showToast("Copied First Follow-up", "success");
+  }).catch(() => {
+    showToast("Failed to copy follow-up", "error");
+  });
+};
+
+window.copyLeadSecondFollowup = function(originalIndex) {
+  const lead = leads[originalIndex];
+  if (!lead) return;
+  const msg = getStaticFollowupText(lead, "Second Follow-up");
+  copyTextToClipboard(msg).then(() => {
+    showToast("Copied Second Follow-up", "success");
+  }).catch(() => {
+    showToast("Failed to copy follow-up", "error");
+  });
 };
 
 window.markFirstMessageSent = function(originalIndex) {
@@ -4599,6 +4707,23 @@ document.addEventListener("click", (e) => {
       d.classList.remove("show");
     });
   }
+  
+  const portal = document.getElementById("actions-dropdown-portal");
+  if (portal && portal.classList.contains("show")) {
+    if (!e.target.closest("#actions-dropdown-portal") && !e.target.closest(".quick-btn")) {
+      portal.classList.remove("show");
+      delete portal.dataset.index;
+    }
+  }
+});
+
+// Close dropdown portal on window resize
+window.addEventListener("resize", () => {
+  const portal = document.getElementById("actions-dropdown-portal");
+  if (portal) {
+    portal.classList.remove("show");
+    delete portal.dataset.index;
+  }
 });
 
 // Expose functions to window
@@ -4616,7 +4741,9 @@ window.markSentLinkedInMessage = markSentLinkedInMessage;
 window.markFollowupSent = markFollowupSent;
 window.sendSamples = sendSamples;
 window.sendCV = sendCV;
-window.toggleDropdown = toggleDropdown;
+window.toggleDropdownPortal = toggleDropdownPortal;
+window.copyLeadFirstFollowup = copyLeadFirstFollowup;
+window.copyLeadSecondFollowup = copyLeadSecondFollowup;
 window.setTodayFilter = setTodayFilter;
 window.toggleSelectAllLeads = toggleSelectAllLeads;
 window.updateSelectedLeadsCount = updateSelectedLeadsCount;
