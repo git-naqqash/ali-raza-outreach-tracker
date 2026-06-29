@@ -292,6 +292,13 @@
           </select>
         </div>
         <div class="filter-group">
+          <label for="filterContactPerson">CONTACT PERSON</label>
+          <div style="position: relative; display: flex; align-items: center; width: 100%;">
+            <input type="text" id="filterContactPerson" placeholder="Search contact person..." style="width: 100%; padding-right: 24px; cursor: text;">
+            <button id="clearFilterContactPerson" type="button" style="display: none; position: absolute; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; color: var(--color-priority-c); padding: 0; line-height: 1; outline: none;" aria-label="Clear contact person filter">&times;</button>
+          </div>
+        </div>
+        <div class="filter-group">
           <label for="filterPriority">Priority</label>
           <select id="filterPriority">
             <option value="All">All Priorities</option>

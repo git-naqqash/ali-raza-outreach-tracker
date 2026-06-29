@@ -1081,6 +1081,7 @@ function getFilteredLeads() {
   const filterChannel = document.getElementById("filterChannel").value;
   const filterMarket = document.getElementById("filterMarket").value;
   const filterSource = document.getElementById("filterSource").value;
+  const filterContactPerson = document.getElementById("filterContactPerson").value.trim().toLowerCase();
   const filterPriority = document.getElementById("filterPriority").value;
   const filterStage = document.getElementById("filterStage").value;
   const filterReply = document.getElementById("filterReply").value;
@@ -1151,6 +1152,12 @@ function getFilteredLeads() {
       } else if (filterActionDate === "NoDate") {
         return false; // has a date, so filter out
       }
+    }
+
+    // 5. Contact Person Filter
+    if (filterContactPerson) {
+      if (!lead.contactPerson) return false;
+      if (!lead.contactPerson.toLowerCase().includes(filterContactPerson)) return false;
     }
 
     return true;
@@ -1950,6 +1957,30 @@ function setupEventListeners() {
   searchInput.addEventListener("input", () => {
     renderLeads();
   });
+
+  // Contact Person input typing with 100ms debounce
+  const filterContactPersonInput = document.getElementById("filterContactPerson");
+  const clearFilterContactPersonBtn = document.getElementById("clearFilterContactPerson");
+  if (filterContactPersonInput && clearFilterContactPersonBtn) {
+    let cpTimeout;
+    filterContactPersonInput.addEventListener("input", () => {
+      if (filterContactPersonInput.value.trim() !== "") {
+        clearFilterContactPersonBtn.style.display = "block";
+      } else {
+        clearFilterContactPersonBtn.style.display = "none";
+      }
+      clearTimeout(cpTimeout);
+      cpTimeout = setTimeout(() => {
+        renderLeads();
+      }, 100);
+    });
+
+    clearFilterContactPersonBtn.addEventListener("click", () => {
+      filterContactPersonInput.value = "";
+      clearFilterContactPersonBtn.style.display = "none";
+      renderLeads();
+    });
+  }
 
   // Tabs navigation
   const tabBtns = document.querySelectorAll(".tab-btn");
@@ -3498,6 +3529,10 @@ async function confirmImport() {
     document.getElementById("filterChannel").value = "All";
     document.getElementById("filterMarket").value = "All";
     document.getElementById("filterSource").value = "All";
+    document.getElementById("filterContactPerson").value = "";
+    if (document.getElementById("clearFilterContactPerson")) {
+      document.getElementById("clearFilterContactPerson").style.display = "none";
+    }
     document.getElementById("filterPriority").value = "All";
     document.getElementById("filterStage").value = "All";
     document.getElementById("filterReply").value = "All";
