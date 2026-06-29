@@ -788,63 +788,6 @@
       </div>
     </section>
 
-    <!-- Scripts Section -->
-    <section class="scripts-card" aria-label="Outreach Message Scripts">
-      <div class="scripts-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <h2 style="font-size: 18px; display: flex; align-items: center; gap: 8px; margin: 0;">
-            <span>📝</span>
-            Outreach Message Scripts
-          </h2>
-          <p style="font-size: 13px; color: var(--color-priority-c); margin-top: 4px; margin-bottom: 0;">Editable outreach templates. Expand, copy, edit, or add your own scripts.</p>
-        </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-secondary btn-sm" id="resetScriptsBtn" title="Reset default scripts (custom scripts will be kept)">
-            🔄 Reset Default Scripts
-          </button>
-          <button class="btn btn-primary btn-sm" id="addNewScriptBtn">
-            + Add New Script
-          </button>
-        </div>
-      </div>
-
-      <!-- Search & Filter Toolbar -->
-      <div class="scripts-toolbar">
-        <div class="search-wrapper">
-          <input type="text" id="scriptSearchInput" placeholder="Search scripts...">
-        </div>
-        <div>
-          <select id="filterScriptChannel">
-            <option value="All">All Channels</option>
-            <option value="Instagram">Instagram</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="Email">Email</option>
-            <option value="WhatsApp">WhatsApp</option>
-            <option value="General">General</option>
-          </select>
-        </div>
-        <div>
-          <select id="filterScriptType">
-            <option value="All">All Types</option>
-            <option value="First Message">First Message</option>
-            <option value="First Follow-up">First Follow-up</option>
-            <option value="Second Follow-up">Second Follow-up</option>
-            <option value="Connection Request">Connection Request</option>
-            <option value="After Accepting">After Accepting</option>
-            <option value="Sample Reply">Sample Reply</option>
-            <option value="CV Reply">CV Reply</option>
-            <option value="Price Reply">Price Reply</option>
-            <option value="Not Now Reply">Not Now Reply</option>
-            <option value="Custom">Custom</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="scripts-accordion" id="scriptsAccordion">
-        <!-- Dynamically populated from JS -->
-      </div>
-    </section>
-
   </div>
 
   <!-- Unified Add/Edit Lead Modal -->
@@ -1321,10 +1264,6 @@
             <td style="padding: 10px 0; text-align: right; font-weight: 700;" id="backLeadsFound">0</td>
           </tr>
           <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
-            <td style="padding: 10px 0; font-weight: 600; color: var(--color-deep-navy);">Scripts Found in Backup:</td>
-            <td style="padding: 10px 0; text-align: right; font-weight: 700;" id="backScriptsFound">0</td>
-          </tr>
-          <tr style="border-bottom: 1px solid rgba(11, 31, 58, 0.05);">
             <td style="padding: 10px 0; font-weight: 600; color: var(--color-deep-navy);">Existing Leads in Browser:</td>
             <td style="padding: 10px 0; text-align: right; font-weight: 700;" id="backExistingLeads">0</td>
           </tr>
@@ -1368,64 +1307,6 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="cancelBackupImportBtn">Cancel</button>
         <button type="button" class="btn btn-success" id="confirmBackupImportBtn">Confirm Import</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add New Script Modal -->
-  <div class="modal-overlay" id="scriptModal">
-    <div class="modal-content" style="max-width: 500px;">
-      <div class="modal-header">
-        <h2 style="margin: 0; font-size: 18px;">Add New Outreach Script</h2>
-        <button class="modal-close" id="closeScriptModalBtn" aria-label="Close modal">&times;</button>
-      </div>
-      <div class="modal-form-scroll" style="padding: 20px;">
-        <form id="scriptForm" class="modal-form" style="display: flex; flex-direction: column; gap: 16px;" novalidate>
-          <!-- Script Title -->
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-            <label for="newScriptTitle" style="font-size: 13px; font-weight: 600; color: var(--color-deep-navy);">Script Title</label>
-            <input type="text" id="newScriptTitle" placeholder="e.g. Italian Price Reply" style="padding: 10px 12px; font-size: 14px; border-radius: var(--radius-md); border: var(--border-light); outline: none;">
-          </div>
-          
-          <!-- Channel -->
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-            <label for="newScriptChannel" style="font-size: 13px; font-weight: 600; color: var(--color-deep-navy);">Channel</label>
-            <select id="newScriptChannel" style="padding: 10px 12px; font-size: 14px; border-radius: var(--radius-md); border: var(--border-light); outline: none; background-color: var(--color-white);">
-              <option value="Instagram">Instagram</option>
-              <option value="LinkedIn">LinkedIn</option>
-              <option value="Email">Email</option>
-              <option value="WhatsApp">WhatsApp</option>
-              <option value="General">General</option>
-            </select>
-          </div>
-          
-          <!-- Script Type -->
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-            <label for="newScriptType" style="font-size: 13px; font-weight: 600; color: var(--color-deep-navy);">Script Type</label>
-            <select id="newScriptType" style="padding: 10px 12px; font-size: 14px; border-radius: var(--radius-md); border: var(--border-light); outline: none; background-color: var(--color-white);">
-              <option value="First Message">First Message</option>
-              <option value="First Follow-up">First Follow-up</option>
-              <option value="Second Follow-up">Second Follow-up</option>
-              <option value="Connection Request">Connection Request</option>
-              <option value="After Accepting">After Accepting</option>
-              <option value="Sample Reply">Sample Reply</option>
-              <option value="CV Reply">CV Reply</option>
-              <option value="Price Reply">Price Reply</option>
-              <option value="Not Now Reply">Not Now Reply</option>
-              <option value="Custom">Custom</option>
-            </select>
-          </div>
-          
-          <!-- Message Body -->
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-            <label for="newScriptBody" style="font-size: 13px; font-weight: 600; color: var(--color-deep-navy);">Message Body</label>
-            <textarea id="newScriptBody" rows="6" placeholder="Write your outreach template here..." style="padding: 10px 12px; font-size: 14px; border-radius: var(--radius-md); border: var(--border-light); outline: none; resize: vertical; min-height: 100px; font-family: var(--font-body); line-height: 1.5;"></textarea>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="cancelScriptModalBtn">Cancel</button>
-        <button type="submit" form="scriptForm" class="btn btn-primary">Save Script</button>
       </div>
     </div>
   </div>

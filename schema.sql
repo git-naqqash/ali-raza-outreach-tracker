@@ -26,14 +26,3 @@ CREATE TABLE IF NOT EXISTS leads (
   message_sent     TEXT DEFAULT '',
   created_at       TIMESTAMPTZ DEFAULT NOW()
 );
-
--- ── SCRIPTS ────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS scripts (
-  id         TEXT PRIMARY KEY,
-  title      TEXT DEFAULT '',
-  channel    TEXT DEFAULT '',
-  type       TEXT DEFAULT '',
-  body       TEXT DEFAULT '',
-  is_default BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);

@@ -154,166 +154,6 @@ function getWhatsAppLink(number) {
   return `https://wa.me/${cleaned}`;
 }
 
-// Default seed data for Message Scripts
-const DEFAULT_SCRIPTS = [
-  {
-    id: "default-ig-dm",
-    title: "Instagram DM (Found Pitch)",
-    channel: "Instagram",
-    type: "First Message",
-    body: "Ciao [Name]! Love your content on [Topic], especially your post about [Reference]. I help Italian coaches package their expertise into professional PDF workbooks and lead magnets to scale their client acquisition. Just wanted to see if you have any books/lead magnets planned for this quarter?",
-    isDefault: true
-  },
-  {
-    id: "default-li-conn",
-    title: "LinkedIn Connection Request",
-    channel: "LinkedIn",
-    type: "Connection Request",
-    body: "Hi [Name], came across your profile and noticed your focus on [Niche]. I write white-label ebooks and interactive workbooks for business agencies and publishing teams in the [Market] region. Would love to connect and keep in touch!",
-    isDefault: true
-  },
-  {
-    id: "default-li-after",
-    title: "LinkedIn Message (After Accepting)",
-    channel: "LinkedIn",
-    type: "After Accepting",
-    body: "Thanks for connecting, [Name]! Many agencies and course creators struggle to write high-quality books/lead magnets that engage readers and drive backend sales. I outline, structure, and write white-label books so you can publish faster under your name. Have you ever considered launching an ebook or Canva workbook for your audience?",
-    isDefault: true
-  },
-  {
-    id: "default-email-en",
-    title: "English First Email (Agencies/Coaches)",
-    channel: "Email",
-    type: "First Message",
-    body: "Subject: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI came across [Company] and love the work you are doing for clients in [Niche]. \n\nI work as a freelance white-label book writer. I help publishing teams, content agencies, and coaches design and draft high-conversion ebooks, workbook PDFs, and lead magnets. This lets you offer publishing services to your clients or grow your own backend program without doing any writing yourself.\n\nI\u2019d love to send over a brief PDF sample workbook that shows my writing style and Canva layouts. \n\nWould it be okay to share the link with you?\n\nBest regards,\nAli Raza\nEbook & Lead Magnet Writer\nhttps://alirazawriter.com (Placeholder link)",
-    isDefault: true
-  },
-  {
-    id: "default-email-it",
-    title: "Italian First Email (Primo Contatto)",
-    channel: "Email",
-    type: "First Message",
-    body: "Oggetto: Supporto stesura Ebook e Workbook Canva per [Company]\n\nGentile [Name],\n\nHo visto il vostro lavoro su [Company] e ho pensato di scrivervi.\n\nLavoro come scrittore freelance white-label, specializzato nella creazione di ebook, workbook interattivi Canva e lead magnet per coach, agenzie e case editrici. Scrivo i testi in inglese o italiano e realizzo il layout grafico, consentendovi di pubblicare a vostro nome o offrire questo servizio ai clienti senza occuparvene internamente.\n\nPosso inviarvi una breve anteprima dei miei lavori e dei workbook Canva realizzati per altri progetti simili?\n\nUn cordiale saluto,\nAli Raza\nScrittore di Ebook & Lead Magnet\nhttps://alirazawriter.com",
-    isDefault: true
-  },
-  {
-    id: "default-email-follow-1",
-    title: "Email First Follow-up",
-    channel: "Email",
-    type: "First Follow-up",
-    body: "Subject: Re: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI wanted to quickly bump this in case it got buried in your inbox. I know you're busy growing [Company].\n\nJust to recap: I write and design high-quality white-label ebooks and workbooks so you can deliver premium publishing content to your clients or scale your backend funnel.\n\nIf you have 2 minutes, I'd love to drop a quick link to a sample workbook. Would it be worth checking out?\n\nBest,\nAli Raza",
-    isDefault: true
-  },
-  {
-    id: "default-email-follow-2",
-    title: "Email Second Follow-up",
-    channel: "Email",
-    type: "Second Follow-up",
-    body: "Subject: Re: Ebook writing & Canva workbook support for [Company]\n\nHi [Name],\n\nI know you're super busy. Since I haven't heard back, I'll assume the timing isn't right for ebook or workbook design support at [Company] right now.\n\nIf anything changes or you need support in the future, feel free to reach out. I wish you and [Company] all the best!\n\nBest regards,\nAli Raza",
-    isDefault: true
-  },
-  {
-    id: "default-wa-first",
-    title: "WhatsApp First Message (Public Contacts Only)",
-    channel: "WhatsApp",
-    type: "First Message",
-    body: "Hi [Name]! Ali Raza here. Found your business number on your page. I specialize in writing white-label ebooks and interactive workbooks for coaches & course creators. I noticed you publish digital content and wanted to ask if you currently need support outsourcing workbook copywriting or Canva formatting? Appreciate your time!",
-    isDefault: true
-  },
-  {
-    id: "default-wa-follow-1",
-    title: "WhatsApp First Follow-up",
-    channel: "WhatsApp",
-    type: "First Follow-up",
-    body: "Hi [Name], just checking if you had a moment to see my previous message about ebook/workbook support? No pressure at all\u2014happy to share a quick PDF sample if you ever want to expand your digital offerings. Have a great day!",
-    isDefault: true
-  },
-  {
-    id: "default-wa-follow-2",
-    title: "WhatsApp Second Follow-up",
-    channel: "WhatsApp",
-    type: "Second Follow-up",
-    body: "Hi [Name], following up one last time regarding the white-label book/Canva support. If you're not interested or the timing isn't right, no worries at all. Feel free to reach out if things change. All the best!",
-    isDefault: true
-  },
-  {
-    id: "default-ig-follow-1",
-    title: "Instagram First Follow-up",
-    channel: "Instagram",
-    type: "First Follow-up",
-    body: "Hi [Name], just checking if you had a chance to see my message about ebook/workbook Canva design? No pressure at all\u2014hope you're having a great week!",
-    isDefault: true
-  },
-  {
-    id: "default-ig-follow-2",
-    title: "Instagram Second Follow-up",
-    channel: "Instagram",
-    type: "Second Follow-up",
-    body: "Hi [Name], following up one last time. If it's not the right time, no worries. Wish you the best with your content!",
-    isDefault: true
-  },
-  {
-    id: "default-li-follow-1",
-    title: "LinkedIn First Follow-up",
-    channel: "LinkedIn",
-    type: "First Follow-up",
-    body: "Hi [Name], just checking if you had a moment to see my previous message about white-label book writing support for [Company]? Let me know if you'd be open to a quick sample. Thanks!",
-    isDefault: true
-  },
-  {
-    id: "default-li-follow-2",
-    title: "LinkedIn Second Follow-up",
-    channel: "LinkedIn",
-    type: "Second Follow-up",
-    body: "Hi [Name], following up one last time. If now isn't a good time for ebook/workbook writing support, no problem at all. Let's stay connected here. Best of luck!",
-    isDefault: true
-  },
-  {
-    id: "default-italian-sample-reply",
-    title: "Italian Sample Reply",
-    channel: "Email",
-    type: "Sample Reply",
-    body: "Buongiorno [Nome],\n\ncerto, posso inviarvi 2 sample per valutare struttura, stile e qualit\u00e0 del lavoro.\n\nPer comodit\u00e0, qui trova anche il mio portfolio:\nlinktr.ee/aliraza.ebooks\n\nResto disponibile se desiderate un esempio pi\u00f9 vicino al vostro tipo di progetto.\n\nCordiali saluti,\nAli Raza",
-    isDefault: true
-  },
-  {
-    id: "default-english-sample-reply",
-    title: "English Sample Reply",
-    channel: "Email",
-    type: "Sample Reply",
-    body: "Hi [Name],\n\nSure, I can send 2 relevant samples so you can review the structure, writing style, and quality.\n\nYou can also view my portfolio here:\nlinktr.ee/aliraza.ebooks\n\nIf needed, I can share a sample closer to your type of project.\n\nBest regards,\nAli Raza",
-    isDefault: true
-  },
-  {
-    id: "default-italian-cv-reply",
-    title: "Italian CV Sent Reply",
-    channel: "Email",
-    type: "CV Reply",
-    body: "Buongiorno [Nome],\n\ngrazie mille per la risposta.\n\nLe invio il mio CV e i dettagli della mia attivit\u00e0.\n\nLavoro come supporto white-label per contenuti in inglese: ebook, workbook, Canva book e lead magnet per team editoriali, self-publishing, coach, agenzie e content business.\n\nPer comodit\u00e0, qui trova anche il mio portfolio:\nlinktr.ee/aliraza.ebooks\n\nResto disponibile anche per una piccola prova gratuita, cos\u00ec potete valutare qualit\u00e0, struttura e tempi di consegna.\n\nCordiali saluti,\nAli Raza",
-    isDefault: true
-  },
-  {
-    id: "default-price-reply",
-    title: "Price Reply",
-    channel: "General",
-    type: "Price Reply",
-    body: "Hi [Name],\n\nThe price depends on length, structure, niche, deadline, and whether formatting or Canva layout is included.\n\nIf you send me the topic, word count or page count, outline, and deadline, I can give you a clear quote.\n\nBest regards,\nAli Raza",
-    isDefault: true
-  },
-  {
-    id: "default-not-now-reply",
-    title: "Not Now Reply",
-    channel: "General",
-    type: "Not Now Reply",
-    body: "No problem at all, thank you for letting me know.\n\nI\u2019ll stay available if you ever need extra white-label support for ebook, workbook, Canva book, or lead magnet projects in the future.\n\nBest regards,\nAli Raza",
-    isDefault: true
-  }
-];
-
-// Scripts State variables
-let scripts = [];
-let editingScriptId = null;
-
 // Default Seed Data for the Outreach CRM
 const DEFAULT_LEADS = [
   {
@@ -548,16 +388,6 @@ async function syncLeadsToCloud() {
   }
 }
 
-// ── Sync all current scripts to cloud ────────────────────────
-async function syncScriptsToCloud() {
-  if (!cloudReady) return;
-  try {
-    await apiFetch("/api/scripts", { method: "POST", body: { scripts } });
-  } catch (err) {
-    console.error("[Cloud] syncScriptsToCloud error:", err.message);
-  }
-}
-
 // ── Upload local localStorage data to cloud ───────────────────
 async function uploadLocalDataToCloud() {
   const banner = document.getElementById("uploadLocalBanner");
@@ -568,20 +398,11 @@ async function uploadLocalDataToCloud() {
 
   try {
     const localLeads   = JSON.parse(localStorage.getItem("ali_raza_leads")   || "[]");
-    const localScripts = JSON.parse(localStorage.getItem("ali_raza_scripts") || "[]");
 
     localLeads.forEach(ensureLeadId);
-    localScripts.forEach(s => { if (!s.id) s.id = generateId(); });
     localStorage.setItem("ali_raza_leads",   JSON.stringify(localLeads));
-    localStorage.setItem("ali_raza_scripts", JSON.stringify(localScripts));
 
     await apiFetch("/api/leads", { method: "POST", body: { leads: localLeads } });
-
-    if (localScripts.length > 0) {
-      await apiFetch("/api/scripts", { method: "POST", body: { scripts: localScripts } }).catch(e =>
-        console.warn("[Cloud] scripts upload warning:", e.message)
-      );
-    }
 
     const data = await apiFetch("/api/leads");
     if (data.leads && data.leads.length > 0) {
@@ -665,12 +486,6 @@ async function initAppData() {
       showUploadBanner(localLeads.length);
     }
 
-    const scriptsData = await apiFetch("/api/scripts");
-    if (scriptsData.scripts && scriptsData.scripts.length > 0) {
-      scripts = scriptsData.scripts;
-      localStorage.setItem("ali_raza_scripts", JSON.stringify(scripts));
-    }
-
     setSyncStatus("connected");
 
   } catch (err) {
@@ -693,7 +508,6 @@ async function initAppData() {
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  renderScripts();
 }
 
 // ============================================================
@@ -710,7 +524,6 @@ document.addEventListener("DOMContentLoaded", () => {
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  renderScripts();
   checkAuth();
   initAppData();         // Async: sync with Neon cloud in background
 });
@@ -999,35 +812,8 @@ function loadData() {
     leads = [...DEFAULT_LEADS];
     saveData();
   }
-
-  // Load Scripts
-  try {
-    const storedScripts = localStorage.getItem("ali_raza_scripts");
-    if (storedScripts) {
-      scripts = JSON.parse(storedScripts);
-    } else {
-      scripts = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
-      saveScripts();
-    }
-  } catch (err) {
-    console.error("Error parsing scripts from localStorage, resetting to defaults", err);
-    scripts = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
-    saveScripts();
-  }
-
-  // Upgrade/migrate default scripts to support First/Second follow-ups
-  migrateScripts();
 }
 
-function migrateScripts() {
-  if (!Array.isArray(scripts)) {
-    scripts = [];
-  }
-  const customScripts = scripts.filter(s => s && !s.isDefault && (!s.id || !s.id.startsWith("default-")));
-  const pristineDefaults = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
-  scripts = [...pristineDefaults, ...customScripts];
-  saveScripts();
-}
 
 // Save Leads to LocalStorage + fire-and-forget cloud sync
 function saveData() {
@@ -1611,7 +1397,6 @@ function renderTodayActions() {
       let buttonsHtml = "";
       if (lead.channel === "Email") {
         buttonsHtml = `
-          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized outreach email message"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Script</button>
           <button class="btn btn-primary" onclick="markSentEmail(${lead.originalIndex})" title="Mark email sent & reschedule follow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Mark Sent</button>
           <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open lead's website/link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Link</button>
           <button class="btn btn-secondary" onclick="setFollowupCalendar(${lead.originalIndex})" title="Reschedule next action date"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Reschedule</button>
@@ -1619,7 +1404,6 @@ function renderTodayActions() {
         `;
       } else if (lead.channel === "WhatsApp") {
         buttonsHtml = `
-          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized WhatsApp pitch message"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Script</button>
           <button class="btn btn-secondary" onclick="openWhatsAppChat(${lead.originalIndex})" title="Open click-to-chat WhatsApp link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> Open WA</button>
           <button class="btn btn-primary" onclick="markSentWhatsApp(${lead.originalIndex})" title="Mark WhatsApp sent & reschedule follow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Mark Sent</button>
           <button class="btn btn-secondary" onclick="setFollowupCalendar(${lead.originalIndex})" title="Reschedule next action date"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Reschedule</button>
@@ -1630,7 +1414,6 @@ function renderTodayActions() {
           <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open Instagram profile in new tab"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open IG</button>
           <button class="btn btn-secondary" onclick="markInstagramCommented(${lead.originalIndex})" title="Log a comment action on lead's post"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Commented</button>
           <button class="btn btn-secondary" onclick="markInstagramFollowed(${lead.originalIndex})" title="Log a followed action on lead's profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg> Followed</button>
-          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized Instagram DM script"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy DM</button>
           <button class="btn btn-primary" onclick="markSentDM(${lead.originalIndex})" title="Mark Instagram DM sent & reschedule follow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> DM Sent</button>
           <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/></svg> Archive</button>
         `;
@@ -1638,7 +1421,6 @@ function renderTodayActions() {
         buttonsHtml = `
           <button class="btn btn-secondary" onclick="openLeadLink(${lead.originalIndex})" title="Open LinkedIn profile in new tab"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open LI</button>
           <button class="btn btn-secondary" onclick="markLinkedInConnectionSent(${lead.originalIndex})" title="Mark connection request sent & wait 3 days"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg> Conn Sent</button>
-          <button class="btn btn-secondary" onclick="copyPersonalizedScript(${lead.originalIndex})" title="Copy customized LinkedIn script"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Script</button>
           <button class="btn btn-primary" onclick="markSentLinkedInMessage(${lead.originalIndex})" title="Mark message sent & reschedule follow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Msg Sent</button>
           <button class="btn btn-danger-outline" onclick="archiveLead(${lead.originalIndex})" title="Archive lead"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" x2="14" y1="12" y2="12"/></svg> Archive</button>
         `;
@@ -2086,253 +1868,7 @@ function setupEventListeners() {
       renderLeads();
     });
   });
-
-  // --- Scripts Section Toolbar & Accordion Event Delegation ---
-
-  // Search & Filter listeners
-  const scriptSearchInput = document.getElementById("scriptSearchInput");
-  const filterScriptChannel = document.getElementById("filterScriptChannel");
-  const filterScriptType = document.getElementById("filterScriptType");
-
-  if (scriptSearchInput) {
-    scriptSearchInput.addEventListener("input", renderScripts);
-  }
-  if (filterScriptChannel) {
-    filterScriptChannel.addEventListener("change", renderScripts);
-  }
-  if (filterScriptType) {
-    filterScriptType.addEventListener("change", renderScripts);
-  }
-
-  // Delegated Accordion Events (Toggle, Copy, Edit, Cancel, Save, Delete)
-  const scriptsAccordion = document.getElementById("scriptsAccordion");
-  if (scriptsAccordion) {
-    scriptsAccordion.addEventListener("click", (e) => {
-      // 1. Accordion Trigger (Toggle Open/Close)
-      const trigger = e.target.closest(".accordion-trigger");
-      if (trigger) {
-        const parent = trigger.closest(".accordion-item");
-        const scriptId = parent.dataset.id;
-        
-        // If this item is being edited, prevent toggle collapse
-        if (editingScriptId === scriptId) return;
-        
-        const isActive = parent.classList.contains("active");
-        
-        // Close all other accordion items
-        document.querySelectorAll("#scriptsAccordion .accordion-item").forEach(item => {
-          if (item !== parent) {
-            item.classList.remove("active");
-            const content = item.querySelector(".accordion-content");
-            if (content) content.style.maxHeight = null;
-          }
-        });
-        
-        parent.classList.toggle("active");
-        const content = parent.querySelector(".accordion-content");
-        if (parent.classList.contains("active")) {
-          content.style.maxHeight = content.scrollHeight + "px";
-        } else {
-          content.style.maxHeight = null;
-        }
-        return;
-      }
-      
-      // 2. Copy Button
-      const copyBtn = e.target.closest(".copy-btn");
-      if (copyBtn) {
-        const scriptId = copyBtn.dataset.id;
-        const script = scripts.find(s => s.id === scriptId);
-        if (script) {
-          navigator.clipboard.writeText(script.body).then(() => {
-            copyBtn.textContent = "Copied!";
-            copyBtn.classList.add("btn-success");
-            copyBtn.classList.remove("btn-secondary");
-            
-            setTimeout(() => {
-              copyBtn.textContent = "Copy Script";
-              copyBtn.classList.remove("btn-success");
-              copyBtn.classList.add("btn-secondary");
-            }, 2000);
-            
-            showToast("Script body copied!", "success");
-          }).catch(() => {
-            showToast("Failed to copy script.", "error");
-          });
-        }
-        return;
-      }
-      
-      // 3. Edit Button
-      const editBtn = e.target.closest(".edit-btn");
-      if (editBtn) {
-        const scriptId = editBtn.dataset.id;
-        editingScriptId = scriptId;
-        renderScripts();
-        
-        // Ensure the accordion item is active and has full height visible
-        const parent = editBtn.closest(".accordion-item");
-        parent.classList.add("active");
-        const content = parent.querySelector(".accordion-content");
-        if (content) content.style.maxHeight = "none";
-        return;
-      }
-      
-      // 4. Cancel Edit Button
-      const cancelEditBtn = e.target.closest(".cancel-edit-btn");
-      if (cancelEditBtn) {
-        editingScriptId = null;
-        renderScripts();
-        return;
-      }
-      
-      // 5. Save Edit Button
-      const saveEditBtn = e.target.closest(".save-edit-btn");
-      if (saveEditBtn) {
-        const scriptId = saveEditBtn.dataset.id;
-        const parent = saveEditBtn.closest(".accordion-item");
-        
-        const titleInput = parent.querySelector(".edit-script-title");
-        const channelSelect = parent.querySelector(".edit-script-channel");
-        const typeSelect = parent.querySelector(".edit-script-type");
-        const bodyTextarea = parent.querySelector(".edit-script-body");
-        
-        const updatedTitle = titleInput.value.trim();
-        const updatedChannel = channelSelect.value;
-        const updatedType = typeSelect.value;
-        const updatedBody = bodyTextarea.value;
-        
-        if (!updatedTitle || !updatedBody) {
-          showToast("Title and Body are required.", "error");
-          return;
-        }
-        
-        const scriptIndex = scripts.findIndex(s => s.id === scriptId);
-        if (scriptIndex !== -1) {
-          scripts[scriptIndex].title = updatedTitle;
-          scripts[scriptIndex].channel = updatedChannel;
-          scripts[scriptIndex].type = updatedType;
-          scripts[scriptIndex].body = updatedBody;
-          
-          saveScripts();
-          editingScriptId = null;
-          renderScripts();
-          showToast("Script updated successfully!", "success");
-        }
-        return;
-      }
-      
-      // 6. Delete Button
-      const deleteBtn = e.target.closest(".delete-btn");
-      if (deleteBtn) {
-        const scriptId = deleteBtn.dataset.id;
-        const script = scripts.find(s => s.id === scriptId);
-        if (script) {
-          const confirmed = confirm("Are you sure you want to delete this script?");
-          if (confirmed) {
-            scripts = scripts.filter(s => s.id !== scriptId);
-            saveScripts();
-            if (editingScriptId === scriptId) {
-              editingScriptId = null;
-            }
-            renderScripts();
-            showToast(`Deleted script "${script.title}"`, "success");
-          }
-        }
-        return;
-      }
-    });
-  }
-
-  // "+ Add New Script" Modal Controls
-  const addNewScriptBtn = document.getElementById("addNewScriptBtn");
-  const scriptModal = document.getElementById("scriptModal");
-  const closeScriptModalBtn = document.getElementById("closeScriptModalBtn");
-  const cancelScriptModalBtn = document.getElementById("cancelScriptModalBtn");
-  const scriptForm = document.getElementById("scriptForm");
-
-  if (addNewScriptBtn && scriptModal) {
-    addNewScriptBtn.addEventListener("click", () => {
-      if (scriptForm) scriptForm.reset();
-      scriptModal.classList.add("active");
-    });
-  }
-  
-  const closeScriptModal = () => {
-    if (scriptModal) scriptModal.classList.remove("active");
-  };
-
-  if (closeScriptModalBtn) {
-    closeScriptModalBtn.addEventListener("click", closeScriptModal);
-  }
-  if (cancelScriptModalBtn) {
-    cancelScriptModalBtn.addEventListener("click", closeScriptModal);
-  }
-  
-  // Close script modal on overlay click
-  if (scriptModal) {
-    scriptModal.addEventListener("click", (e) => {
-      if (e.target.id === "scriptModal") closeScriptModal();
-    });
-  }
-
-  // Script Modal Form Submission
-  if (scriptForm) {
-    scriptForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      
-      const newTitle = document.getElementById("newScriptTitle").value.trim();
-      const newChannel = document.getElementById("newScriptChannel").value;
-      const newType = document.getElementById("newScriptType").value;
-      const newBody = document.getElementById("newScriptBody").value;
-      
-      if (!newTitle || !newBody) {
-        showToast("Title and Body are required.", "error");
-        return;
-      }
-      
-      const newScript = {
-        id: "custom-" + Date.now(),
-        title: newTitle,
-        channel: newChannel,
-        type: newType,
-        body: newBody,
-        isDefault: false
-      };
-      
-      scripts.unshift(newScript); // Add custom to beginning
-      saveScripts();
-      closeScriptModal();
-      renderScripts();
-      showToast(`Added script "${newTitle}"`, "success");
-    });
-  }
-
-  // "Reset Default Scripts" Action
-  const resetScriptsBtn = document.getElementById("resetScriptsBtn");
-  if (resetScriptsBtn) {
-    resetScriptsBtn.addEventListener("click", () => {
-      const confirmed = confirm("This will restore the original default scripts. Your custom scripts may be kept separately.");
-      if (confirmed) {
-        // Keep custom scripts
-        const customScripts = scripts.filter(s => !s.isDefault);
-        
-        // Pristine default copy
-        const pristineDefaults = JSON.parse(JSON.stringify(DEFAULT_SCRIPTS));
-        
-        // defaults first, then custom ones
-        scripts = [...pristineDefaults, ...customScripts];
-        
-        saveScripts();
-        editingScriptId = null;
-        renderScripts();
-        showToast("Default scripts restored!", "success");
-      }
-    });
-  }
-
   // CSV Export trigger
-  exportBtn.addEventListener("click", exportToCSV);
 
   const exportFilteredLeadsBtn = document.getElementById("exportFilteredLeadsBtn");
   if (exportFilteredLeadsBtn) {
@@ -3703,7 +3239,6 @@ function exportBackupJSON() {
     appVersion: "1.0.0",
     backupCreatedDate: new Date().toISOString(),
     leads: leads,
-    scripts: scripts,
     settings: {
       theme: localStorage.getItem("theme") || "dark",
       ali_raza_logged_in: localStorage.getItem("ali_raza_logged_in")
@@ -3736,14 +3271,13 @@ function handleBackupFileSelect(event) {
   reader.onload = function(e) {
     try {
       const data = JSON.parse(e.target.result);
-      if (!data || (!Array.isArray(data.leads) && !Array.isArray(data.scripts))) {
-        showToast("Invalid backup file format. Leads or scripts array not found.", "error");
+      if (!data || !Array.isArray(data.leads)) {
+        showToast("Invalid backup file format. Leads array not found.", "error");
         return;
       }
       
       pendingBackupData = {
-        leads: Array.isArray(data.leads) ? data.leads : [],
-        scripts: Array.isArray(data.scripts) ? data.scripts : []
+        leads: Array.isArray(data.leads) ? data.leads : []
       };
       
       showBackupImportPreview();
@@ -3759,7 +3293,6 @@ function showBackupImportPreview() {
   if (!pendingBackupData) return;
   
   const leadsInBackup = pendingBackupData.leads;
-  const scriptsInBackup = pendingBackupData.scripts;
   
   let duplicateCount = 0;
   
@@ -3771,7 +3304,6 @@ function showBackupImportPreview() {
   });
   
   document.getElementById("backLeadsFound").textContent = leadsInBackup.length;
-  document.getElementById("backScriptsFound").textContent = scriptsInBackup.length;
   document.getElementById("backExistingLeads").textContent = leads.length;
   document.getElementById("backDuplicatesFound").textContent = duplicateCount;
   
@@ -3827,16 +3359,13 @@ function confirmBackupImport() {
   const mode = (radioMerge && radioMerge.checked) ? "merge" : "replace";
   
   if (mode === "replace") {
-    const warningText = "This will replace all current leads/scripts in this browser. Export a backup first. Continue?";
+    const warningText = "This will replace all current leads in this browser. Export a backup first. Continue?";
     if (!confirm(warningText)) {
       return;
     }
     
     // Replace mode
     leads = pendingBackupData.leads;
-    if (pendingBackupData.scripts.length > 0) {
-      scripts = pendingBackupData.scripts;
-    }
     
     showToast("Application data replaced successfully!", "success");
   } else {
@@ -3861,18 +3390,6 @@ function confirmBackupImport() {
       }
     });
     
-    // Merge scripts
-    let scriptsAdded = 0;
-    pendingBackupData.scripts.forEach(newScript => {
-      const existingIdx = scripts.findIndex(s => s.id === newScript.id || s.title.toLowerCase() === newScript.title.toLowerCase());
-      if (existingIdx !== -1) {
-        scripts[existingIdx] = newScript;
-      } else {
-        scripts.push(newScript);
-        scriptsAdded++;
-      }
-    });
-    
     let toastMsg = `Merged backup successfully: added ${addedCount} leads`;
     if (skippedCount > 0) {
       toastMsg += `, skipped ${skippedCount} duplicates`;
@@ -3882,14 +3399,12 @@ function confirmBackupImport() {
   }
   
   saveData();
-  saveScripts();
   closeBackupImportModal();
   
   // Refresh views
   updateDashboard();
   renderLeads();
   renderTodayActions();
-  renderScripts();
 }
 
 function closeBackupImportModal() {
@@ -3920,172 +3435,6 @@ window.toggleBackupDropdown = function(event) {
 window.openEditModal = openEditModal;
 window.archiveLead = archiveLead;
 window.deleteLead = deleteLead;
-
-// Save Scripts to LocalStorage + fire-and-forget cloud sync
-function saveScripts() {
-  localStorage.setItem("ali_raza_scripts", JSON.stringify(scripts));
-  syncScriptsToCloud(); // async, fire-and-forget
-}
-
-// Render outreach message scripts dynamically
-function renderScripts() {
-  const container = document.getElementById("scriptsAccordion");
-  if (!container) return;
-
-  const searchQuery = document.getElementById("scriptSearchInput")?.value.toLowerCase().trim() || "";
-  const channelFilter = document.getElementById("filterScriptChannel")?.value || "All";
-  const typeFilter = document.getElementById("filterScriptType")?.value || "All";
-
-  // Filter scripts
-  const filtered = scripts.filter(script => {
-    // Search matching title or body
-    const matchesSearch = !searchQuery || 
-      script.title.toLowerCase().includes(searchQuery) || 
-      script.body.toLowerCase().includes(searchQuery);
-    
-    // Channel filter
-    const matchesChannel = channelFilter === "All" || script.channel === channelFilter;
-    
-    // Type filter
-    const matchesType = typeFilter === "All" || script.type === typeFilter;
-
-    return matchesSearch && matchesChannel && matchesType;
-  });
-
-  // Clear container
-  container.innerHTML = "";
-
-  if (filtered.length === 0) {
-    container.innerHTML = `
-      <div style="text-align: center; padding: 24px; color: var(--color-priority-c); font-size: 14px; background-color: var(--color-off-white); border-radius: var(--radius-md); border: var(--border-light);">
-        No outreach scripts found matching your filters.
-      </div>
-    `;
-    return;
-  }
-
-  // Render each script
-  filtered.forEach(script => {
-    const isEditing = editingScriptId === script.id;
-    
-    const accordionItem = document.createElement("div");
-    accordionItem.className = `accordion-item${isEditing ? " active" : ""}`;
-    accordionItem.dataset.id = script.id;
-
-    // Header Trigger
-    const triggerBtn = document.createElement("button");
-    triggerBtn.className = "accordion-trigger";
-    triggerBtn.style.display = "flex";
-    triggerBtn.style.alignItems = "center";
-    triggerBtn.style.justifyContent = "space-between";
-    triggerBtn.style.width = "100%";
-    triggerBtn.style.gap = "8px";
-    
-    if (isEditing) {
-      triggerBtn.style.cursor = "default";
-    }
-
-    triggerBtn.innerHTML = `
-      <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; pointer-events: none;">
-        <span class="script-title-display" style="font-weight: 600;">${escapeHtml(script.title)}</span>
-        <span class="script-badge channel">${escapeHtml(script.channel)}</span>
-        <span class="script-badge type">${escapeHtml(script.type)}</span>
-      </span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; flex-shrink: 0; pointer-events: none;"><polyline points="6 9 12 15 18 9"/></svg>
-    `;
-
-    const contentDiv = document.createElement("div");
-    contentDiv.className = "accordion-content";
-    if (isEditing) {
-      contentDiv.style.maxHeight = "none";
-    }
-
-    if (isEditing) {
-      // Edit form layout
-      contentDiv.innerHTML = `
-        <div class="script-body editing-form" style="display: flex; flex-direction: column; gap: 12px; padding: 16px 18px;">
-          <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block;">Script Title</label>
-            <input type="text" class="edit-script-title" value="${escapeHtml(script.title)}" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); outline: none;">
-          </div>
-          
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
-              <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block;">Channel</label>
-              <select class="edit-script-channel" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); background-color: var(--color-white); outline: none;">
-                <option value="Instagram" ${script.channel === 'Instagram' ? 'selected' : ''}>Instagram</option>
-                <option value="LinkedIn" ${script.channel === 'LinkedIn' ? 'selected' : ''}>LinkedIn</option>
-                <option value="Email" ${script.channel === 'Email' ? 'selected' : ''}>Email</option>
-                <option value="WhatsApp" ${script.channel === 'WhatsApp' ? 'selected' : ''}>WhatsApp</option>
-                <option value="General" ${script.channel === 'General' ? 'selected' : ''}>General</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
-              <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block;">Script Type</label>
-              <select class="edit-script-type" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); background-color: var(--color-white); outline: none;">
-                <option value="First Message" ${script.type === 'First Message' ? 'selected' : ''}>First Message</option>
-                <option value="Follow-up" ${script.type === 'Follow-up' ? 'selected' : ''}>Follow-up</option>
-                <option value="Connection Request" ${script.type === 'Connection Request' ? 'selected' : ''}>Connection Request</option>
-                <option value="After Accepting" ${script.type === 'After Accepting' ? 'selected' : ''}>After Accepting</option>
-                <option value="Sample Reply" ${script.type === 'Sample Reply' ? 'selected' : ''}>Sample Reply</option>
-                <option value="CV Reply" ${script.type === 'CV Reply' ? 'selected' : ''}>CV Reply</option>
-                <option value="Price Reply" ${script.type === 'Price Reply' ? 'selected' : ''}>Price Reply</option>
-                <option value="Not Now Reply" ${script.type === 'Not Now Reply' ? 'selected' : ''}>Not Now Reply</option>
-                <option value="Custom" ${script.type === 'Custom' ? 'selected' : ''}>Custom</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-priority-c); display: block;">Message Body</label>
-            <textarea class="edit-script-body" rows="6" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: var(--border-light); font-family: var(--font-body); line-height: 1.5; resize: vertical; min-height: 100px; outline: none;">${escapeHtml(script.body)}</textarea>
-          </div>
-          
-          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; flex-wrap: wrap;">
-            <button class="btn btn-secondary btn-sm cancel-edit-btn" data-id="${script.id}">
-              Cancel
-            </button>
-            <button class="btn btn-primary btn-sm save-edit-btn" data-id="${script.id}">
-              Save Changes
-            </button>
-          </div>
-        </div>
-      `;
-    } else {
-      // Read mode layout
-      contentDiv.innerHTML = `
-        <div class="script-body">
-          <div class="script-text-container" style="position: relative;">
-            <pre style="font-family: var(--font-body); white-space: pre-wrap; word-break: break-word; line-height: 1.6; margin: 0;">${escapeHtml(script.body)}</pre>
-          </div>
-          <div class="script-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <div>
-              <span style="font-size: 11px; color: var(--color-priority-c); font-weight: 600;">
-                ${script.isDefault ? "Default Script" : "Custom Script"}
-              </span>
-            </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button class="btn btn-secondary btn-sm copy-btn" data-id="${script.id}">
-                Copy Script
-              </button>
-              <button class="btn btn-secondary btn-sm edit-btn" data-id="${script.id}">
-                Edit
-              </button>
-              <button class="btn btn-danger-outline btn-sm delete-btn" data-id="${script.id}">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    accordionItem.appendChild(triggerBtn);
-    accordionItem.appendChild(contentDiv);
-    container.appendChild(accordionItem);
-  });
-}
-
 // Simple HTML escaper helper to prevent XSS
 function escapeHtml(text) {
   if (typeof text !== 'string') return text;
@@ -4221,103 +3570,6 @@ function copyTextToClipboard(text) {
     return Promise.resolve();
   }
 }
-
-// Helper to get script with replaced placeholders
-function getPersonalizedScript(lead, script) {
-  if (!script) return "";
-  
-  const nameVal = lead.contactPerson ? lead.contactPerson : (lead.name || "there");
-  const companyVal = lead.name || "";
-  const nicheVal = lead.niche || "";
-  const marketVal = lead.market || "";
-  
-  let body = script.body;
-  body = body.replace(/\[Name\]/gi, nameVal);
-  body = body.replace(/\[Nome\]/gi, nameVal);
-  body = body.replace(/\[Company\]/gi, companyVal);
-  body = body.replace(/\[Nome Azienda\]/gi, companyVal);
-  body = body.replace(/\[Azienda\]/gi, companyVal);
-  body = body.replace(/\[Niche\]/gi, nicheVal);
-  body = body.replace(/\[Market\]/gi, marketVal);
-  
-  return body;
-}
-
-// Smart Message Copy
-function copyPersonalizedScript(originalIndex, scriptType) {
-  const lead = leads[originalIndex];
-  if (!lead) return;
-
-  let scriptTitle = "";
-  let typeKey = "";
-  let channelKey = "";
-
-  if (scriptType === "Email") {
-    scriptTitle = lead.market === "Italy" ? "Italian First Email (Primo Contatto)" : "English First Email (Agencies/Coaches)";
-    typeKey = "First Message";
-    channelKey = "Email";
-  } else if (scriptType === "WhatsApp") {
-    scriptTitle = "WhatsApp First Message (Public Contacts Only)";
-    typeKey = "First Message";
-    channelKey = "WhatsApp";
-  } else if (scriptType === "Instagram" || scriptType === "DM") {
-    scriptTitle = "Instagram DM (Found Pitch)";
-    typeKey = "First Message";
-    channelKey = "Instagram";
-  } else if (scriptType === "LinkedIn") {
-    if (lead.stage === "Found (Lead collected only)" || lead.stage === "Engaged") {
-      scriptTitle = "LinkedIn Connection Request";
-      typeKey = "Connection Request";
-    } else {
-      scriptTitle = "LinkedIn Message (After Accepting)";
-      typeKey = "After Accepting";
-    }
-    channelKey = "LinkedIn";
-  } else if (scriptType === "Follow-up") {
-    if (lead.channel === "Email") scriptTitle = "Email Follow-up (Polite Nudge)";
-    else if (lead.channel === "WhatsApp") scriptTitle = "WhatsApp Follow-up";
-    else {
-      typeKey = "Follow-up";
-      channelKey = lead.channel;
-    }
-  } else if (scriptType === "Sample Reply") {
-    scriptTitle = lead.market === "Italy" ? "Italian Sample Reply" : "English Sample Reply";
-    typeKey = "Sample Reply";
-  } else if (scriptType === "CV Reply") {
-    scriptTitle = "Italian CV Sent Reply";
-    typeKey = "CV Reply";
-  } else if (scriptType === "Price Reply") {
-    scriptTitle = "Price Reply";
-    typeKey = "Price Reply";
-  }
-
-  let script = null;
-  if (scriptTitle) {
-    script = scripts.find(s => s.title.toLowerCase() === scriptTitle.toLowerCase());
-  }
-  if (!script && typeKey) {
-    script = scripts.find(s => s.type === typeKey && (channelKey ? s.channel === channelKey : true));
-  }
-  if (!script && typeKey) {
-    script = scripts.find(s => s.type === typeKey);
-  }
-  if (!script) {
-    script = scripts[0];
-  }
-
-  if (!script) {
-    showToast("No template script found. Please add a script first.", "error");
-    return;
-  }
-
-  const text = getPersonalizedScript(lead, script);
-  copyTextToClipboard(text).then(() => {
-    showToast("Message copied", "success");
-  }).catch(() => {
-    showToast("Failed to copy script.", "error");
-  });
-}
-
 // Quick Actions Dropdown Builder
 function getQuickActionsDropdownHtml(lead) {
   const index = lead.originalIndex;
@@ -4335,8 +3587,6 @@ function getQuickActionsDropdownHtml(lead) {
   
   copySection += `
     <button class="dropdown-item" onclick="copyLeadFirstMessage(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy First Message</button>
-    <button class="dropdown-item" onclick="copyLeadFirstFollowup(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy First Follow-up</button>
-    <button class="dropdown-item" onclick="copyLeadSecondFollowup(${index})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy Second Follow-up</button>
   `;
 
   let markSection = `
@@ -4468,17 +3718,8 @@ window.copyLeadFirstMessage = function(originalIndex) {
       showToast("Failed to copy message", "error");
     });
   } else {
-    // If empty, personalize and copy the first message script template
-    copyPersonalizedScript(originalIndex, 'First Message');
+    showToast("No message sent yet.", "warning");
   }
-};
-
-window.copyLeadFirstFollowup = function(originalIndex) {
-  copyPersonalizedScript(originalIndex, 'First Follow-up');
-};
-
-window.copyLeadSecondFollowup = function(originalIndex) {
-  copyPersonalizedScript(originalIndex, 'Second Follow-up');
 };
 
 window.markFirstMessageSent = function(originalIndex) {
@@ -5362,7 +4603,6 @@ document.addEventListener("click", (e) => {
 
 // Expose functions to window
 window.addDays = addDays;
-window.copyPersonalizedScript = copyPersonalizedScript;
 window.openLeadLink = openLeadLink;
 window.openWhatsAppChat = openWhatsAppChat;
 window.setFollowupCalendar = setFollowupCalendar;
