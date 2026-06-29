@@ -455,6 +455,8 @@ let leads = [];
 let activeTab = "All"; // All, Instagram, LinkedIn, Email, WhatsApp
 let activeQuickFilter = "All"; // All, Today, FollowUp, A, Warm, Archived
 let activeTodayFilter = "All"; // All, Email, WhatsApp, Instagram, LinkedIn, A, Warm, Overdue
+let currentSortColumn = null;
+let currentSortDirection = "asc";
 
 // ============================================================
 // NEON DATABASE SYNC ENGINE
@@ -795,6 +797,7 @@ function applyColumnVisibility() {
 
 function getMinColumnWidth(colId) {
   if (colId === "col-name") return 260;
+  if (colId === "col-contactPerson") return 140;
   if (colId === "col-contact") return 140;
   if (colId === "col-market") return 100;
   if (colId === "col-niche") return 120;
@@ -811,6 +814,7 @@ function getMinColumnWidth(colId) {
 
 function getDefaultColumnWidth(colId) {
   if (colId === "col-name") return 260;
+  if (colId === "col-contactPerson") return 140;
   if (colId === "col-contact") return 140;
   if (colId === "col-market") return 100;
   if (colId === "col-niche") return 120;
@@ -1088,7 +1092,7 @@ function getFilteredLeads() {
   const filterActionDate = document.getElementById("filterActionDate").value;
   const filterNextAction = document.getElementById("filterNextAction").value;
 
-  return leads.filter((lead, index) => {
+  const filtered = leads.filter((lead, index) => {
     // Keep track of index for operations
     lead.originalIndex = index;
 
@@ -1162,6 +1166,21 @@ function getFilteredLeads() {
 
     return true;
   });
+
+  if (currentSortColumn === "contactPerson") {
+    filtered.sort((a, b) => {
+      const valA = (a.contactPerson || "").trim().toLowerCase();
+      const valB = (b.contactPerson || "").trim().toLowerCase();
+      if (!valA && !valB) return 0;
+      if (!valA) return 1;
+      if (!valB) return -1;
+      if (valA < valB) return currentSortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return currentSortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
+
+  return filtered;
 }
 
 // Generate Badges and styling elements
@@ -1308,7 +1327,7 @@ function renderLeads() {
   if (filtered.length === 0) {
     const emptyHtml = `
       <tr>
-        <td colspan="9" style="text-align: center;">
+        <td colspan="15" style="text-align: center;">
           <div class="empty-state">
             <span class="empty-state-icon">\uD83D\uDD0D</span>
             <h3>No leads found</h3>
@@ -1364,6 +1383,7 @@ function renderLeads() {
           Open Link <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; display: inline-block; vertical-align: middle;"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
         </a>` : ''}
       </td>
+      <td data-col="col-contactPerson">${lead.contactPerson ? escapeHtml(lead.contactPerson) : '—'}</td>
       ${contactCellHtml}
       <td data-col="col-market"><strong>${lead.market}</strong></td>
       <td data-col="col-niche">${lead.niche}</td>
@@ -1417,6 +1437,10 @@ function renderLeads() {
       </div>
       
       <div class="lead-card-details-grid">
+        <div class="lead-card-detail-item" data-col="col-contactPerson">
+          <span class="lbl">Contact Person</span>
+          <span class="val">${lead.contactPerson || '—'}</span>
+        </div>
         <div class="lead-card-detail-item" data-col="col-stage">
           <span class="lbl">Stage</span>
           <span class="val">${getStageBadge(lead.stage)}</span>
@@ -2583,6 +2607,25 @@ function setupEventListeners() {
       toggleColumnVisibility(colId, isVisible);
     });
   });
+
+  const thContactPerson = document.getElementById("thContactPerson");
+  if (thContactPerson) {
+    thContactPerson.addEventListener("click", () => {
+      if (currentSortColumn === "contactPerson") {
+        currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+      } else {
+        currentSortColumn = "contactPerson";
+        currentSortDirection = "asc";
+      }
+      
+      const indicator = document.getElementById("sortIndicatorContactPerson");
+      if (indicator) {
+        indicator.textContent = currentSortDirection === "asc" ? " ▲" : " ▼";
+      }
+      
+      renderLeads();
+    });
+  }
 }
 
 // Escaping values for CSV

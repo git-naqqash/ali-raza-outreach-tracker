@@ -397,6 +397,10 @@
                   Lead / Company
                 </label>
                 <label class="dropdown-item" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                  <input type="checkbox" class="col-toggle-checkbox" data-column="col-contactPerson" checked>
+                  Contact Person
+                </label>
+                <label class="dropdown-item" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
                   <input type="checkbox" class="col-toggle-checkbox" data-column="col-contact" checked>
                   Channel
                 </label>
@@ -466,6 +470,7 @@
               <tr>
                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllLeads" onclick="toggleSelectAllLeads(this)"></th>
                 <th data-col="col-name"><span class="th-text">Lead / Company</span></th>
+                <th data-col="col-contactPerson" id="thContactPerson" style="cursor: pointer; user-select: none;" title="Sort by Contact Person"><span class="th-text">Contact Person <span id="sortIndicatorContactPerson" style="font-size: 10px; color: var(--color-priority-c); margin-left: 4px;">↕</span></span></th>
                 <th id="dynamicContactHeader" data-col="col-contact"><span class="th-text">Channel</span></th>
                 <th data-col="col-market"><span class="th-text">Market</span></th>
                 <th data-col="col-niche"><span class="th-text">Niche</span></th>

@@ -617,6 +617,13 @@ table.leads-table td[data-col="col-name"] {
   max-width: 260px !important;
 }
 
+table.leads-table th[data-col="col-contactPerson"],
+table.leads-table td[data-col="col-contactPerson"] {
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
+}
+
 table.leads-table th[data-col="col-contact"],
 table.leads-table td[data-col="col-contact"] {
   width: 140px !important;
